@@ -1,0 +1,8 @@
+# pnpm 工作区配置文件
+# allowBuilds: 显式允许哪些依赖在安装时执行 build/post-install 脚本（pnpm 10+ 的安全机制）
+# - sharp 是 Next.js 内置 next/image 用于图片压缩/缩放的 native 模块，必须允许它 build，否则 next/image 在生产构建里会失败
+# ignoredBuiltDependencies: 显式忽略的、不需要跑 build 的依赖
+allowBuilds:
+  sharp: true
+ignoredBuiltDependencies:
+  - unrs-resolver

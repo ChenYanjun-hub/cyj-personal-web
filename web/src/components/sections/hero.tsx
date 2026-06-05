@@ -1,0 +1,214 @@
+"use client";
+
+/**
+ * 第一幕：Hero · 数字名片（v1，来自 Claude Design 设计稿）
+ * ---------------------------------------------------------------
+ * 视觉签名 = 鼠标十字准星 + 实时坐标（规划师 / 工程图母题的具象化）。
+ * 入场动画 = 6 元素 stagger fade-in（尊重 prefers-reduced-motion）。
+ * 背景 = AIGC 城市轴测线稿 + radial veil 蒙版（提升文字可读性）。
+ *
+ * 为什么是 Client Component：
+ *  - 监听 mousemove 实时更新十字准星位置 + 坐标 + 背景视差
+ *  - 用 requestAnimationFrame 节流，60fps 稳定
+ *  - mount 后触发 .loaded 启动 stagger 动画
+ *
+ * 视觉样式都在 src/app/globals.css 末尾 ".stage / .hero / .veil / ..." 一段，
+ * 类名保留 design 稿原命名，方便对照 claude design/untitled/project/Hero.html 排查。
+ *
+ * 六幕地图（保留作约定参考）：
+ *   sections/hero.tsx              ← 第一幕（本文件）
+ *   sections/capability-bridge.tsx ← 第二幕 · 能力对照
+ *   sections/skills.tsx            ← 第三幕 · 能力技能
+ *   sections/portfolio.tsx         ← 第四幕 · 作品集
+ *   sections/life.tsx              ← 第五幕 · 视觉与生活
+ *   sections/closing.tsx           ← 第六幕 · 收尾
+ */
+
+import { useEffect, useRef, useState } from "react";
+
+// 顶部导航锚点：V1 只实现第一幕，其他幕做完后锚点自动生效
+const NAV_LINKS = [
+  { href: "#card", label: "数字名片" },
+  { href: "#compare", label: "能力对照" },
+  { href: "#skills", label: "具备技能" },
+  { href: "#work", label: "作品集" },
+  { href: "#life", label: "视觉与生活" },
+  { href: "#contact", label: "联系方式" },
+  { href: "#board", label: "留言板" },
+];
+
+// Hero 底部关键词条（自我标签）
+const KEYS = ["Agent 搭建", "Vibe Coding", "艺术审美", "产品思维"];
+
+// 顶部 Eyebrow "求职意向 / AI 产品经理" 板块的显示开关
+// 当前关闭（V1 暂时不显示，主姓名 + tagline 已经能讲清求职意图）
+// 想恢复显示，把下面改回 true
+const SHOW_EYEBROW = false;
+
+export default function Hero() {
+  const stageRef = useRef<HTMLElement>(null);
+  const coordRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // mount 下一帧切到 loaded，触发 stagger 入场动画
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setLoaded(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  // 鼠标交互：十字准星位置 + 实时坐标（模拟地理 E/N）+ 背景轻微视差
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    let raf: number | null = null;
+
+    const onMove = (e: MouseEvent) => {
+      // 节流：一帧只更新一次 CSS 变量，避免 mousemove 高频触发重绘
+      if (raf !== null) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const x = e.clientX;
+        const y = e.clientY;
+
+        // 十字准星位置 = 鼠标当前坐标
+        stage.style.setProperty("--cx", `${x}px`);
+        stage.style.setProperty("--cy", `${y}px`);
+
+        // 背景视差：屏幕中心为 0 偏移，越靠边缘偏移越大（最大 ±11px）
+        // 负号是让背景往鼠标"反方向"漂移，模拟纵深感
+        const px = (x / w - 0.5) * -22;
+        const py = (y / h - 0.5) * -22;
+        stage.style.setProperty("--mx", `${px.toFixed(1)}px`);
+        stage.style.setProperty("--my", `${py.toFixed(1)}px`);
+
+        // 右上角坐标：E（东向，0→1000）+ N（北向，0→1000）模拟地理读数
+        if (coordRef.current) {
+          const E = ((x / w) * 1000).toFixed(1).padStart(6, "0");
+          const N = ((1 - y / h) * 1000).toFixed(1).padStart(6, "0");
+          coordRef.current.textContent = `E ${E}  N ${N}`;
+        }
+      });
+    };
+
+    window.addEventListener("mousemove", onMove);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      if (raf !== null) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <section
+      ref={stageRef}
+      className={`stage${loaded ? " loaded" : ""}`}
+      // data-treat：主题（V1 固定 line；blueprint / dark / spot 留到 V2 做隐藏切换）
+      data-treat="line"
+      // data-layout：主题 V1 固定居中（design 稿在代码里覆盖了部分元素的对齐，但整体居中）
+      data-layout="center"
+      // data-cross：十字准星显示开关；触屏 / 窄屏由 CSS 自动隐藏
+      data-cross="on"
+    >
+      {/* 背景：AIGC 城市轴测线稿 + 微视差 */}
+      <div className="bg" />
+      {/* Veil 蒙版：放射渐变，让中心文字读得清晰 */}
+      <div className="veil" />
+
+      {/* 十字准星 + 圆点（视觉签名）*/}
+      <div className="cross">
+        <div className="h" />
+        <div className="v" />
+        <div className="dot" />
+      </div>
+      {/* 实时坐标：JS 通过 ref 更新文本，不走 React state，避免每帧 re-render */}
+      <div className="coord" ref={coordRef}>
+        E 000.0  N 000.0
+      </div>
+
+      {/* 顶部导航：左 brand + 右 7 个幕锚点 */}
+      <nav>
+        <div className="brand">
+          陈彦均
+          <span className="en">Yanjun Chen</span>
+        </div>
+        <div className="navlinks">
+          {NAV_LINKS.map((link) => (
+            <a key={link.href} href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </nav>
+
+      {/* 中央 hero 主体 */}
+      <div className="hero">
+        {/* Eyebrow：求职意向标签 + 中英文岗位（V1 暂时关闭，见 SHOW_EYEBROW） */}
+        {SHOW_EYEBROW && (
+          <div className="eyebrow reveal d1">
+            <span className="label">求职意向</span>
+            <span>AI 产品经理</span>
+            <span className="en">AI Product Manager</span>
+          </div>
+        )}
+
+        {/* 主姓名：超大字 */}
+        <h1 className="name reveal d2">陈彦均</h1>
+
+        {/* Tagline：手写马克笔体（Permanent Marker），op/em 分别上色强调 */}
+        <div className="tagline reveal d3">
+          1&nbsp;Person <span className="op">+</span> AI{" "}
+          <span className="op">=</span>{" "}
+          <span className="em">A&nbsp;Team</span>
+        </div>
+
+        {/* 身份 + 位置 caption */}
+        <div className="caption reveal d4">
+          YANJUN CHEN <span className="dot">·</span> 上海 Shanghai
+        </div>
+
+        {/* CTA 按钮组：实心主按钮（查看作品集）+ 幽灵副按钮（联系方式）*/}
+        <div className="links reveal d5">
+          <a href="#work" className="solid">
+            <span className="txt">查看作品集</span>
+            <span className="chev">›</span>
+          </a>
+          <a href="#contact">
+            <span className="txt">联系方式</span>
+            <span className="chev">›</span>
+          </a>
+        </div>
+
+        {/* 关键词条：4 个自我标签，圆点分隔（CSS 伪元素） */}
+        <div className="keys reveal d6">
+          {KEYS.map((k) => (
+            <span key={k}>{k}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* 底部状态条：绿色脉冲 + 求职状态文案 */}
+      <div className="footer">
+        <span className="pulse" />
+        <span>OPEN TO 2026 OPPORTUNITIES</span>
+      </div>
+
+      {/* Scroll 提示：双 V 形向下箭头，慢速上下浮动 */}
+      <div className="scrollcue" aria-hidden="true">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </section>
+  );
+}

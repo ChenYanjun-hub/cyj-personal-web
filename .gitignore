@@ -1,0 +1,52 @@
+# ===============================================================
+# 仓库根 .gitignore —— 防御性的兜底列表
+# ---------------------------------------------------------------
+# web/ 子目录里已经有 create-next-app 生成的更详细 .gitignore，
+# 那份对 web/ 内部生效；这份是仓库根上的补充，作用于整棵树。
+# ===============================================================
+
+# macOS 系统自动生成的隐藏元数据文件（任意层级都不要进版本控制）
+.DS_Store
+**/.DS_Store
+
+# Node.js 依赖目录（防御性写一遍，无论出现在 web/ 还是其他子目录）
+node_modules/
+**/node_modules/
+
+# Next.js 构建产物
+.next/
+**/.next/
+out/
+
+# 环境变量文件——里面会放 AI 大模型的 API Key，绝不入库
+# PROJECT_GUIDE 协作须知第 7 条：密钥只在服务端环境变量里
+.env
+.env.*
+!.env.example
+
+# 调试与日志
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Claude Code 的本地工作状态目录（仅个人工作记录，不入库）
+.claude/
+# Claude Code 拉取的 skill 缓存（GSAP 等远程 skill，机器生成）
+.agents/
+# Claude Code 的 skill 版本锁定文件（个人工具配置，与项目代码无关）
+skills-lock.json
+
+# 编辑器 / IDE 的本地配置（之后用 VSCode/Cursor 等会自动产生）
+.vscode/
+.idea/
+*.swp
+*~
+
+# Vercel CLI 工件（即使我们部署到阿里云，本地误装 vercel 也别污染仓库）
+.vercel/
+
+# 操作系统 / 临时备份
+Thumbs.db
+*.bak
+*.tmp
