@@ -26,11 +26,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// 顶部导航锚点：V1 只实现第一幕，其他幕做完后锚点自动生效
+// 顶部导航锚点（v1.2 结构调整：能力对照 + 具备技能 合并为 About Me 章节）
 const NAV_LINKS = [
   { href: "#card", label: "数字名片" },
-  { href: "#compare", label: "能力对照" },
-  { href: "#skills", label: "具备技能" },
+  { href: "#about-me", label: "About Me" },
   { href: "#work", label: "作品集" },
   { href: "#life", label: "视觉与生活" },
   { href: "#contact", label: "联系方式" },
@@ -103,6 +102,7 @@ export default function Hero() {
   return (
     <section
       ref={stageRef}
+      id="card"
       className={`stage${loaded ? " loaded" : ""}`}
       // data-treat：主题（V1 固定 line；blueprint / dark / spot 留到 V2 做隐藏切换）
       data-treat="line"

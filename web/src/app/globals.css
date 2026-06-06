@@ -516,3 +516,658 @@ body {
   }
   .stage .keys { display: none; }
 }
+
+/* ===============================================================
+   第二幕 · 能力对照（信任引擎）
+   ---------------------------------------------------------------
+   视觉延续 Hero 的设计语言（accent / ink / paper / 得意黑标题）。
+   交互：
+    - 进入视口（IntersectionObserver）→ section 加 .visible →
+      header + 5 行依次 stagger fade-in
+    - 每行点击 chevron → 加 .open → 展开 detail（左右各一段具体场景）
+   =============================================================== */
+
+.bridge {
+  /* 不写死高度，让内容撑开（避免 5 行全展开时被裁切） */
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  /* 上下留白比 Hero 略松（信任引擎需要呼吸感） */
+  padding: clamp(80px, 11vh, 140px) clamp(24px, 6vw, 96px);
+  /* 用 anchor id="compare" 配合 Hero 的 nav 跳转 */
+  scroll-margin-top: 0;
+}
+
+/* --- 头部 --- */
+.bridge-header {
+  max-width: 980px;
+  margin: 0 auto clamp(56px, 8vh, 96px);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.bridge.visible .bridge-header {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+.bridge-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: clamp(12px, 1vw, 14px);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+.bridge-rule {
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.bridge-title {
+  font-family: var(--font-smiley-sans), var(--sans);
+  font-size: clamp(40px, 6vw, 86px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+/* --- 5 行容器 --- */
+.bridge-rows {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  /* 行之间不要 margin，靠 row 自己的 border-top 做分隔 */
+}
+
+/* --- 单行 --- */
+.bridge-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px 1fr 40px 1fr 40px;
+  grid-template-areas: "num left arrow right toggle";
+  gap: 24px;
+  align-items: start;
+  padding: clamp(28px, 4vh, 44px) 0;
+  /* hairline 分隔（苹果式克制）—— 第一行不要 border-top */
+  border-top: 1px solid rgba(29, 29, 31, 0.1);
+  /* 入场前 */
+  opacity: 0;
+  transform: translateY(22px);
+}
+.bridge-row:first-child {
+  border-top: none;
+}
+/* 入场动画：进入视口后按 row 顺序 stagger（左栏在 0.2s 起，每行 +0.12s） */
+.bridge.visible .bridge-row {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+  animation-delay: calc(0.25s + var(--row-i) * 0.12s);
+}
+
+.bridge-num {
+  grid-area: num;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(14px, 1.2vw, 17px);
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  padding-top: 4px;
+}
+
+.bridge-left {
+  grid-area: left;
+}
+.bridge-right {
+  grid-area: right;
+}
+
+.bridge-side-title {
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.bridge-flag {
+  font-size: clamp(11px, 0.9vw, 13px);
+  font-weight: 500;
+  color: var(--accent);
+  margin-left: 6px;
+  letter-spacing: 0;
+}
+
+.bridge-summary {
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.bridge-detail {
+  margin-top: 14px;
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.75;
+  color: var(--ink-2);
+  /* 展开时的 fade-in 动画 */
+  animation: bridge-detail-in 0.45s ease both;
+  /* 用左侧 1px 细线点出"详情"层级（规划图标注感） */
+  padding-left: 14px;
+  border-left: 1px solid var(--accent);
+  border-left-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+@keyframes bridge-detail-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bridge-arrow {
+  grid-area: arrow;
+  font-size: clamp(18px, 1.6vw, 22px);
+  color: var(--accent);
+  text-align: center;
+  padding-top: 6px;
+  opacity: 0.75;
+}
+
+.bridge-toggle {
+  grid-area: toggle;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(29, 29, 31, 0.15);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, color 0.2s ease, border-color 0.2s ease;
+  /* 让按钮可点区域比视觉区域略大（移动端友好） */
+  flex-shrink: 0;
+}
+.bridge-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.bridge-row.open .bridge-toggle {
+  transform: rotate(180deg);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* --- 收尾：承认短板 + 引导 --- */
+.bridge-footer {
+  max-width: 880px;
+  margin: clamp(80px, 10vh, 120px) auto 0;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.bridge.visible .bridge-footer {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+  /* 在最后一行之后才出现 */
+  animation-delay: calc(0.25s + 5 * 0.12s + 0.2s);
+}
+.bridge-shortcomings {
+  font-size: clamp(14px, 1.15vw, 17px);
+  line-height: 1.75;
+  color: var(--ink-2);
+}
+.bridge-segue {
+  margin-top: 18px;
+  font-size: clamp(14px, 1.15vw, 17px);
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+
+@keyframes bridge-rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bridge-header,
+  .bridge-row,
+  .bridge-footer {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+  .bridge-detail {
+    animation: none !important;
+  }
+}
+
+/* --- 窄屏适配：左右栏堆叠为上下，隐藏 ↔ 符号 --- */
+@media (max-width: 760px) {
+  .bridge {
+    padding: 64px 20px;
+  }
+  .bridge-row {
+    grid-template-columns: 40px 1fr 36px;
+    grid-template-areas:
+      "num left toggle"
+      ".   right .";
+    gap: 16px;
+  }
+  .bridge-arrow {
+    display: none;
+  }
+  .bridge-left {
+    margin-bottom: 18px;
+  }
+  .bridge-side-title {
+    font-size: 19px;
+  }
+  .bridge-summary,
+  .bridge-detail {
+    font-size: 14px;
+  }
+}
+
+/* ===============================================================
+   About Me 章节系统（贯穿头 + 第二幕主体 + 子幕 Skills）
+   ---------------------------------------------------------------
+   结构：
+     <AboutMe>             ← 章节入口（about-me.tsx）
+     <CapabilityBridge>    ← 子幕 a · 能力对照
+     <Skills>              ← 子幕 b · 能力技能
+   三幕顶部都有 .about-chapter 贯穿头，告诉 HR 还在 About Me 章节内。
+   =============================================================== */
+
+/* --- 章节贯穿头：子幕 capability-bridge / skills 顶部用 ---
+   设计 note：参考图（LIUWENTAO）本身没有这种贯穿头，但子幕需要让 HR 知道
+   还在 About Me 章节内。实现极克制：小字 + 灰色 + 无装饰线，不抢主标题。
+   纯黑白风格，不使用 accent 强调色。 */
+.about-chapter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  font-size: clamp(10px, 0.85vw, 12px);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  opacity: 0.55;
+  margin-bottom: clamp(32px, 4.5vh, 56px);
+}
+.about-chapter-sub {
+  /* 子幕里更轻一档 */
+  opacity: 0.45;
+}
+.about-rule {
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* ===============================================================
+   第二幕主体：About Me（按 LIUWENTAO 参考图风格）
+   ---------------------------------------------------------------
+   核心：左右双栏 + 纯黑白单色 + 全大写英文板块标题。
+   零 accent 装饰，留白和字号层级承担视觉层次。
+   =============================================================== */
+.about {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: clamp(80px, 11vh, 130px) clamp(40px, 8vw, 130px) clamp(64px, 8vh, 100px);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* --- 居中主标题 "About me" --- */
+.about-title {
+  /* 参考图主标题用常规系统字体（不倾斜、不用得意黑） */
+  font-family: var(--sans);
+  font-size: clamp(52px, 6.4vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  color: var(--ink);
+  text-align: center;
+  margin: 0 auto clamp(56px, 8vh, 96px);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.about.visible .about-title {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
+}
+
+/* --- 双栏 grid: 左照片+姓名 / 右板块 --- */
+.about-grid {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+  gap: clamp(48px, 6vw, 100px);
+  align-items: start;
+  flex: 1;
+}
+
+/* --- 左栏：照片 + 拼音姓名签名 --- */
+.about-left {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 2.5vh, 32px);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.about.visible .about-left {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
+}
+
+.about-portrait {
+  /* 长方形 4:5 比例（接近参考图人物照） */
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  overflow: hidden;
+  background: #f4f4f6;
+}
+.portrait-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ececef 0%, #d8d8dc 100%);
+  border: 1px dashed rgba(29, 29, 31, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink-2);
+}
+.portrait-placeholder > span:first-child {
+  font-family: var(--font-smiley-sans), var(--sans);
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 600;
+  color: var(--ink);
+}
+.portrait-tip {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+  opacity: 0.65;
+}
+
+/* 大字拼音姓名 — 视觉签名（参考图 LIUWENTAO 的处理）*/
+.about-signature {
+  font-family: var(--sans);
+  font-size: clamp(28px, 3.6vw, 56px);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* --- 右栏：板块组 --- */
+.about-right {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(36px, 5vh, 56px);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.about.visible .about-right {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.34s;
+}
+
+.about-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.about-block-title {
+  /* 全大写已经在文本里写了；只控制字重、字距、字号 */
+  font-size: clamp(13px, 1vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+
+.about-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.about-entry-line {
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.about-entry-line.muted {
+  color: var(--ink-2);
+}
+
+.project-name {
+  font-weight: 500;
+  color: var(--ink);
+}
+.project-sep {
+  color: var(--ink-2);
+  opacity: 0.55;
+}
+
+/* --- SEE MORE: 子幕跳转极简锚词（参考图风格，无按钮） --- */
+.about-jumps {
+  display: flex;
+  gap: clamp(24px, 3vw, 40px);
+  flex-wrap: wrap;
+}
+.about-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: clamp(13px, 1.05vw, 15px);
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  transition: opacity 0.2s ease;
+}
+.about-jump:hover {
+  opacity: 0.6;
+}
+.jump-arrow {
+  transition: transform 0.25s ease;
+}
+.about-jump:hover .jump-arrow {
+  transform: translateY(2px);
+}
+
+/* --- 底部 "Project" 风格滚动提示 --- */
+.about-scrollcue {
+  text-align: center;
+  font-size: clamp(14px, 1.1vw, 17px);
+  color: var(--ink-2);
+  margin-top: clamp(80px, 10vh, 120px);
+  opacity: 0.55;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-title,
+  .about-left,
+  .about-right {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+}
+
+/* --- 窄屏适配：双栏堆叠为单栏 --- */
+@media (max-width: 760px) {
+  .about {
+    padding: 72px 20px;
+  }
+  .about-title {
+    font-size: 44px;
+    margin-bottom: 48px;
+  }
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .about-portrait {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .about-signature {
+    font-size: 28px;
+    text-align: center;
+  }
+  .about-jumps {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .about-scrollcue {
+    margin-top: 60px;
+  }
+}
+
+/* ===============================================================
+   子幕 b：能力技能 Skills
+   =============================================================== */
+.skills {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: clamp(80px, 11vh, 140px) clamp(24px, 6vw, 96px);
+}
+
+.skills-header {
+  max-width: 880px;
+  margin: 0 auto clamp(48px, 6vh, 80px);
+  text-align: center;
+}
+.skills-title {
+  font-family: var(--font-smiley-sans), var(--sans);
+  font-size: clamp(40px, 6vw, 86px);
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--ink);
+  margin-bottom: 18px;
+}
+.skills-subtitle {
+  font-size: clamp(13px, 1.1vw, 16px);
+  color: var(--ink-2);
+  line-height: 1.65;
+}
+
+/* 板块网格：桌面 2x2，宽屏可拉到 4 列 */
+.skills-blocks {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(32px, 4vw, 56px);
+}
+@media (min-width: 1200px) {
+  .skills-blocks {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.skills-block {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.skills.visible .skills-block {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+  animation-delay: calc(0.25s + var(--block-i) * 0.15s);
+}
+.skills-block-title {
+  font-size: clamp(16px, 1.4vw, 19px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  border-bottom: 1px solid rgba(29, 29, 31, 0.12);
+  padding-bottom: 12px;
+}
+.skills-block-flag {
+  font-size: clamp(11px, 0.9vw, 13px);
+  font-weight: 500;
+  color: var(--accent);
+  margin-left: 6px;
+}
+
+.skills-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.skill-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.skill-item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.skill-name {
+  font-size: clamp(14px, 1.15vw, 16px);
+  font-weight: 600;
+  color: var(--ink);
+}
+.skill-level {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 100px;
+  border: 1px solid currentColor;
+  font-weight: 500;
+}
+.skill-level-mastered {
+  color: var(--accent);
+}
+.skill-level-applied {
+  color: var(--ink);
+  opacity: 0.85;
+}
+.skill-level-learning {
+  color: var(--ink-2);
+}
+.skill-note {
+  font-size: clamp(12px, 1vw, 14px);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skills-block {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .skills {
+    padding: 64px 20px;
+  }
+  .skills-blocks {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .skills-title {
+    font-size: 36px;
+  }
+}
