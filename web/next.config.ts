@@ -18,6 +18,8 @@ import type { NextConfig } from "next";
   下面保留 turbopack.root 的配置（已无效但留着），方便将来切回 Turbopack 时直接复用。
 */
 const nextConfig: NextConfig = {
+  // @ts-expect-error - Next 16 运行时支持 bundler: 'webpack'（前面阶段二切回 webpack 兜底 Turbopack workspace 检测越界），
+  // 但 NextConfig 类型声明里还没正式 export 这个字段；tsc 报 unknown property，运行时正常生效。
   bundler: "webpack",
 
   // 保留供将来切回 Turbopack 时使用；webpack 模式下被忽略

@@ -98,10 +98,6 @@ export default function AboutMe() {
           */}
           <ProfileCard
             avatarUrl="/me.png"
-            /* iconUrl: 卡片右上角的装饰图案；grainUrl: "闪卡水印"L 形钻石点阵纹理。
-               都从 reactbits 官方 demo assets 拉到 web/public/，国内 CDN 可达。
-               没传这两个的话，参考图里的 holographic 闪卡水印效果完全不会出现 ——
-               那是用户上一版反馈"没有加上参考的闪卡水印效果"的根因。 */
             iconUrl="/pc-icon.png"
             grainUrl="/pc-grain.webp"
             name="陈彦均"

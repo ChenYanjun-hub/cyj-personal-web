@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Permanent_Marker } from "next/font/google";
 import localFont from "next/font/local";
+import AiAvatar from "@/components/ai-avatar/ai-avatar";
 import "./globals.css";
 
 /*
@@ -53,7 +54,11 @@ export default function RootLayout({
       lang="zh-CN"
       className={`${permanentMarker.variable} ${smileySans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {/* AI 数字分身悬浮组件 · 全站可见 · PROJECT_GUIDE 第 86-110 行规格 */}
+        <AiAvatar />
+      </body>
     </html>
   );
 }

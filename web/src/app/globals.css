@@ -2033,6 +2033,275 @@ body {
 }
 
 /* ===============================================================
+   AI 数字分身 · 全站悬浮组件
+   ---------------------------------------------------------------
+   右下角泡泡按钮 + 点击展开 chat 面板。z-index 100 浮在所有幕之上。
+   设计延续整站：accent 用在泡泡 + 强调按钮；面板黑白单色 + 圆角 + 阴影。
+   =============================================================== */
+
+/* --- 泡泡按钮 --- */
+.ai-avatar-bubble {
+  position: fixed;
+  right: clamp(16px, 3vw, 28px);
+  bottom: clamp(16px, 3vw, 28px);
+  z-index: 100;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 24px rgba(216, 85, 46, 0.35),
+    0 2px 6px rgba(29, 29, 31, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+.ai-avatar-bubble:hover {
+  transform: scale(1.06);
+  box-shadow: 0 10px 32px rgba(216, 85, 46, 0.45),
+    0 4px 10px rgba(29, 29, 31, 0.16);
+}
+.ai-avatar-bubble:active {
+  transform: scale(0.96);
+}
+.ai-avatar-bubble.open {
+  background: var(--ink);
+  box-shadow: 0 6px 24px rgba(29, 29, 31, 0.3),
+    0 2px 6px rgba(29, 29, 31, 0.12);
+}
+
+/* --- Chat 面板 --- */
+.ai-avatar-panel {
+  position: fixed;
+  right: clamp(16px, 3vw, 28px);
+  bottom: calc(56px + clamp(16px, 3vw, 28px) + 14px);
+  z-index: 100;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: min(620px, calc(100vh - 140px));
+  background: var(--paper);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(29, 29, 31, 0.18),
+    0 6px 18px rgba(29, 29, 31, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: ai-avatar-pop 0.25s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes ai-avatar-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- 顶部 --- */
+.ai-avatar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(29, 29, 31, 0.08);
+}
+.ai-avatar-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ai-avatar-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+.ai-avatar-tag {
+  font-size: 11px;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+.ai-avatar-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ai-avatar-close:hover {
+  background: rgba(29, 29, 31, 0.06);
+  color: var(--ink);
+}
+
+/* --- 消息列表 --- */
+.ai-avatar-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ai-avatar-msg {
+  display: flex;
+  max-width: 100%;
+}
+.ai-avatar-msg-user {
+  justify-content: flex-end;
+}
+.ai-avatar-msg-assistant {
+  justify-content: flex-start;
+}
+.ai-avatar-msg-text {
+  max-width: 84%;
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.ai-avatar-msg-user .ai-avatar-msg-text {
+  background: var(--ink);
+  color: var(--paper);
+  border-bottom-right-radius: 4px;
+}
+.ai-avatar-msg-assistant .ai-avatar-msg-text {
+  background: rgba(29, 29, 31, 0.06);
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+}
+
+/* 错误横幅 */
+.ai-avatar-error {
+  margin-top: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--accent);
+  background: rgba(216, 85, 46, 0.08);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* --- 预设问题区 --- */
+.ai-avatar-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 18px 12px;
+}
+.ai-avatar-preset {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  border: 1px solid rgba(29, 29, 31, 0.18);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.ai-avatar-preset:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.ai-avatar-preset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- 输入区 --- */
+.ai-avatar-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid rgba(29, 29, 31, 0.08);
+  background: var(--paper);
+}
+.ai-avatar-input {
+  flex: 1;
+  resize: none;
+  border: 1px solid rgba(29, 29, 31, 0.15);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+  transition: border-color 0.15s ease;
+  max-height: 140px;
+}
+.ai-avatar-input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.ai-avatar-input:disabled {
+  background: rgba(29, 29, 31, 0.04);
+  cursor: not-allowed;
+}
+.ai-avatar-send {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+.ai-avatar-send:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+.ai-avatar-send:disabled {
+  background: rgba(29, 29, 31, 0.2);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* --- 窄屏适配：面板占视口下半 --- */
+@media (max-width: 600px) {
+  .ai-avatar-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    bottom: calc(56px + 8px + 12px);
+    height: min(560px, calc(100vh - 120px));
+  }
+}
+
+/* --- 动效偏好 --- */
+@media (prefers-reduced-motion: reduce) {
+  .ai-avatar-panel {
+    animation: none !important;
+  }
+  .ai-avatar-bubble,
+  .ai-avatar-send {
+    transition: none;
+  }
+}
+
+/* ===============================================================
    子幕 b：能力技能 Skills
    =============================================================== */
 .skills {

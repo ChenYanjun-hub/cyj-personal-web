@@ -6,6 +6,123 @@
 
 ---
 
+## 2026-06-06 · 阶段七：AI 数字分身（DeepSeek + 悬浮组件）🤖
+
+### 1. 阶段成果
+
+#### 1.1 三层架构（PROJECT_GUIDE 第 55-57 行铁律落地）
+
+```
+前端                           后端                          上游
+─────                          ─────                         ─────
+ai-avatar.tsx       ━━fetch━━▶  /api/chat (route.ts)  ━━SSE━▶  DeepSeek
+（client component）            （Next.js Route Handler）       （api.deepseek.com）
+                                · DEEPSEEK_API_KEY 服务端
+                                · 频率/长度防护
+                                · 拼 system prompt
+```
+
+#### 1.2 文件清单
+
+**lib/ai-avatar/** (后端逻辑层 · 可替换层封装)：
+- `types.ts` 前后端共享类型 + CHAT_LIMITS 防护常数
+- `prompt.ts` 系统提示词（约 500 行 · 整合分身知识库 1-6 类全部素材）
+- `deepseek.ts` DeepSeek 客户端（手写 fetch + SSE 解析 · 零第三方 SDK）
+
+**app/api/chat/route.ts** (Route Handler)：
+- POST 接口接收 ChatMessage[]
+- 校验：messages 长度 ≤ 10、单条 ≤ 1000 字、role 限定 user/assistant
+- 频率限制：IP 维度 · 1 分钟 12 次
+- 拼上 system prompt（每次都加，客户端无法覆盖）
+- 转 chunked text/plain 流式返回（含 X-Accel-Buffering: no 给 Nginx）
+
+**components/ai-avatar/ai-avatar.tsx** (前端悬浮组件)：
+- 右下角圆形泡泡（accent 橙红，hover scale + 阴影加深）
+- 点击展开 380×620 chat 面板（移动端占视口下半）
+- 欢迎语 + 4 个预设问题（"他的核心优势"/"为什么转 AI"/"AI 项目"/"JD 匹配"）
+- 流式接收：fetch + ReadableStream + 实时 append delta 到当前 assistant 消息
+- Enter 发送 · Shift+Enter 换行 · ESC 关闭
+- 错误时移除空 assistant 占位 + 显示错误横幅
+
+**layout.tsx**：在 body 末尾挂 `<AiAvatar />` · 全站可见
+
+**globals.css**：追加 `.ai-avatar-*` 段约 240 行 · 含移动端窄屏适配
+
+**.env.example**：DEEPSEEK_API_KEY 模板 + 配置说明
+
+#### 1.3 系统提示词覆盖
+完整整合分身知识库（采集清单第 1-6 类）：
+- 身份定位 / 转型故事 / 实际投入 / 人生信条
+- 5 组规划训练可迁移能力对照（信阳柳林贯穿证据）
+- 4 板块硬技能（动词分级，绝不用百分比）
+- 3 个核心优势 + 3 个短板 + 适合/不适合岗位
+- 5 条行为铁律（防幻觉 / 隐私 / 角色坚守 / 话题收敛 / 学历问题）
+- 标准问答 4 例 + JD 匹配模式
+- 默认温度 0.4 · max_tokens 1500 · 回答控制 200 字内
+
+---
+
+### 2. 顺手修了两个老的 type error
+（如果不修 `pnpm build` 会失败 → 阿里云部署失败）
+
+#### 2.1 `next.config.ts` 的 `bundler: "webpack"` 字段
+- Next 16 运行时支持，但 NextConfig 类型声明里还没正式 export
+- 修：加 `@ts-expect-error` 注释 + 详细原因
+
+#### 2.2 ProfileCard.jsx 的 props 推导
+- TSC 从 JSDoc 推导把所有 props 都看作 required，实际很多有 default
+- 修：新建 `web/src/components/reactbits/types.d.ts`，用 `declare module` 给 ProfileCard 提供正确的可选 props 类型
+- 设计：不动 `.jsx` 原文件，保持 jsrepo 同步能力。未来新 reactbits 组件按同样模式加
+
+---
+
+### 3. 关键决策记录
+
+**为什么不用 Vercel AI SDK / Chat SDK**：
+PROJECT_GUIDE 铁律"不依赖境外服务（Vercel 已排除）"+ 我们部署到阿里云不是 Vercel。AI Gateway / Vercel Functions runtime API 完全用不上。手写 fetch + SSE 才 50 行，可替换层就在 `deepseek.ts` 单文件里——换通义 / 智谱 / Kimi 只改这一个文件。
+
+**为什么用 deepseek-chat 不用 deepseek-reasoner**：
+本场景（基于资料诚实答问 + JD 匹配）不需顶尖推理，需要"听话、不乱编、能被 system prompt 严格约束"。deepseek-chat 响应快、便宜（每 1M token 几分钱）、指令遵循好。
+
+**为什么默认 temperature: 0.4**：
+PROJECT_GUIDE 铁律"严防幻觉"。低温度让模型更严格贴合 system prompt，少发挥。
+
+**为什么内存频率限制（不用 Redis）**：
+V1 单实例够用。阿里云上线后如果开多实例需要换 Redis 或 KV，已在代码注释里标注。
+
+---
+
+### 4. 待你做的事（在浏览器测试前）
+
+1. **拿 DeepSeek API Key**：https://platform.deepseek.com 注册（如果还没的话）
+2. **创建 `.env.local`**：
+   ```bash
+   cd web
+   cp .env.example .env.local
+   ```
+3. **编辑 `.env.local`**：把 `DEEPSEEK_API_KEY=sk-your-key-here` 换成真实 key
+4. **重启 dev server**（env vars 必须重启才生效）
+5. **浏览器** http://localhost:3000 右下角应该出现**橙红色泡泡按钮**，点击展开
+6. **测试**：
+   - 点 4 个预设问题之一
+   - 自己输入问题
+   - 试试问敏感问题（薪资 / 手机号），看是否按铁律拒绝
+   - 试试 JD 匹配："这是 XX 公司 AIPM 岗位的 JD：……"
+
+---
+
+### 5. V1 全部完成
+
+至此 PROJECT_GUIDE 第 6 节 V1 清单**全部到位**：
+- ✅ 技术选型确认 + 项目搭建 + 视觉规范 + 组件骨架
+- ✅ 六幕（重构成 5 幕）全部做出来（第三幕作品集用静态分区图 + 卡片）
+- ✅ AI 分身做进 V1（最大差异化亮点）
+- ✅ 基础移动端适配（所有幕都有 `@media (max-width: 760px)`）
+- 🟡 阿里云部署（备案完成后）
+- 🟡 上线后确认国内能稳定打开 + 分身能稳定调用
+
+---
+
 ## 2026-06-06 · 阶段六：第五幕收尾 · V1 整体骨架达成 🎉
 
 ### 1. 阶段成果
