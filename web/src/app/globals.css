@@ -1059,6 +1059,354 @@ body {
 }
 
 /* ===============================================================
+   第三幕 · 作品集 Portfolio
+   ---------------------------------------------------------------
+   视觉策略：与 About Me 同源——纯黑白 / 全大写英文板块标题 / hairline 分隔 / 克制留白。
+   PROJECT_GUIDE 4.4 节原方案是"线稿城市规划图"做底图，V1 暂用分区 + 卡片承担规划图隐喻。
+   三板块：CORE（深度 inline 展开）/ WIP（待建网格）/ LAB（已发布网格）
+   =============================================================== */
+
+.portfolio {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: clamp(80px, 11vh, 130px) clamp(24px, 6vw, 96px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 章节大标题 --- */
+.portfolio-title {
+  font-family: var(--sans);
+  font-size: clamp(52px, 6.4vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  text-align: center;
+  margin: 0 auto 12px;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.portfolio.visible .portfolio-title {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
+}
+
+.portfolio-subtitle {
+  font-size: clamp(13px, 1.05vw, 16px);
+  color: var(--ink-2);
+  text-align: center;
+  margin: 0 auto clamp(56px, 8vh, 96px);
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.portfolio.visible .portfolio-subtitle {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
+}
+
+/* --- 板块通用 --- */
+.portfolio-block {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding-top: clamp(48px, 6vh, 80px);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.portfolio-block:first-of-type {
+  padding-top: 0;
+}
+.portfolio.visible .portfolio-block-core {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.34s;
+}
+.portfolio.visible .portfolio-block-wip {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.5s;
+}
+.portfolio.visible .portfolio-block-lab {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.62s;
+}
+
+.portfolio-block-header {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 2vw, 28px);
+  margin-bottom: clamp(28px, 4vh, 48px);
+  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
+  padding-bottom: 18px;
+}
+.portfolio-block-title {
+  font-size: clamp(18px, 1.8vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+.portfolio-block-desc {
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+
+/* --- 卡片通用 --- */
+.portfolio-card {
+  background: var(--paper);
+  border: 1px solid rgba(29, 29, 31, 0.12);
+  border-radius: 4px;
+  padding: clamp(20px, 2.5vw, 32px);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  position: relative;
+}
+.portfolio-card:hover {
+  border-color: rgba(29, 29, 31, 0.4);
+}
+.portfolio-num {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
+}
+
+/* --- CORE 卡片（大、纵向排列） --- */
+.portfolio-core-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 2.5vh, 28px);
+}
+.portfolio-card-core .portfolio-card-head {
+  display: grid;
+  grid-template-columns: 56px 1fr 40px;
+  gap: clamp(16px, 2vw, 28px);
+  align-items: start;
+}
+.portfolio-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0; /* 防止 grid 子项溢出 */
+}
+.portfolio-card-name {
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.portfolio-card-type {
+  font-size: clamp(11px, 0.95vw, 14px);
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
+}
+.portfolio-card-oneliner {
+  font-size: clamp(14px, 1.1vw, 16px);
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+
+/* 技术栈 chips（简洁的下划线分隔，不用 pill） */
+.portfolio-stack {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 8px;
+}
+.portfolio-stack-item {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(11px, 0.9vw, 13px);
+  color: var(--ink);
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border: 1px solid rgba(29, 29, 31, 0.16);
+  border-radius: 3px;
+}
+
+/* 亮点 bullets */
+.portfolio-highlights {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+.portfolio-highlights li {
+  font-size: clamp(13px, 1vw, 15px);
+  color: var(--ink-2);
+  line-height: 1.6;
+  position: relative;
+  padding-left: 14px;
+}
+.portfolio-highlights li::before {
+  content: "·";
+  color: var(--ink);
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+
+/* Chevron toggle */
+.portfolio-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(29, 29, 31, 0.15);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, color 0.2s ease, border-color 0.2s ease;
+  margin-top: 4px;
+}
+.portfolio-toggle:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.portfolio-card-core.open .portfolio-toggle {
+  transform: rotate(180deg);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+/* inline 展开详情面板 */
+.portfolio-detail {
+  margin-top: clamp(20px, 3vh, 28px);
+  padding-top: clamp(20px, 3vh, 28px);
+  border-top: 1px solid rgba(29, 29, 31, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2vh, 20px);
+  animation: portfolio-detail-in 0.45s ease both;
+}
+@keyframes portfolio-detail-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.portfolio-detail-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.4fr) 1fr;
+  gap: clamp(14px, 2vw, 28px);
+  align-items: baseline;
+}
+.portfolio-detail-label {
+  font-size: clamp(12px, 1vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.portfolio-detail-value {
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.65;
+  color: var(--ink);
+}
+.portfolio-detail-placeholder {
+  color: var(--ink-2);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* --- WIP / LAB 卡片网格 --- */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 2.5vw, 32px);
+}
+.portfolio-grid-2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.portfolio-card-wip,
+.portfolio-card-lab {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.portfolio-card-wip .portfolio-card-name,
+.portfolio-card-lab .portfolio-card-name {
+  font-size: clamp(16px, 1.4vw, 19px);
+  margin-top: 6px;
+}
+
+/* WIP 验证方向 */
+.portfolio-validate {
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--ink);
+  margin-top: 4px;
+}
+.portfolio-validate-label {
+  color: var(--ink-2);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* LAB 平台 */
+.portfolio-platform {
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+
+/* WIP 卡片视觉处理：虚线边框传达"待建"意味（PROJECT_GUIDE 第 171 行） */
+.portfolio-card-wip {
+  border-style: dashed;
+}
+
+/* --- 章节收尾 --- */
+.portfolio-segue {
+  text-align: center;
+  font-size: clamp(13px, 1.05vw, 15px);
+  color: var(--ink-2);
+  margin-top: clamp(64px, 8vh, 100px);
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-title,
+  .portfolio-subtitle,
+  .portfolio-block {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+  .portfolio-detail {
+    animation: none !important;
+  }
+}
+
+/* --- 窄屏适配 --- */
+@media (max-width: 760px) {
+  .portfolio {
+    padding: 72px 20px;
+  }
+  .portfolio-title {
+    font-size: 44px;
+  }
+  .portfolio-card-core .portfolio-card-head {
+    grid-template-columns: 36px 1fr 36px;
+    gap: 12px;
+  }
+  .portfolio-card-name {
+    font-size: 18px;
+  }
+  .portfolio-grid,
+  .portfolio-grid-2col {
+    grid-template-columns: 1fr;
+  }
+  .portfolio-detail-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* ===============================================================
    子幕 b：能力技能 Skills
    =============================================================== */
 .skills {

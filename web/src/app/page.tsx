@@ -2,6 +2,7 @@ import Hero from "@/components/sections/hero";
 import AboutMe from "@/components/sections/about-me";
 import CapabilityBridge from "@/components/sections/capability-bridge";
 import Skills from "@/components/sections/skills";
+import Portfolio from "@/components/sections/portfolio";
 
 /*
   根路径页面（/）的入口组件。
@@ -12,7 +13,7 @@ import Skills from "@/components/sections/skills";
        <AboutMe />            ← 子幕 a · 我是谁（已实现）
        <CapabilityBridge />   ← 子幕 b · 能力对照（已实现）
        <Skills />             ← 子幕 c · 能力技能（已实现）
-     <Portfolio />          ← 第三幕 · 作品集（待实现）
+     <Portfolio />          ← 第三幕 · 作品集（已实现）
      <Life />               ← 第四幕 · 视觉与生活（待实现）
      <Closing />            ← 第五幕 · 收尾（待实现）
   AI 数字分身悬浮组件将放在 layout.tsx 里全站可见。
@@ -24,6 +25,7 @@ export default function Home() {
       <AboutMe />
       <CapabilityBridge />
       <Skills />
+      <Portfolio />
     </main>
   );
 }
