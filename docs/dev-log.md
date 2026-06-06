@@ -6,6 +6,81 @@
 
 ---
 
+## 2026-06-06 · 阶段三：About Me 头像升级为 ProfileCard（3D 倾斜 + 闪卡水印）
+
+### 1. 阶段成果
+
+#### 1.1 装入 reactbits.dev 的 ProfileCard（JS-CSS 版本）
+- 通过 `npx jsrepo@latest add https://reactbits.dev/r/ProfileCard-JS-CSS` 拉源码
+- 装到 `web/src/components/reactbits/`（`ProfileCard.jsx` + `ProfileCard.css`）
+- 用 `jsrepo.config.mts` 配置 paths + 装 `jsrepo` + `@jsrepo/transform-javascript` 作 devDeps
+- 国内可达 ✅（reactbits.dev 自己的 CDN，没踩 GitHub raw 国内被墙的坑）
+
+#### 1.2 视觉资产到位
+- `web/public/me.png`：负责人提供的**透明背景人物半身像**（1254×1254 RGBA）
+- `web/public/pc-grain.webp`：闪卡水印 L 形钻石点阵纹理（reactbits 官方 demo asset）
+- `web/public/pc-icon.png`：卡片右上角装饰图标
+- 后两个从 `https://reactbits.dev/assets/demo/` 直接 curl 下来
+
+#### 1.3 about-me.tsx 集成
+- 左栏头像从 `<Image fill>` → `<Image width/height>` → 最终 **`<ProfileCard>`**
+- props：`avatarUrl="/me.png"` + `iconUrl="/pc-icon.png"` + `grainUrl="/pc-grain.webp"` + `showUserInfo={false}` + `enableTilt={true}`
+- 保留 `CHEN YANJUN` 大字签名在卡片下方
+
+#### 1.4 globals.css ProfileCard override
+- `.about .pc-avatar-content { mix-blend-mode: normal !important; }`
+- 同步 `.about .pc-content`，保护 details 不被 luminosity 染色
+
+---
+
+### 2. 踩坑记录
+
+#### 2.1 ❗ jsrepo `paths` 必须按"type"配置，`*` 通配不够
+**症状**：`No path was provided for ProfileCard-JS-CSS of type component`。
+
+**修复**：用 `npx jsrepo init <registry> --js` 让它自动生成 `jsrepo.config.mts`，
+然后手动填 `paths: { "*": "./src/components/reactbits" }`，且 jsrepo 在 init 时自动追加了 `component: "./src/components/reactbits"` 双保险。
+
+#### 2.2 ❗ 第一次效果：人物照片被彩虹染色（误判）
+**症状**：把白底带文字的 me.png 喂给 ProfileCard，整张照片被 shine 染成彩虹乱码。
+
+**根因**：ProfileCard 的 avatar 设计前提是**透明背景的人物半身像**（参考图 Javi 那种）。白底 PNG 加上 shine 的 `mix-blend-mode` → 灾难。
+
+**修复**：负责人重新提供透明背景 PNG（macOS 内置"移除背景"功能）。
+
+#### 2.3 ❗ 第二次效果：人物清晰了但还在被 luminosity 染色
+**症状**：换透明 PNG 后，人物轮廓出来了，但仍然彩色失真。
+
+**根因**：`.pc-avatar-content` 默认 `mix-blend-mode: luminosity`，让人物自身参与彩色反光。这个设计前提是 avatar 是**黑白调照片**（参考图 Javi 是黑白）。我们是彩色照片走 luminosity 颜色崩溃。
+
+**修复**：globals.css 加 `.about .pc-avatar-content { mix-blend-mode: normal !important; }`。
+
+#### 2.4 ❗ 闪卡水印完全没出现
+**症状**：人物正确了，但参考图里那种"钻石 L 形纹理"完全没显示。
+
+**根因**：ProfileCard 的 grain 纹理由 `grainUrl` prop 提供，我没传。`--grain: none` 默认下 grain 层透明 → 完全看不到水印。
+
+**修复**：从 reactbits 官方 demo 下载 `grain.webp` + `iconpattern.png`，传给 ProfileCard。
+
+---
+
+### 3. 待办（不阻塞当前 commit）
+
+- **[Claude Code]** capability-bridge.tsx / skills.tsx 里的 `{cond && <JSX/>}` 模式按 React Best Practices 改成 ternary（小 polish）
+- **[Claude Code]** 不再使用的 `.about-portrait` / `.portrait-image` / `.portrait-placeholder` 等 CSS 段可以清理（dead code）
+- **[负责人]** 分身知识库教育/工作字段补全
+- **[负责人]** ICP 备案推进
+
+---
+
+### 4. 下一阶段候选
+
+- 第三幕 · 作品集（PROJECT_GUIDE 4.4，V1 静态分区版）
+- AI 分身后端骨架（DeepSeek + `/api/chat`）
+- 全站子幕 polish + 章节贯穿头是否保留拍板
+
+---
+
 ## 2026-06-06 · 阶段二：第二幕重构为 About Me 章节（三子幕架构）
 
 ### 1. 阶段成果

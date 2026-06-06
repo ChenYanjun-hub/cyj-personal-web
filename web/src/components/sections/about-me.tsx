@@ -18,6 +18,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// 第三方：reactbits.dev 的 ProfileCard（3D 倾斜 + holographic 反光）
+// 通过 `npx jsrepo@latest add` 拉到 src/components/reactbits/
+// 国内可达，组件本身只用 React hooks + CSS（无 motion/three 等重型依赖）
+import ProfileCard from "@/components/reactbits/ProfileCard";
+
 const EDUCATION = {
   date: "2019.09 — 2024.06",
   org: "南京工业大学",
@@ -80,19 +85,36 @@ export default function AboutMe() {
       <h2 className="about-title">About me</h2>
 
       <div className="about-grid">
-        {/* 左栏：人物照片 + 大字拼音姓名 */}
+        {/* 左栏：ProfileCard（3D 倾斜 holographic 卡片，me.png 当 avatar）+ 大字拼音姓名 */}
         <div className="about-left">
-          <div className="about-portrait">
-            {/* TODO【负责人】：替换为本人照片
-                做法：把竖向长方形人物照（推荐 3:4 或 4:5 比例）放到 web/public/me.jpg
-                然后下面 placeholder 整块替换为 <img src="/me.jpg" alt="陈彦均" /> */}
-            <div className="portrait-placeholder">
-              <span>陈彦均</span>
-              <span className="portrait-tip">PORTRAIT · TBD</span>
-            </div>
-          </div>
+          {/*
+            ProfileCard 来自 reactbits.dev（JS-CSS 版）。
+            - avatarUrl 用 /me.png（包含照片 + 名字 + 学校的完整人物名片）
+            - name / title 是 ProfileCard 底部小字
+            - showUserInfo=false：关掉默认的 mini-avatar + handle + Contact 板块
+              （这一坨和右栏的内容会重复；保留 details 即可）
+            - enableTilt=true：鼠标 hover 时 3D 倾斜
+            - 默认 holographic 内层渐变（蓝紫色）+ behind glow
+          */}
+          <ProfileCard
+            avatarUrl="/me.png"
+            /* iconUrl: 卡片右上角的装饰图案；grainUrl: "闪卡水印"L 形钻石点阵纹理。
+               都从 reactbits 官方 demo assets 拉到 web/public/，国内 CDN 可达。
+               没传这两个的话，参考图里的 holographic 闪卡水印效果完全不会出现 ——
+               那是用户上一版反馈"没有加上参考的闪卡水印效果"的根因。 */
+            iconUrl="/pc-icon.png"
+            grainUrl="/pc-grain.webp"
+            name="陈彦均"
+            title="AI Product Manager"
+            handle="ChenYanjun-hub"
+            status="Open to 2026"
+            contactText="Contact"
+            showUserInfo={false}
+            enableTilt={true}
+            enableMobileTilt={false}
+          />
 
-          {/* 大字拼音姓名 — 视觉上承载左下角的"签名感" */}
+          {/* 大字拼音姓名 — 视觉上承载左下角的"签名感"（参考图 LIUWENTAO 的处理） */}
           <p className="about-signature">CHEN YANJUN</p>
         </div>
 

@@ -868,6 +868,7 @@ body {
 
 .about-portrait {
   /* 长方形 4:5 比例（接近参考图人物照） */
+  position: relative; /* next/image fill 需要 parent 有定位上下文 */
   aspect-ratio: 4 / 5;
   width: 100%;
   overflow: hidden;
@@ -1033,6 +1034,28 @@ body {
   .about-scrollcue {
     margin-top: 60px;
   }
+}
+
+/* ===============================================================
+   ProfileCard 视觉调整（仅限 About Me 范围）
+   ---------------------------------------------------------------
+   reactbits.dev 的 ProfileCard 默认给 .pc-avatar-content 设了
+   `mix-blend-mode: luminosity` —— 让人物自身也被 shine/glare 的彩色
+   反光染色。这个设计的前提是 avatar 是黑白调照片（参考图 Javi 那种）。
+
+   我们的人物半身像是彩色的（西装、肤色），走 luminosity 会让颜色崩溃。
+   override 为 normal：照片原色显示；shine/glare 仍在卡片背景层做
+   holographic 反光（仿水印效果保留），不再染色到人物本身。
+   =============================================================== */
+.about .pc-avatar-content {
+  /* !important 强制覆盖 ProfileCard.css 里的 mix-blend-mode: luminosity；
+     CSS 加载顺序或 Turbopack stale 状态下，纯 specificity 可能没胜出 */
+  mix-blend-mode: normal !important;
+}
+
+/* 同步保护 details (name/title) 不被 luminosity 染色 */
+.about .pc-content {
+  mix-blend-mode: normal !important;
 }
 
 /* ===============================================================
