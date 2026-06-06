@@ -4,11 +4,13 @@ import CapabilityBridge from "@/components/sections/capability-bridge";
 import Skills from "@/components/sections/skills";
 import Portfolio from "@/components/sections/portfolio";
 import Life from "@/components/sections/life";
+import Closing from "@/components/sections/closing";
 
 /*
   根路径页面（/）的入口组件。
   纵向叙事五幕按顺序挂在这里（第二幕 About Me 内含 3 个连续滚动的子幕）。
-  当前进度：
+  V1 当前：六幕全部到位 · 部分内容用占位（待负责人补全）。
+
      <Hero />               ← 第一幕 · 数字名片（已实现）
      About Me 章节：
        <AboutMe />            ← 子幕 a · 我是谁（已实现）
@@ -16,7 +18,8 @@ import Life from "@/components/sections/life";
        <Skills />             ← 子幕 c · 能力技能（已实现）
      <Portfolio />          ← 第三幕 · 作品集（已实现）
      <Life />               ← 第四幕 · 视觉与生活（已实现）
-     <Closing />            ← 第五幕 · 收尾（待实现）
+     <Closing />            ← 第五幕 · 收尾（已实现）
+
   AI 数字分身悬浮组件将放在 layout.tsx 里全站可见。
 */
 export default function Home() {
@@ -28,6 +31,7 @@ export default function Home() {
       <Skills />
       <Portfolio />
       <Life />
+      <Closing />
     </main>
   );
 }

@@ -1760,6 +1760,279 @@ body {
 }
 
 /* ===============================================================
+   第五幕 · 收尾 Closing
+   ---------------------------------------------------------------
+   视觉策略：与 About Me / Portfolio / Life 同源（黑白单色 / 全大写英文板块标题 / hairline / 克制留白）。
+   三构成：TESTIMONIALS（精选寄语）/ GET IN TOUCH（联系 CTA）/ MESSAGES（V2 留言入口占位）。
+   =============================================================== */
+
+.closing {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: clamp(80px, 11vh, 130px) clamp(24px, 6vw, 96px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 章节标题 --- */
+.closing-title {
+  font-family: var(--sans);
+  font-size: clamp(52px, 6.4vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  text-align: center;
+  margin: 0 auto 12px;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.closing.visible .closing-title {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
+}
+.closing-subtitle {
+  font-size: clamp(13px, 1.05vw, 16px);
+  color: var(--ink-2);
+  text-align: center;
+  margin: 0 auto clamp(56px, 8vh, 96px);
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.closing.visible .closing-subtitle {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
+}
+
+/* --- 板块通用 --- */
+.closing-block {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  padding-top: clamp(48px, 6vh, 80px);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.closing-block:first-of-type {
+  padding-top: 0;
+}
+.closing.visible .closing-block-testimonials {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.34s;
+}
+.closing.visible .closing-block-contact {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.5s;
+}
+.closing.visible .closing-block-board {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.62s;
+}
+
+.closing-block-header {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 2vw, 28px);
+  margin-bottom: clamp(28px, 4vh, 48px);
+  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
+  padding-bottom: 18px;
+}
+.closing-block-title {
+  font-size: clamp(18px, 1.8vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+.closing-block-desc {
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+
+/* --- TESTIMONIALS 寄语墙 --- */
+.closing-testimonial-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 4vh, 44px);
+}
+.closing-testimonial {
+  border-left: 2px solid var(--ink);
+  padding-left: clamp(20px, 2.5vw, 32px);
+}
+.closing-testimonial-empty {
+  border-left-color: rgba(29, 29, 31, 0.18);
+  border-left-style: dashed;
+}
+.closing-quote {
+  font-size: clamp(18px, 1.8vw, 26px);
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 12px;
+  letter-spacing: -0.005em;
+}
+.closing-testimonial-empty .closing-quote {
+  color: var(--ink-2);
+  opacity: 0.6;
+  font-style: italic;
+  font-weight: 400;
+}
+.closing-cite {
+  font-style: normal;
+  font-size: clamp(13px, 1.05vw, 15px);
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+.closing-cite-relation {
+  color: var(--ink-2);
+  opacity: 0.75;
+}
+
+/* --- GET IN TOUCH 联系方式 --- */
+.closing-callout {
+  font-family: var(--font-smiley-sans), var(--sans);
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  text-align: center;
+  margin: 0 auto clamp(36px, 5vh, 56px);
+  max-width: 760px;
+}
+.closing-callout em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.closing-contact-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.closing-contact-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: clamp(16px, 2vw, 32px);
+  align-items: center;
+  padding: clamp(16px, 2vh, 22px) 0;
+  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
+}
+.closing-contact-row:first-child {
+  border-top: 1px solid rgba(29, 29, 31, 0.1);
+}
+.closing-contact-label {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(11px, 0.95vw, 13px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.closing-contact-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.closing-contact-arrow {
+  transition: transform 0.25s ease;
+  color: var(--ink-2);
+}
+.closing-contact-link:hover {
+  color: var(--accent);
+}
+.closing-contact-link:hover .closing-contact-arrow {
+  transform: translateX(4px);
+  color: var(--accent);
+}
+
+.closing-privacy-note {
+  margin-top: clamp(28px, 4vh, 40px);
+  text-align: center;
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--ink-2);
+  opacity: 0.7;
+  letter-spacing: 0.02em;
+}
+
+/* --- MESSAGES (V2) 占位 --- */
+.closing-board-placeholder {
+  border: 1px dashed rgba(29, 29, 31, 0.18);
+  padding: clamp(28px, 4vh, 40px) clamp(20px, 3vw, 36px);
+  text-align: center;
+  background: linear-gradient(180deg, rgba(244, 244, 246, 0.5) 0%, transparent 100%);
+}
+.closing-board-placeholder p {
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.7;
+  color: var(--ink-2);
+  font-style: italic;
+}
+
+/* --- 章节收尾（最末的最末） --- */
+.closing-footer {
+  margin-top: clamp(80px, 10vh, 120px);
+  padding-top: clamp(28px, 4vh, 40px);
+  border-top: 1px solid rgba(29, 29, 31, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.closing-thanks {
+  font-size: clamp(14px, 1.1vw, 16px);
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.closing-meta {
+  font-size: clamp(11px, 0.9vw, 12px);
+  color: var(--ink-2);
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .closing-title,
+  .closing-subtitle,
+  .closing-block {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+}
+
+/* --- 窄屏适配 --- */
+@media (max-width: 760px) {
+  .closing {
+    padding: 72px 20px;
+  }
+  .closing-title {
+    font-size: 44px;
+  }
+  .closing-callout {
+    font-size: 26px;
+  }
+  .closing-contact-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 16px 0;
+  }
+  .closing-contact-label {
+    font-size: 10px;
+  }
+  .closing-contact-link {
+    font-size: 16px;
+  }
+}
+
+/* ===============================================================
    子幕 b：能力技能 Skills
    =============================================================== */
 .skills {

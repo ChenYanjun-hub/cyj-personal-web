@@ -6,6 +6,87 @@
 
 ---
 
+## 2026-06-06 · 阶段六：第五幕收尾 · V1 整体骨架达成 🎉
+
+### 1. 阶段成果
+
+#### 1.1 第五幕 closing.tsx
+按 PROJECT_GUIDE 第 6 节（重编号后是第五幕）三构成：
+
+- **TESTIMONIALS** 精选寄语墙（主）
+  - 真实评价 · 非开放评论（防垃圾 + 防冷清）
+  - 引言式排版：左侧 2px 实线 + 大字 quote + cite
+  - 占位：3 条 dashed 边框 + 灰色斜体（待负责人提前求人收集）
+
+- **GET IN TOUCH** 联系方式 CTA
+  - 召唤语 `如果你在找一个 会动手的 AI 产品经理`（PROJECT_GUIDE 第 228 行原话）
+  - 召唤语里"会动手的 AI 产品经理"用 accent 橙红 #D8552E + 得意黑 Oblique → 与 Hero tagline 视觉呼应
+  - 3 行联系：EMAIL · GITHUB · RESUME（mono 标签 + 大字 link + 箭头）
+  - 隐私边界提示（手机号 / 微信不直接公开）
+
+- **MESSAGES** V2 折叠留言入口（占位）
+  - dashed 占位框，说明"V2 上线 + 走 Supabase 后端中转"
+  - 给定 `id="board"` 对应 Hero nav 的 `#board` 锚点
+
+- **Footer**
+  - "看到这里 · 感谢你给我的 30 秒"
+  - "© 2026 陈彦均 · 用 Claude Code vibe coding 自己打的"
+
+#### 1.2 改动
+- 新建 `web/src/components/sections/closing.tsx`
+- `globals.css` 追加 `.closing` 段约 280 行
+- `page.tsx` 在 `<Life />` 后挂载 `<Closing />`
+- 给 MESSAGES 板块加 `id="board"`，Hero nav 全部锚点联通
+
+---
+
+### 2. 🎯 V1 整体骨架 · 里程碑
+
+**全部五幕到位**：
+
+| 幕 | 组件 | 状态 |
+|---|---|---|
+| 第一幕 | Hero · 数字名片 | ✅ 含 Claude Design 移植 + 得意黑 + tagline + 十字准星 + 入场动画 |
+| 第二幕 | About Me 章节 | ✅ 主体（ProfileCard 3D 倾斜 + 闪卡水印）+ 能力对照 + 具备技能 |
+| 第三幕 | Portfolio | ✅ CORE / WIP / LAB 三板块 + inline 展开（详情待负责人补） |
+| 第四幕 | Life & Vision | ✅ GALLERY / CRAFT / BOOKSHELF（素材待负责人补） |
+| 第五幕 | Closing | ✅ TESTIMONIALS（待寄语）+ Contact CTA + Footer |
+
+**Hero nav 锚点全部联通**：
+- `#card` → Hero
+- `#about-me` → AboutMe（章节起点）
+- `#work` → Portfolio
+- `#life` → Life
+- `#contact` → Closing 章节起点
+- `#board` → Closing 内 MESSAGES 板块
+
+**视觉语言全站一致**：
+- 第二~第五幕都是黑白单色 / 全大写英文板块标题 / hairline / 克制留白
+- Hero 是色彩入口（accent #D8552E + 得意黑 + 十字准星）
+- accent 在收尾召唤语处呼应一次，整站收闭环
+
+---
+
+### 3. V1 完成后待办（按优先级）
+
+#### 3.1 内容补全（负责人）
+- **作品集事实档案**：A.1-A.7 云上米轨 / B.1-B.8 建景规（详见阶段四）
+- **视觉素材**：6 张多媒介作品 + 3D 打印 + 骑行（详见阶段五）
+- **书架真实书单**：四类 + 每本一句感想
+- **精选寄语**：提前求人收集 3-5 句
+- **简历 PDF**：放到 `web/public/resume.pdf`
+
+#### 3.2 V1 还差的关键功能
+- **AI 数字分身**（PROJECT_GUIDE 核心差异化亮点）：`/api/chat` + DeepSeek + 系统提示词 + 防护 + 悬浮组件 UI
+- **阿里云部署**：备案完成后做（Node + PM2 + Nginx + HTTPS）
+
+#### 3.3 V1 polish（次优先）
+- 全站 dead CSS 清理（`.about-portrait` 等遗留）
+- capability-bridge / skills / closing 里 `{cond && <JSX/>}` 模式按 React Best Practices 改 ternary
+- AIGC 城市轴测线稿底图叠到 Portfolio（V2 视觉外壳）
+
+---
+
 ## 2026-06-06 · 阶段五：第四幕视觉与生活骨架（GALLERY / CRAFT / BOOKSHELF）
 
 ### 1. 阶段成果
