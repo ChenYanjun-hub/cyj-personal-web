@@ -6,6 +6,70 @@
 
 ---
 
+## 2026-06-06 · 阶段五：第四幕视觉与生活骨架（GALLERY / CRAFT / BOOKSHELF）
+
+### 1. 阶段成果
+
+#### 1.1 第四幕 life.tsx
+按 PROJECT_GUIDE 第 5 节（重编号后是第四幕）三板块结构：
+
+- **GALLERY** 视觉创作（主体）：
+  - 顶部"素描 · 专业 8 级证书"徽章（PROJECT_GUIDE 王牌 · 官方背书的硬资质）
+  - 多媒介作品 6 格网格：素描 / 水彩 / 刀画 / 丙烯 / 速写 / AIGC
+  - AIGC 这格直接复用 `/hero-bg.png`（城市轴测，规划标注作品）
+  - 每张图配标题 + 媒介标签 + 一句话
+
+- **CRAFT** 生活切片（轻量）：
+  - 3D 打印（爱动手）+ 骑行（活力）
+  - 2 格大卡片，4:3 比例
+
+- **BOOKSHELF** 我的书架（杀招）：
+  - 四列：AI / BUSINESS / PRODUCT / PHILOSOPHY
+  - 每本书：title + 一句感想（PROJECT_GUIDE 铁律：只放真读过的）
+  - 当前全部占位"待负责人补 · 真读过 + 一句感想"
+
+#### 1.2 视觉策略
+- 与 About Me / Portfolio 同源：黑白单色 / 全大写英文板块标题 / hairline / 克制留白
+- 占位策略：图片用 dashed 边框 + 中央 `TBD` + 媒介标签；文字用斜体灰色
+
+#### 1.3 改动
+- 新建 `web/src/components/sections/life.tsx`
+- `globals.css` 追加 `.life` 段约 320 行
+- `page.tsx` 在 `<Portfolio />` 后挂载 `<Life />`
+
+---
+
+### 2. 待补素材清单（提供给负责人）
+
+#### 2.1 GALLERY · 多媒介作品图
+负责人需要从画作中选若干张代表作，放到 `web/public/` 下，命名规则建议：
+- `art-sketch.jpg` 素描
+- `art-watercolor.jpg` 水彩
+- `art-knife.jpg` 刀画
+- `art-acrylic.jpg` 丙烯
+- `art-photo.jpg` 摄影
+
+补好后告诉我，我把 ARTWORKS 数组里 `src: null` 改成对应路径。
+
+#### 2.2 CRAFT · 生活切片图
+- `craft-3d-print.jpg` 3D 打印作品
+- `craft-cycling.jpg` 骑行场景
+
+#### 2.3 BOOKSHELF · 书单
+四类（AI / 商业分析 / 产品经理 / 哲学），每类 2-4 本。
+**铁律（PROJECT_GUIDE）**：只放真读过、聊得出来的书（面试会被问）。
+每本配一句感想 / 为什么读 → 把书架变成你的大脑。
+
+---
+
+### 3. 下一阶段
+
+第五幕 · 收尾：精选寄语墙 + 折叠留言入口（V2 Supabase）+ 联系方式 CTA
+- 已知公开信息：邮箱 tmml1770998584@163.com / GitHub @ChenYanjun-hub
+- 待负责人提前求人收集：3-5 句精选寄语（前同事 / 师长 / 合作者）
+
+---
+
 ## 2026-06-06 · 阶段四：第三幕作品集骨架（CORE / WIP / LAB 三板块）
 
 ### 1. 阶段成果

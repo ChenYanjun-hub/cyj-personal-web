@@ -1407,6 +1407,359 @@ body {
 }
 
 /* ===============================================================
+   第四幕 · 视觉与生活 Life & Vision
+   ---------------------------------------------------------------
+   视觉策略：与 About Me / Portfolio 同源（纯黑白 / 全大写英文板块标题 / hairline / 克制留白）。
+   三板块：GALLERY（视觉创作）/ CRAFT（生活切片）/ BOOKSHELF（我的书架）。
+   素材状态：除了素描 8 级证书（已知事实）+ AIGC 1 张（hero-bg.png 已有），
+   其余几乎全部待补全，占位用 TBD 提示。
+   =============================================================== */
+
+.life {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: clamp(80px, 11vh, 130px) clamp(24px, 6vw, 96px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 章节标题 --- */
+.life-title {
+  font-family: var(--sans);
+  font-size: clamp(52px, 6.4vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  text-align: center;
+  margin: 0 auto 12px;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.life.visible .life-title {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
+}
+.life-subtitle {
+  font-size: clamp(13px, 1.05vw, 16px);
+  color: var(--ink-2);
+  text-align: center;
+  margin: 0 auto clamp(56px, 8vh, 96px);
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.life.visible .life-subtitle {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
+}
+
+/* --- 板块通用 --- */
+.life-block {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding-top: clamp(48px, 6vh, 80px);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.life-block:first-of-type {
+  padding-top: 0;
+}
+.life.visible .life-block-gallery {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.34s;
+}
+.life.visible .life-block-craft {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.5s;
+}
+.life.visible .life-block-shelf {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.62s;
+}
+
+.life-block-header {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 2vw, 28px);
+  margin-bottom: clamp(28px, 4vh, 48px);
+  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
+  padding-bottom: 18px;
+}
+.life-block-title {
+  font-size: clamp(18px, 1.8vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+.life-block-desc {
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+
+/* --- 素描 8 级证书徽章（GALLERY 板块的王牌） --- */
+.life-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border: 1px solid var(--ink);
+  border-radius: 100px;
+  margin-bottom: clamp(28px, 4vh, 40px);
+  font-size: clamp(12px, 1vw, 14px);
+  letter-spacing: 0.04em;
+}
+.life-badge-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  padding-right: 12px;
+  border-right: 1px solid rgba(29, 29, 31, 0.2);
+}
+.life-badge-value {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* --- GALLERY 网格 --- */
+.life-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 2.5vw, 32px);
+}
+
+.life-artwork {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.life-artwork-image {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #f4f4f6;
+}
+.life-artwork-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.life-artwork-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f4f4f6 0%, #e8e8eb 100%);
+  border: 1px dashed rgba(29, 29, 31, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink-2);
+}
+.life-artwork-medium-tag {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border: 1px solid currentColor;
+  border-radius: 100px;
+}
+.life-artwork-tbd {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  opacity: 0.6;
+}
+.life-artwork-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.life-artwork-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.life-artwork-medium {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.life-artwork-title {
+  font-size: clamp(14px, 1.15vw, 16px);
+  font-weight: 600;
+  color: var(--ink);
+}
+.life-artwork-note {
+  font-size: clamp(12px, 1vw, 14px);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.life-artwork-empty .life-artwork-note {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* --- CRAFT 网格 --- */
+.life-craft-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(24px, 3vw, 40px);
+}
+.life-craft {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.life-craft-image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #f4f4f6;
+}
+.life-craft-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.life-craft-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f4f4f6 0%, #e8e8eb 100%);
+  border: 1px dashed rgba(29, 29, 31, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
+}
+.life-craft-tbd {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+.life-craft-title {
+  font-size: clamp(16px, 1.4vw, 20px);
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 4px;
+}
+.life-craft-note {
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.life-craft-empty .life-craft-note {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* --- BOOKSHELF 网格：4 列（每列一个分类） --- */
+.life-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(20px, 2.5vw, 36px);
+}
+.life-shelf-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.life-shelf-cat {
+  font-size: clamp(13px, 1.1vw, 16px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  border-bottom: 1px solid rgba(29, 29, 31, 0.12);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.life-shelf-cat-zh {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.life-shelf-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.life-shelf-book {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.life-shelf-book-title {
+  font-size: clamp(13px, 1.05vw, 15px);
+  font-weight: 600;
+  color: var(--ink);
+}
+.life-shelf-book-note {
+  font-size: clamp(12px, 0.95vw, 13px);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.life-shelf-book-empty .life-shelf-book-note {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* --- 章节收尾 --- */
+.life-segue {
+  text-align: center;
+  font-size: clamp(13px, 1.05vw, 15px);
+  color: var(--ink-2);
+  margin-top: clamp(64px, 8vh, 100px);
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .life-title,
+  .life-subtitle,
+  .life-block {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+}
+
+/* --- 窄屏适配 --- */
+@media (max-width: 760px) {
+  .life {
+    padding: 72px 20px;
+  }
+  .life-title {
+    font-size: 44px;
+  }
+  .life-gallery-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .life-craft-grid {
+    grid-template-columns: 1fr;
+  }
+  .life-shelf-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .life-badge {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ===============================================================
    子幕 b：能力技能 Skills
    =============================================================== */
 .skills {
