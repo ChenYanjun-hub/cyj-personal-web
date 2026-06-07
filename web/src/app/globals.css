@@ -549,23 +549,6 @@ body {
 .bridge.visible .bridge-header {
   animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
-.bridge-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  font-size: clamp(12px, 1vw, 14px);
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 18px;
-}
-.bridge-rule {
-  display: inline-block;
-  width: 28px;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.6;
-}
 .bridge-title {
   font-family: var(--font-smiley-sans), var(--sans);
   font-size: clamp(40px, 6vw, 86px);
@@ -866,38 +849,9 @@ body {
   animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
 }
 
-.about-portrait {
-  /* 长方形 4:5 比例（接近参考图人物照） */
-  position: relative; /* next/image fill 需要 parent 有定位上下文 */
-  aspect-ratio: 4 / 5;
-  width: 100%;
-  overflow: hidden;
-  background: #f4f4f6;
-}
-.portrait-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #ececef 0%, #d8d8dc 100%);
-  border: 1px dashed rgba(29, 29, 31, 0.18);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--ink-2);
-}
-.portrait-placeholder > span:first-child {
-  font-family: var(--font-smiley-sans), var(--sans);
-  font-size: clamp(26px, 3vw, 38px);
-  font-weight: 600;
-  color: var(--ink);
-}
-.portrait-tip {
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  color: var(--ink-2);
-  opacity: 0.65;
-}
+/* 注：左栏人物图原本用 .about-portrait + next/image，阶段三换成了 reactbits ProfileCard。
+   占位相关样式（.about-portrait / .portrait-placeholder / .portrait-tip）已清理。
+   ProfileCard 自带的 .pc-* 命名空间样式见 src/components/reactbits/ProfileCard.css。 */
 
 /* 大字拼音姓名 — 视觉签名（参考图 LIUWENTAO 的处理）*/
 .about-signature {
@@ -1018,10 +972,6 @@ body {
   .about-grid {
     grid-template-columns: 1fr;
     gap: 40px;
-  }
-  .about-portrait {
-    max-width: 280px;
-    margin: 0 auto;
   }
   .about-signature {
     font-size: 28px;

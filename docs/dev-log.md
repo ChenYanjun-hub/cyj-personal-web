@@ -6,6 +6,37 @@
 
 ---
 
+## 2026-06-06 · 阶段十：dead CSS 清理
+
+### 清理对象
+两组遗留选择器（用 `grep` 系统对照 .tsx 引用确认完全 dead）：
+
+**第一组 · about-portrait 段**（阶段三 ProfileCard 替换 next/image 后）：
+- `.about-portrait`
+- `.portrait-placeholder`
+- `.portrait-placeholder > span:first-child`
+- `.portrait-tip`
+- 窄屏 @media 里的 `.about-portrait`
+
+**第二组 · capability-bridge 改造后**（阶段五 chapter 头融入 About Me 后）：
+- `.bridge-eyebrow`
+- `.bridge-rule`
+
+### 操作
+- 三处 Edit 删除 dead 段
+- 保留一行注释 marker，记录"这一带原本是 .about-portrait，已被 ProfileCard 替换；ProfileCard.css 在 components/reactbits/ 命名空间下"
+- 删除前后 grep 对照：全部 7 个类在 .tsx 文件里**零引用**
+
+### 验证
+- `tsc --noEmit` 退出码 0 · 无 warning
+- `pnpm build` 退出码 0 · 5/5 static pages · 路由分配正确（/ static · /api/chat dynamic）
+- globals.css 从约 2430 行精简到 2389 行（减约 40 行）
+
+### 这一波的收尾价值
+代码"干净底子"已经备好。V2 精修阶段可以从一个无包袱的 globals.css 起步。
+
+---
+
 ## 2026-06-06 · 阶段九：部署前准备 · 阿里云铺路
 
 ### 阶段目标
