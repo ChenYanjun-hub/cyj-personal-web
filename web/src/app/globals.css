@@ -212,9 +212,16 @@ body {
   }
 }
 
-/* --- 顶部导航（苹果窄条风）--- */
+/* --- 顶部导航（苹果窄条风）---
+ * v2 调整：
+ *  - position: absolute → fixed（scroll 时全程跟随，不只在 Hero 幕显示）
+ *  - 左侧 nav-status（● SHANGHAI, CN + 实时时间 + 上海坐标）+ 右侧 navlinks
+ *  - justify-content: space-between · 两组分别靠边
+ *  - 删除 .stage .brand / .stage .brand .en 两块 dead CSS（brand JSX 已从 hero.tsx 移除）
+ *  - .navlinks 字体加粗 font-weight 400 → 700
+ */
 .stage nav {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -224,34 +231,127 @@ body {
   justify-content: space-between;
   padding: 26px clamp(24px, 5vw, 64px) 0;
 }
-.stage .brand {
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--ink);
-}
-.stage .brand .en {
-  color: var(--ink-2);
-  font-weight: 400;
-  margin-left: 8px;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-}
 .stage .navlinks {
   display: flex;
   gap: clamp(16px, 2.4vw, 34px);
+  margin-left: auto; /* 强制靠右 · 即使未来 nav 左侧加元素也不会被挤回左侧 */
 }
 .stage .navlinks a {
-  color: var(--ink-2);
+  color: var(--ink);                  /* v2 加粗后用主黑（原 var(--ink-2) 次黑） */
   text-decoration: none;
   font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  transition: color 0.2s ease;
+  font-weight: 700;                   /* v2 加粗 · 整体 nav 粗体感（参考 Jasmine） */
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s ease;
 }
 .stage .navlinks a:hover {
-  color: var(--ink);
+  opacity: 0.55;                      /* v2: 加粗后默认即主黑，hover 用 opacity 反馈 */
 }
+
+/* 顶部 nav 左侧 status 组（● SHANGHAI, CN · 实时时间 · 上海坐标）
+ *  仿 Jasmine Gunarto 参考图的 "mission control" 风格信息组
+ *  - monospace 字体（数字跳动不抖动） + 整体加粗
+ *  - tabular-nums 等宽数字
+ */
+.stage .nav-status {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 40px);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.stage .nav-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.stage .nav-loc-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.stage .nav-time,
+.stage .nav-coord {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 窄屏汉堡按钮 · 宽屏 display: none，窄屏在 @media 里打开 --- */
+.stage .nav-hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: opacity 0.2s ease;
+}
+.stage .nav-hamburger:hover {
+  opacity: 0.6;
+}
+.stage .nav-hamburger svg {
+  display: block;
+}
+
+/* --- 窄屏 mobile menu overlay --- */
+.stage .nav-mobile-menu {
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  padding: 22px clamp(20px, 5vw, 40px) 40px;
+}
+.stage .nav-mobile-menu.open {
+  display: flex;
+  animation: nav-menu-in 0.28s ease both;
+}
+@keyframes nav-menu-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stage .nav-mobile-close {
+  align-self: flex-end;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: opacity 0.2s ease;
+}
+.stage .nav-mobile-close:hover { opacity: 0.6; }
+.stage .nav-mobile-close svg { display: block; }
+.stage .nav-mobile-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  flex: 1;
+  justify-content: center;
+}
+.stage .nav-mobile-list a {
+  display: inline-block;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: clamp(30px, 8vw, 48px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  font-family: var(--sans);
+  transition: color 0.2s ease;
+}
+.stage .nav-mobile-list a:active {
+  color: var(--accent);
+}
+
 .stage.loaded nav {
   animation: hero-fade 0.8s ease both 0.15s;
 }
@@ -507,7 +607,15 @@ body {
 
 /* --- 窄屏适配：隐藏不适合小屏的元素 --- */
 @media (max-width: 760px) {
+  /* v2 nav 窄屏适配：navlinks 换汉堡 / 左侧 status 收缩（隐藏坐标，保留 ● 城市 + 时间）*/
   .stage .navlinks { display: none; }
+  .stage .nav-hamburger { display: flex; }
+  .stage .nav-coord { display: none; }
+  .stage .nav-status {
+    gap: 14px;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+  }
   .stage .footer { display: none; }
   .stage .tagline {
     /* 窄屏 tagline 同步放大（V1.1）：18-30 → 28-44，更抓眼 */

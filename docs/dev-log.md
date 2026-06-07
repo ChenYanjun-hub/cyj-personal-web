@@ -6,6 +6,106 @@
 
 ---
 
+## 2026-06-08 · 阶段十一：Hero 顶部 nav 重做 + V2 拍方向探索复盘
+
+### 这一阶段的双线
+- **主线（成功）**：Hero 顶部 nav 在 V1 真实代码里小步迭代到位
+- **副线（被推翻）**：尝试做 V2 整体视觉拍方向（3 版独立 mockup，全部被用户否决）
+
+---
+
+### 副线 · V2 拍方向探索复盘
+
+#### 用户给的 3 张视觉参考
+- **GSAP 官网**：黑底 + 巨字 + 玩耍 3D 装饰（弹簧/花瓣）+ 荧光绿 accent
+- **Brandon Bartram 个人站**：浅米绿 + Serif italic + 真人照 + 章节编号 + 复古小花
+- **Jasmine Gunarto 个人站**：暖灰白 + Brutalist condensed + 零装饰 + **每幕一个色块**
+
+#### 我做的 3 版独立 mockup（均在本地 `_design-v2/`，不入仓库）
+- **V2 v1 · X PROTOCOL**：SpaceX/Anthropic Console 风（黑底 + HUD telemetry + scan line + NASA 橘）→ 用户："不好看"
+- **V2 v2 · Warm Playground**：浅米黄 + 装饰物（弹簧/花/立方体/手绘箭头）+ 章节系统 + Serif italic → 用户："加装饰反而让 V1 乱了"
+- **V2 v3 · Gallery**：暖灰白单底 + 极致大字 + 零装饰 + Bebas Neue condensed → 用户切换工作模式："不再做独立 mockup，直接在 V1 上改"
+
+#### 用户的关键洞察（永远记住）
+> "我知道为什么没有高级感了，我们对排版没有花费心思。没有真正设计师的极致构图、颜色搭配和色块构成"
+
+> "我们不纠结打造完美无缺的方案了。首页我想好具体改的小细节我单独和你说。我们直接在 V1 上调整"
+
+#### 工作模式切换（这一阶段最重要的产出）
+- ❌ 不再做独立 HTML mockup
+- ❌ 不再 push "3 个方向 A/B/C 选一个" 这种完整方案
+- ✅ 直接在 `web/` 真实 V1 代码上改
+- ✅ 用户说一个细节，我改一个
+
+---
+
+### 主线 · Hero 顶部 nav 实操
+
+#### 用户的小细节清单（8 条）
+1. nav 在 scroll 时全程固定跟随
+2. 删除左侧 "陈彦均 Yanjun Chen" brand（与中央巨字重复）
+3. 删除 "数字名片" 链接（Hero 自身就是名片）
+4. "About Me" → "关于我"
+5. "视觉与生活" → "其他"
+6. nav 左侧加 status 组：● SHANGHAI, CN + 实时时间（CST）+ 上海坐标 31.2304° N, 121.4737° E
+7. nav 字体整体加粗
+8. 窄屏改为右侧汉堡按钮（宽屏不变）
+
+#### hero.tsx 改动
+- `NAV_LINKS` 简化（6 → 5 个 + 改 2 个 label）
+- 删除 brand JSX
+- 加 `timeRef` + 实时时间 useEffect（强制 `Asia/Shanghai` 时区、12 小时制 + CST 标识、每分钟刷一次）
+- 加 `mobileMenuOpen` state + ESC 监听 + body scroll lock useEffect
+- nav 内加：左 nav-status 组 + 右 hamburger button + mobile menu overlay JSX
+
+#### globals.css 改动
+- `.stage nav` `position: absolute → fixed`（scroll 全程跟随）
+- `justify-content: space-between`（左 status / 右 navlinks 分别靠边）
+- 删除 `.stage .brand` + `.stage .brand .en`（dead CSS 一并清理）
+- 加 `.nav-status / .nav-loc / .nav-loc-dot / .nav-time / .nav-coord` 一组样式（monospace + 加粗 + `tabular-nums` 等宽数字）
+- `.stage .navlinks a` `font-weight: 400 → 700` + color `--ink-2 → --ink`，hover 改 `opacity: 0.55` 反馈
+- 新增 `.nav-hamburger`（默认 hidden）+ `.nav-mobile-menu`（fade + translateY 入场动画）
+- `@media (max-width: 760px)` 新增 3 件：hamburger 显示 / nav-coord 隐藏 / nav-status 字号+gap 收缩
+
+#### 关键设计决策
+- **实时时间用 ref 不走 state**：避免每分钟整个 Hero re-render。直接 `textContent` 改 DOM
+- **mobile menu 全屏暖白覆盖**：`var(--paper)` + fixed inset 0 + z-index 100，比下拉/侧滑更"高级"
+- **`.navlinks` 保留 `margin-left: auto`**：双保险，与 space-between 配合，未来增删左侧元素都不会被挤回左边
+- **汉堡 SVG 最后一根 line 偏移**（x=9 起而非 x=3）：留个小巧思
+
+#### 验证
+- 改动只在 hero.tsx + globals.css，不涉及其他幕 / API / 部署文件
+- dev server 由用户自己跑（按 stage 1 的工作模式约定）
+
+---
+
+### 学到的（这一阶段的教训）
+
+1. **理解 V1 真实现状比"做 V2 方向"更关键** —— 我第 1 版 mockup 基于错误假设（以为 V1 是黑底）做了完全错的方向。下次面对视觉需求，**先要求看 V1 实际截图**再判断方向。
+2. **"加装饰物 ≠ 高级感"** —— GSAP 的弹簧 / Brandon 的小花都是"恰到好处的 1 个点缀"，不是堆装饰。**真正的高级感来自极致构图 + 留白 + 字体本身的 statement**。
+3. **mockup 边际成本是真实的** —— 3 版独立 HTML mockup 各 ~30 分钟，用户反复"不好看"。下次模糊视觉需求时，应该**先在真实 V1 代码里改 1 个细节让用户看效果**，再迭代。
+4. **vibe coding > 系统化设计方案** —— 用户在个人项目里偏好"我说一个细节，你改一个"，比"3 个方向选一个 + 完整 mockup" 节奏更顺。
+
+---
+
+### 当前已知开放问题（不影响 commit）
+
+- **`_design-v2/` 目录归档**：3 版探索 mockup + 截图 + node_modules 留在本地不入仓库。如有归档需要，未来单独建 design 仓库或走 git LFS。
+- **mobile menu 实测未验**：dev server 上需要用户实机测（特别是 mobile 端的 ESC、汉堡、关闭按钮、菜单点击是否流畅）。
+- **nav 跨幕可读性**：fixed nav 黑字在 Hero 浅米黄底可读 ✅，但后续幕（约二~五幕）背景色如果是深色，nav 文字色需要自适应。这个等用户在 dev server 滚到那几幕反馈再处理。
+
+---
+
+### 下一阶段（候选）
+
+- Hero 其他小细节（用户主导）
+- 或转入第二幕（关于我）的小细节调整
+- 或回到 ICP 备案 / 阿里云部署的下一步
+
+待用户拍板。
+
+---
+
 ## 2026-06-06 · 阶段十：dead CSS 清理
 
 ### 清理对象

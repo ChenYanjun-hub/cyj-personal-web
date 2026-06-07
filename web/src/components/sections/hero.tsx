@@ -26,12 +26,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// 顶部导航锚点（v1.2 结构调整：能力对照 + 具备技能 合并为 About Me 章节）
+// 顶部导航锚点
+// v1.2 结构调整：能力对照 + 具备技能 合并为 About Me 章节
+// v2 调整：删"数字名片"（Hero 自身就是名片，重复）/ "About Me" → "关于我" / "视觉与生活" → "其他"
 const NAV_LINKS = [
-  { href: "#card", label: "数字名片" },
-  { href: "#about-me", label: "About Me" },
+  { href: "#about-me", label: "关于我" },
   { href: "#work", label: "作品集" },
-  { href: "#life", label: "视觉与生活" },
+  { href: "#life", label: "其他" },
   { href: "#contact", label: "联系方式" },
   { href: "#board", label: "留言板" },
 ];
@@ -47,7 +48,11 @@ const SHOW_EYEBROW = false;
 export default function Hero() {
   const stageRef = useRef<HTMLElement>(null);
   const coordRef = useRef<HTMLDivElement>(null);
+  // 顶部 nav 左侧实时时间 ref · 不走 React state 避免每分钟 re-render 整个 Hero
+  const timeRef = useRef<HTMLSpanElement>(null);
   const [loaded, setLoaded] = useState(false);
+  // 窄屏汉堡菜单的开合状态（宽屏 ≥ 760px 不显示，state 也不会真正被消费）
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // mount 下一帧切到 loaded，触发 stagger 入场动画
   useEffect(() => {
@@ -99,6 +104,40 @@ export default function Hero() {
     };
   }, []);
 
+  // 顶部 nav 左侧实时时间（强制上海时区，12 小时制 + CST 标识）
+  // 用 ref 直接改 textContent，每分钟刷一次，避免 React re-render
+  useEffect(() => {
+    const updateTime = () => {
+      const t = new Date().toLocaleTimeString("en-US", {
+        timeZone: "Asia/Shanghai",
+        hour12: true,
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      if (timeRef.current) {
+        timeRef.current.textContent = `${t}  CST`;
+      }
+    };
+    updateTime(); // mount 立即显示一次
+    const id = setInterval(updateTime, 60_000); // 之后每分钟刷新
+    return () => clearInterval(id);
+  }, []);
+
+  // 窄屏汉堡菜单：ESC 关闭 + 打开时锁 body scroll
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <section
       ref={stageRef}
@@ -127,18 +166,90 @@ export default function Hero() {
         E 000.0  N 000.0
       </div>
 
-      {/* 顶部导航：左 brand + 右 7 个幕锚点 */}
+      {/* 顶部导航：
+       *  - 左侧 nav-status：● SHANGHAI, CN + 实时时间（CST）+ 上海坐标
+       *  - 右侧 navlinks
+       *  CSS 用 justify-content: space-between 让两组各靠边
+       */}
       <nav>
-        <div className="brand">
-          陈彦均
-          <span className="en">Yanjun Chen</span>
+        <div className="nav-status">
+          <span className="nav-loc">
+            <span className="nav-loc-dot" />
+            <span>SHANGHAI, CN</span>
+          </span>
+          <span className="nav-time" ref={timeRef}>
+            --:-- CST
+          </span>
+          <span className="nav-coord">31.2304° N, 121.4737° E</span>
         </div>
+
         <div className="navlinks">
           {NAV_LINKS.map((link) => (
             <a key={link.href} href={link.href}>
               {link.label}
             </a>
           ))}
+        </div>
+
+        {/* 窄屏汉堡按钮（≤ 760px 显示，宽屏 CSS display: none） */}
+        <button
+          type="button"
+          className="nav-hamburger"
+          aria-label="打开菜单"
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          >
+            <line x1="3" y1="7" x2="21" y2="7" />
+            <line x1="3" y1="14" x2="21" y2="14" />
+            <line x1="9" y1="21" x2="21" y2="21" />
+          </svg>
+        </button>
+
+        {/* 窄屏 mobile menu overlay · 全屏 paper 色覆盖 */}
+        <div
+          className={`nav-mobile-menu${mobileMenuOpen ? " open" : ""}`}
+          aria-hidden={!mobileMenuOpen}
+        >
+          <button
+            type="button"
+            className="nav-mobile-close"
+            aria-label="关闭菜单"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            >
+              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+          </button>
+          <ul className="nav-mobile-list">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </nav>
 
