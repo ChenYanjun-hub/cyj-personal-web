@@ -32,8 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-# 但是 .env.example 是给协作者的模板，必须入库
+# 但是 *.example 是给协作者的模板，必须入库（dev + production 两个版本）
 !.env.example
+!.env.*.example
 
 # vercel
 .vercel
