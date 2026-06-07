@@ -6,6 +6,86 @@
 
 ---
 
+## 2026-06-06 · 阶段九：部署前准备 · 阿里云铺路
+
+### 阶段目标
+负责人正在推进 ICP 备案（已通过阿里云"可备案性"预检），备案完成需 7-20 工作日。
+利用这段窗口期，把所有部署相关文件 + 手册做好——**备案一通过当天就能上线**，零时间损失。
+
+### 阶段成果
+
+#### 1. 本地 production build 验证（`pnpm build`）
+- 退出码 0，所有页面正确分配 static/dynamic：
+  - `/` 静态预渲染（首屏极快）
+  - `/_not-found` 静态
+  - `/api/chat` 动态（流式响应必须 server-rendered on demand）✅
+- 发现并修复一个**隐藏多阶段的真相**：
+  - 阶段二写的 `bundler: 'webpack'` Next 16 根本不识别（build 输出 `Unrecognized key 'bundler'`）
+  - 我们一直在用 Turbopack，不是 webpack
+  - 当时的卡死问题是 `archive 上层 shadcn 残留` 这一步解决的，跟 bundler 选择无关
+  - 修：删 `bundler` 字段 + 在 next.config.ts 写清历史注释
+
+#### 2. `web/ecosystem.config.js` · PM2 进程配置
+- 直接调用 `./node_modules/next/dist/bin/next start`（不走 pnpm，避免 PATH 问题）
+- 单实例 fork 模式（V1 流量量级够；多实例会破坏 `/api/chat` 的内存频率限制 Map）
+- `max_memory_restart: 500M` 防内存泄漏
+- 日志放 `web/logs/`，方便排查
+- **不包含敏感 env**（DEEPSEEK_API_KEY 走 .env.production）
+
+#### 3. `deploy/nginx.example.conf` · Nginx 反代模板
+四个 server 块 + 关键安全/性能配置：
+- HTTP → HTTPS 301 重定向
+- www → 主域名 301
+- 主域名 HTTPS（TLS 1.2/1.3、HSTS 1 年、防点击劫持）
+- gzip + 静态资源长 cache（`/_next/static` 1 年 immutable）
+- **`/api/chat` 路径 `proxy_buffering off`**（关键！否则 SSE 流式会被 buffer 成一次性输出）
+- Let's Encrypt challenge 路径不走 301（方便续签）
+
+#### 4. `deploy/README.md` · 完整部署手册
+从空白阿里云 ECS 到 https://cyjpersonalweb.cn 可访问的 11 步流程：
+1. SSH + 系统更新 + 防火墙
+2. Node 24 LTS + pnpm
+3. PM2 全局安装
+4. Nginx 安装 + 默认启动验证
+5. 克隆仓库 + pnpm install + pnpm build
+6. 配 `.env.production` + chmod 600
+7. PM2 启动 + pm2 save + pm2 startup（开机自启）
+8. Nginx 反代配置
+9. Let's Encrypt 签 SSL 证书（含 DNS 解析提示）
+10. 还原完整 Nginx 配置 + reload
+11. 国内 curl 验证 + 浏览器验证
+
+附带：后续维护（git pull + pnpm build + pm2 reload）、SSL 自动续签、监控日志、常见问题排查、上线后 24 小时安全清单。
+
+#### 5. `web/.env.production.example` · 生产 env 模板
+- `DEEPSEEK_API_KEY=sk-your-production-key-here`（推荐生产 / 开发用不同 key 方便监控）
+- 备注：NODE_ENV / PORT / HOSTNAME 已在 ecosystem.config.js 里，不重复
+
+### Build 关键数据
+
+```
+Next.js 16.2.6 (Turbopack)
+✓ Compiled successfully in 8.2s
+✓ TypeScript in 1023ms
+✓ Generating static pages 5/5 in 154ms
+
+Route (app)
+┌ ○ /              (Static · prerendered)
+├ ○ /_not-found    (Static)
+└ ƒ /api/chat      (Dynamic · server-rendered on demand)
+```
+
+### 备案通过后的极简上线流程
+
+按 deploy/README.md 走一遍，从买服务器到上线大概 **2-3 小时**。如果熟练 + 网络快，1 小时内能完成。
+
+### 下一阶段候选
+- 内容补全（等负责人按节奏补 · 不阻塞）
+- V2 精修（V1 内容到位后，按"框架/内容/排版/装饰"四类）
+- 部署当天的远程协助（备案通过那天我手把手陪你走 11 步）
+
+---
+
 ## 2026-06-06 · 阶段八：AI 分身实测通过 · 今日 closure
 
 ### 实测反馈

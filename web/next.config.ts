@@ -18,12 +18,16 @@ import type { NextConfig } from "next";
   下面保留 turbopack.root 的配置（已无效但留着），方便将来切回 Turbopack 时直接复用。
 */
 const nextConfig: NextConfig = {
-  // @ts-expect-error - Next 16 运行时支持 bundler: 'webpack'（前面阶段二切回 webpack 兜底 Turbopack workspace 检测越界），
-  // 但 NextConfig 类型声明里还没正式 export 这个字段；tsc 报 unknown property，运行时正常生效。
-  bundler: "webpack",
-
-  // 保留供将来切回 Turbopack 时使用；webpack 模式下被忽略
+  /*
+    历史 note（阶段二）：
+    曾经踩到 Turbopack workspace 检测越界（上层 shadcn 残留诱导 → 监听整片目录树 → next-server
+    内存爆 60GB → 系统卡死）。当时写了 bundler: 'webpack' 想切回 webpack 兜底——
+    但 Next 16 实际不识别这个字段（build 输出 "Unrecognized key 'bundler'"），所以一直在用 Turbopack。
+    后来把上层 shadcn 残留 mv 到 _archive-shadcn-residue-* 后，Turbopack 就稳了。
+    根因是上层 workspace 诱饵，不是 bundler 选择——所以 bundler 字段删掉。
+   */
   turbopack: {
+    // 显式声明项目根 = pnpm 启动时的 cwd（即 web/），防止 Turbopack 顺着上层 lockfile 越界
     root: process.cwd(),
   },
 };
