@@ -756,10 +756,10 @@ body[data-section="about"] .stage .nav-loc-dot {
   padding-left: 16px;
 }
 
-/* hover/open/focus · 只让右 pane 黑底浅字（左 pane / 分隔符保持透明） */
-.bridge-table-row:hover .bridge-row-pane-right,
-.bridge-table-row:focus-visible .bridge-row-pane-right,
-.bridge-table-row.open .bridge-row-pane-right {
+/* hover/open/focus · 整行黑底浅字（参考图同款 · 左右栏 + sep + chevron 全反色） */
+.bridge-table-row:hover,
+.bridge-table-row:focus-visible,
+.bridge-table-row.open {
   background: #1a1a1a;
   color: #f0e8d8;
 }
@@ -794,7 +794,7 @@ body[data-section="about"] .stage .nav-loc-dot {
 .bridge-table-row:hover .bridge-col-sep,
 .bridge-table-row:focus-visible .bridge-col-sep,
 .bridge-table-row.open .bridge-col-sep {
-  color: rgba(42, 51, 24, 0.6);
+  color: rgba(240, 232, 216, 0.5);
 }
 
 /* chevron · color 继承自所在 pane（hover 时随右 pane 反色） */
@@ -831,10 +831,13 @@ body[data-section="about"] .stage .nav-loc-dot {
   vertical-align: middle;
 }
 
-/* 展开后的 detail · 同 3 列 grid · detail-right 持续黑底 */
+/* 展开后的 detail · 用 grid-template-areas 命名占位，mobile 覆盖更确定
+ * desktop 3 列：left | (gap 60px) | right
+ * mobile 1 列：left / right 上下 stack */
 .bridge-row-detail {
   display: grid;
   grid-template-columns: 1fr 60px 1fr;
+  grid-template-areas: "left . right";
   gap: 0;
   animation: bridge-detail-in 0.45s ease both;
 }
@@ -842,14 +845,15 @@ body[data-section="about"] .stage .nav-loc-dot {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0; /* 阻止中文长段 intrinsic min-width 撑大 grid track */
 }
 .bridge-detail-left {
+  grid-area: left;
   padding: 0 16px clamp(28px, 3.6vh, 40px) clamp(24px, 3vw, 40px);
 }
 .bridge-detail-right {
+  grid-area: right;
   padding: 0 clamp(24px, 3vw, 40px) clamp(28px, 3.6vh, 40px) 16px;
-  background: #1a1a1a;
-  color: #f0e8d8;
 }
 .bridge-detail-block h4 {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -858,20 +862,9 @@ body[data-section="about"] .stage .nav-loc-dot {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   margin: 0;
-}
-.bridge-detail-left h4 {
-  color: rgba(42, 51, 24, 0.55);
-}
-.bridge-detail-right h4 {
   color: rgba(240, 232, 216, 0.55);
 }
-.bridge-detail-left p {
-  font-size: clamp(13px, 1vw, 15px);
-  line-height: 1.75;
-  color: rgba(42, 51, 24, 0.85);
-  margin: 0;
-}
-.bridge-detail-right p {
+.bridge-detail-block p {
   font-size: clamp(13px, 1vw, 15px);
   line-height: 1.75;
   color: rgba(240, 232, 216, 0.88);
@@ -917,43 +910,62 @@ body[data-section="about"] .stage .nav-loc-dot {
 
 /* === 窄屏适配：grid 单列堆叠，能量带变垂直 === */
 @media (max-width: 760px) {
+  /* mobile 仍保留左右双栏 · 缩窄 sep / padding / 字号让窄屏装下 */
   .bridge-table-head {
-    grid-template-columns: 1fr;
-  }
-  .bridge-table-head > .bridge-col-sep,
-  .bridge-table-head > .bridge-row-pane-right {
-    display: none;
+    grid-template-columns: 1fr 20px 1fr;
+    padding: 12px 14px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
   }
   .bridge-row-summary {
-    grid-template-columns: 1fr;
-  }
-  .bridge-row-summary > .bridge-col-sep {
-    display: none;
+    grid-template-columns: 1fr 20px 1fr;
   }
   .bridge-row-pane {
-    padding: 16px 18px;
-    gap: 12px;
+    padding: 14px 12px;
+    gap: 8px;
   }
   .bridge-row-pane-left {
-    grid-template-columns: 40px 1fr;
-    padding-right: 18px;
+    grid-template-columns: 28px 1fr;
+    padding-right: 4px;
   }
   .bridge-row-pane-right {
-    grid-template-columns: 1fr 32px;
-    padding-left: 18px;
+    grid-template-columns: 1fr 22px;
+    padding-left: 4px;
+  }
+  .bridge-col-num {
+    font-size: 11px;
   }
   .bridge-col-left,
   .bridge-col-right {
-    font-size: 15px;
+    font-size: 13px;
+  }
+  .bridge-col-sep {
+    font-size: 12px;
+    padding: 14px 0;
+  }
+  .bridge-flag-inline {
+    margin-left: 6px;
+    padding: 1px 5px;
+    font-size: 9px;
+    letter-spacing: 0.06em;
   }
   .bridge-row-detail {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 20px 1fr;
+    grid-template-areas: "left . right";
   }
   .bridge-detail-left {
-    padding: 0 18px 20px;
+    padding: 0 6px 14px 14px;
   }
   .bridge-detail-right {
-    padding: 16px 18px 20px;
+    padding: 0 14px 14px 6px;
+  }
+  .bridge-detail-block h4 {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .bridge-detail-block p {
+    font-size: 12px;
+    line-height: 1.7;
   }
 }
 
