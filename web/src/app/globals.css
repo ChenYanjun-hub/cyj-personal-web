@@ -356,6 +356,27 @@ body {
   animation: hero-fade 0.8s ease both 0.15s;
 }
 
+/* v2 · fixed nav 跨幕字色自适应
+ * about-me.tsx 双向 IntersectionObserver 在 body 上写 data-section="about"
+ * 当 about 幕（橄榄绿底）滚到 viewport 30%+ 时，nav 文字 / 圆点 / 汉堡 全部切米黄
+ * 加 transition 让色彩切换平滑 */
+.stage .nav-status,
+.stage .navlinks a,
+.stage .nav-hamburger {
+  transition: color 0.3s ease;
+}
+.stage .nav-loc-dot {
+  transition: background 0.3s ease;
+}
+body[data-section="about"] .stage .nav-status,
+body[data-section="about"] .stage .navlinks a,
+body[data-section="about"] .stage .nav-hamburger {
+  color: #F0E8D8;
+}
+body[data-section="about"] .stage .nav-loc-dot {
+  background: #F0E8D8;
+}
+
 /* --- 中央 hero --- */
 .stage .hero {
   position: absolute;
@@ -626,27 +647,32 @@ body {
 }
 
 /* ===============================================================
-   第二幕 · 能力对照（信任引擎）
+   第二幕子幕 a · 能力对照（v2 电池组 + 能量带 · 米黄底）
    ---------------------------------------------------------------
-   视觉延续 Hero 的设计语言（accent / ink / paper / 得意黑标题）。
+   视觉：5 对电池（左规划师 / 右 AI PM）+ 中间能量带
+   配色：米黄底 #F0E8D8（与 about 橄榄绿幕反色对调，形成色块节奏）
    交互：
-    - 进入视口（IntersectionObserver）→ section 加 .visible →
-      header + 5 行依次 stagger fade-in
-    - 每行点击 chevron → 加 .open → 展开 detail（左右各一段具体场景）
+    - 进入视口 → .visible → header + 5 行 stagger fade-in（保留 v1）
+    - hover 左侧电池 → :has() 纯 CSS 触发能量带 stroke-dashoffset 绘制
+                       + 右电池高亮（无 JS 状态）
    =============================================================== */
 
 .bridge {
-  /* 不写死高度，让内容撑开（避免 5 行全展开时被裁切） */
+  /* v2.1 局部 token · 磨砂卡片只保留能量带色 */
+  --beam-color: #d8552e;
+
   min-height: 100vh;
-  background: var(--paper);
-  color: var(--ink);
-  /* 上下留白比 Hero 略松（信任引擎需要呼吸感） */
+  /* 米黄底 + 2 个柔和 radial gradient blob · 给磨砂卡 backdrop-filter 一点真实模糊感 */
+  background:
+    radial-gradient(circle at 18% 28%, rgba(216, 85, 46, 0.08), transparent 50%),
+    radial-gradient(circle at 82% 72%, rgba(74, 92, 14, 0.08), transparent 50%),
+    #f0e8d8;
+  color: #2a3318;
   padding: clamp(80px, 11vh, 140px) clamp(24px, 6vw, 96px);
-  /* 用 anchor id="compare" 配合 Hero 的 nav 跳转 */
   scroll-margin-top: 0;
 }
 
-/* --- 头部 --- */
+/* --- 头部（保留 v1 入场） --- */
 .bridge-header {
   max-width: 980px;
   margin: 0 auto clamp(56px, 8vh, 96px);
@@ -663,132 +689,207 @@ body {
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: 0;
-  color: var(--ink);
+  color: #2a3318;
 }
 
-/* --- 5 行容器 --- */
-.bridge-rows {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  /* 行之间不要 margin，靠 row 自己的 border-top 做分隔 */
-}
-
-/* --- 单行 --- */
-.bridge-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: 64px 1fr 40px 1fr 40px;
-  grid-template-areas: "num left arrow right toggle";
-  gap: 24px;
-  align-items: start;
-  padding: clamp(28px, 4vh, 44px) 0;
-  /* hairline 分隔（苹果式克制）—— 第一行不要 border-top */
-  border-top: 1px solid rgba(29, 29, 31, 0.1);
-  /* 入场前 */
+/* --- v3.1 · editorial 表格（撑满整幕，无卡片容器） --- */
+.bridge-table {
+  max-width: none;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   opacity: 0;
   transform: translateY(22px);
 }
-.bridge-row:first-child {
-  border-top: none;
-}
-/* 入场动画：进入视口后按 row 顺序 stagger（左栏在 0.2s 起，每行 +0.12s） */
-.bridge.visible .bridge-row {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both;
-  animation-delay: calc(0.25s + var(--row-i) * 0.12s);
+.bridge.visible .bridge-table {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.25s;
 }
 
-.bridge-num {
-  grid-area: num;
+/* 表头 · 整行黑底浅字（参考图同款） */
+.bridge-table-head {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  gap: 0;
+  background: #1a1a1a;
+  color: rgba(240, 232, 216, 0.65);
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: clamp(14px, 1.2vw, 17px);
-  color: var(--accent);
-  letter-spacing: 0.04em;
-  padding-top: 4px;
-}
-
-.bridge-left {
-  grid-area: left;
-}
-.bridge-right {
-  grid-area: right;
-}
-
-.bridge-side-title {
-  font-size: clamp(20px, 2vw, 28px);
-  font-weight: 600;
-  letter-spacing: -0.012em;
-  color: var(--ink);
-  margin-bottom: 10px;
-}
-.bridge-flag {
-  font-size: clamp(11px, 0.9vw, 13px);
+  font-size: 12px;
   font-weight: 500;
-  color: var(--accent);
-  margin-left: 6px;
-  letter-spacing: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
-.bridge-summary {
-  font-size: clamp(14px, 1.1vw, 17px);
-  line-height: 1.65;
-  color: var(--ink-2);
-}
-
-.bridge-detail {
-  margin-top: 14px;
-  font-size: clamp(13px, 1vw, 15px);
-  line-height: 1.75;
-  color: var(--ink-2);
-  /* 展开时的 fade-in 动画 */
-  animation: bridge-detail-in 0.45s ease both;
-  /* 用左侧 1px 细线点出"详情"层级（规划图标注感） */
-  padding-left: 14px;
-  border-left: 1px solid var(--accent);
-  border-left-color: color-mix(in srgb, var(--accent) 50%, transparent);
-}
-@keyframes bridge-detail-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.bridge-arrow {
-  grid-area: arrow;
-  font-size: clamp(18px, 1.6vw, 22px);
-  color: var(--accent);
-  text-align: center;
-  padding-top: 6px;
-  opacity: 0.75;
-}
-
-.bridge-toggle {
-  grid-area: toggle;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(29, 29, 31, 0.15);
-  background: transparent;
-  color: var(--ink-2);
+/* 单行容器（默认透明） */
+.bridge-table-row {
+  position: relative;
   cursor: pointer;
+  color: #2a3318;
+  background: transparent;
+  border-top: 1px solid rgba(42, 51, 24, 0.08);
+  outline: none;
+}
+
+/* 3 列 grid：左 pane / 分隔符 / 右 pane */
+.bridge-row-summary {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  gap: 0;
+  align-items: stretch;
+}
+
+/* pane 通用 · padding 由 pane 自身负责，hover 时 bg 撑满 pane 区域 */
+.bridge-row-pane {
+  display: grid;
+  align-items: center;
+  gap: 16px;
+  padding: clamp(20px, 2.4vh, 28px) clamp(24px, 3vw, 40px);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.bridge-row-pane-left {
+  grid-template-columns: 70px 1fr;
+  padding-right: 16px;
+}
+.bridge-row-pane-right {
+  grid-template-columns: 1fr 56px;
+  padding-left: 16px;
+}
+
+/* hover/open/focus · 只让右 pane 黑底浅字（左 pane / 分隔符保持透明） */
+.bridge-table-row:hover .bridge-row-pane-right,
+.bridge-table-row:focus-visible .bridge-row-pane-right,
+.bridge-table-row.open .bridge-row-pane-right {
+  background: #1a1a1a;
+  color: #f0e8d8;
+}
+
+/* 编号 · 等宽 mono */
+.bridge-col-num {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  color: rgba(42, 51, 24, 0.55);
+}
+
+.bridge-col-left,
+.bridge-col-right {
+  font-size: clamp(15px, 1.25vw, 19px);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}
+
+/* 中间分隔符 · flex 居中，hover 时微强调但不变黑 */
+.bridge-col-sep {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: rgba(42, 51, 24, 0.35);
+  transition: color 0.3s ease;
+  padding: clamp(20px, 2.4vh, 28px) 0;
+}
+.bridge-table-row:hover .bridge-col-sep,
+.bridge-table-row:focus-visible .bridge-col-sep,
+.bridge-table-row.open .bridge-col-sep {
+  color: rgba(42, 51, 24, 0.6);
+}
+
+/* chevron · color 继承自所在 pane（hover 时随右 pane 反色） */
+.bridge-col-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease, color 0.2s ease, border-color 0.2s ease;
-  /* 让按钮可点区域比视觉区域略大（移动端友好） */
-  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.45;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
-.bridge-toggle:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+.bridge-table-row:hover .bridge-col-toggle,
+.bridge-table-row:focus-visible .bridge-col-toggle,
+.bridge-table-row.open .bridge-col-toggle {
+  opacity: 0.9;
 }
-.bridge-row.open .bridge-toggle {
+.bridge-table-row.open .bridge-col-toggle {
   transform: rotate(180deg);
-  color: var(--accent);
-  border-color: var(--accent);
 }
 
-/* --- 收尾：承认短板 + 引导 --- */
+/* 最强项 flag · 左栏内 inline · 始终保持 accent 橙（左栏不变黑） */
+.bridge-flag-inline {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 2px 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d8552e;
+  border: 1px solid currentColor;
+  border-radius: 100px;
+  vertical-align: middle;
+}
+
+/* 展开后的 detail · 同 3 列 grid · detail-right 持续黑底 */
+.bridge-row-detail {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  gap: 0;
+  animation: bridge-detail-in 0.45s ease both;
+}
+.bridge-detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bridge-detail-left {
+  padding: 0 16px clamp(28px, 3.6vh, 40px) clamp(24px, 3vw, 40px);
+}
+.bridge-detail-right {
+  padding: 0 clamp(24px, 3vw, 40px) clamp(28px, 3.6vh, 40px) 16px;
+  background: #1a1a1a;
+  color: #f0e8d8;
+}
+.bridge-detail-block h4 {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.bridge-detail-left h4 {
+  color: rgba(42, 51, 24, 0.55);
+}
+.bridge-detail-right h4 {
+  color: rgba(240, 232, 216, 0.55);
+}
+.bridge-detail-left p {
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.75;
+  color: rgba(42, 51, 24, 0.85);
+  margin: 0;
+}
+.bridge-detail-right p {
+  font-size: clamp(13px, 1vw, 15px);
+  line-height: 1.75;
+  color: rgba(240, 232, 216, 0.88);
+  margin: 0;
+}
+
+@keyframes bridge-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === 收尾：承认短板 + 引导 === */
 .bridge-footer {
   max-width: 880px;
   margin: clamp(80px, 10vh, 120px) auto 0;
@@ -798,20 +899,62 @@ body {
 }
 .bridge.visible .bridge-footer {
   animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both;
-  /* 在最后一行之后才出现 */
   animation-delay: calc(0.25s + 5 * 0.12s + 0.2s);
 }
 .bridge-shortcomings {
   font-size: clamp(14px, 1.15vw, 17px);
   line-height: 1.75;
-  color: var(--ink-2);
+  color: #2a3318;
+  opacity: 0.72;
 }
 .bridge-segue {
   margin-top: 18px;
   font-size: clamp(14px, 1.15vw, 17px);
   font-weight: 500;
-  color: var(--ink);
+  color: #2a3318;
   letter-spacing: 0.01em;
+}
+
+/* === 窄屏适配：grid 单列堆叠，能量带变垂直 === */
+@media (max-width: 760px) {
+  .bridge-table-head {
+    grid-template-columns: 1fr;
+  }
+  .bridge-table-head > .bridge-col-sep,
+  .bridge-table-head > .bridge-row-pane-right {
+    display: none;
+  }
+  .bridge-row-summary {
+    grid-template-columns: 1fr;
+  }
+  .bridge-row-summary > .bridge-col-sep {
+    display: none;
+  }
+  .bridge-row-pane {
+    padding: 16px 18px;
+    gap: 12px;
+  }
+  .bridge-row-pane-left {
+    grid-template-columns: 40px 1fr;
+    padding-right: 18px;
+  }
+  .bridge-row-pane-right {
+    grid-template-columns: 1fr 32px;
+    padding-left: 18px;
+  }
+  .bridge-col-left,
+  .bridge-col-right {
+    font-size: 15px;
+  }
+  .bridge-row-detail {
+    grid-template-columns: 1fr;
+  }
+  .bridge-detail-left {
+    padding: 0 18px 20px;
+  }
+  .bridge-detail-right {
+    padding: 16px 18px 20px;
+  }
 }
 
 @keyframes bridge-rise {
@@ -822,41 +965,15 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .bridge-header,
-  .bridge-row,
+  .bridge-table,
+  .bridge-table-row,
   .bridge-footer {
     opacity: 1;
     transform: none;
     animation: none !important;
   }
-  .bridge-detail {
+  .bridge-row-detail {
     animation: none !important;
-  }
-}
-
-/* --- 窄屏适配：左右栏堆叠为上下，隐藏 ↔ 符号 --- */
-@media (max-width: 760px) {
-  .bridge {
-    padding: 64px 20px;
-  }
-  .bridge-row {
-    grid-template-columns: 40px 1fr 36px;
-    grid-template-areas:
-      "num left toggle"
-      ".   right .";
-    gap: 16px;
-  }
-  .bridge-arrow {
-    display: none;
-  }
-  .bridge-left {
-    margin-bottom: 18px;
-  }
-  .bridge-side-title {
-    font-size: 19px;
-  }
-  .bridge-summary,
-  .bridge-detail {
-    font-size: 14px;
   }
 }
 
@@ -906,6 +1023,13 @@ body {
    零 accent 装饰，留白和字号层级承担视觉层次。
    =============================================================== */
 .about {
+  /* v2 风格（参考 Jasmine Gunarto）：橄榄绿色块 + 米黄文字
+   * scope 内重新 declare CSS variables — 所有用 var(--ink) / var(--ink-2) / var(--paper)
+   * 的子选择器自动适配，不用一个个 override */
+  --ink: #F0E8D8;
+  --ink-2: rgba(240, 232, 216, 0.62);
+  --paper: #4A5C0E;
+
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
@@ -915,22 +1039,66 @@ body {
   position: relative;
 }
 
-/* --- 居中主标题 "About me" --- */
+/* --- 居中主标题 "ABOUT YANJUN CHEN" · v2 巨字 Bebas Neue condensed --- */
 .about-title {
-  /* 参考图主标题用常规系统字体（不倾斜、不用得意黑） */
-  font-family: var(--sans);
-  font-size: clamp(52px, 6.4vw, 96px);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.05;
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(64px, 13.5vw, 220px);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 0.9;
   color: var(--ink);
   text-align: center;
   margin: 0 auto clamp(56px, 8vh, 96px);
   opacity: 0;
   transform: translateY(22px);
+  text-transform: uppercase;
+  white-space: nowrap; /* 撑满 viewport，不换行 · mobile 在 @media 里允许换行 */
 }
 .about.visible .about-title {
   animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
+}
+
+/* v2.1: ABOUT YANJUN CHEN 巨字标题的单字母 hover 动画
+ * 流程：mouseenter → 向左滑出 + fade out → 瞬间跳到右侧（用户看不见）→ 从右滑入归位
+ * onAnimationEnd 卸 cycling class · 不被 mouseleave 中断，动画一定跑完 */
+.about-title .letter {
+  display: inline-block;
+  user-select: none;
+  will-change: transform, opacity;
+  /* hover 区域略微扩展，确保 mouseenter 在窄字符（Bebas Neue）上能稳定命中 */
+  padding: 0 0.02em;
+}
+.about-title .letter-space {
+  display: inline-block;
+  width: 0.25em; /* 模拟 ABOUT[空格]YANJUN[空格]CHEN 的字间距 */
+}
+@keyframes letter-fly-cycle {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(-110%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.about-title .letter.cycling {
+  animation: letter-fly-cycle 0.65s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+/* prefers-reduced-motion · 直接跳过 letter 动画（无障碍） */
+@media (prefers-reduced-motion: reduce) {
+  .about-title .letter.cycling {
+    animation: none;
+  }
 }
 
 /* --- 双栏 grid: 左照片+姓名 / 右板块 --- */
@@ -1020,6 +1188,17 @@ body {
   opacity: 0.55;
 }
 
+/* WORK EXPERIENCE 内同时两个 role（a 城乡规划师 / b 新媒体）的块间距 + 小标号样式 */
+.about-entry .work-role-block + .work-role-block {
+  margin-top: 10px;
+}
+.work-role-marker {
+  display: inline-block;
+  margin-right: 6px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
 /* --- SEE MORE: 子幕跳转极简锚词（参考图风格，无按钮） --- */
 .about-jumps {
   display: flex;
@@ -1074,12 +1253,19 @@ body {
     padding: 72px 20px;
   }
   .about-title {
-    font-size: 44px;
+    font-size: clamp(44px, 13vw, 80px);
     margin-bottom: 48px;
+    white-space: normal; /* mobile 允许换行（"ABOUT YANJUN CHEN" 太长一行装不下）*/
+    letter-spacing: 0.01em;
   }
   .about-grid {
     grid-template-columns: 1fr;
     gap: 40px;
+  }
+  .about-left {
+    /* mobile · 单栏堆叠时 · ProfileCard + signature 水平居中
+     * desktop 双栏布局不需要此规则（双栏内 grid column 已给出宽度） */
+    align-items: center;
   }
   .about-signature {
     font-size: 28px;
@@ -1114,6 +1300,28 @@ body {
 /* 同步保护 details (name/title) 不被 luminosity 染色 */
 .about .pc-content {
   mix-blend-mode: normal !important;
+}
+
+/* 修：ProfileCard .pc-behind 蓝色 glow 溢出（用户反馈"右侧突出一块"）
+   ---------------------------------------------------------------
+   .pc-behind 用 radial-gradient + filter: blur(50px) 渲染 ambient 蓝光，
+   blur halo 会从 wrapper 矩形边界外渗出，鼠标靠近卡片边缘时尤其明显。
+   做法：给 wrapper 加 overflow + 卡片同款 border-radius 裁切 halo。
+   作用域限定到 .about（其他地方若复用 ProfileCard 不受影响）。
+   副作用：.pc-card 自带的动态 box-shadow 也会被裁；目前阴影本身偏 subtle，
+   损失不显眼。如果后续需要恢复"飘浮感"，把 box-shadow 提到 wrapper 这一层。 */
+.about .pc-card-wrapper {
+  border-radius: var(--card-radius, 30px);
+  overflow: hidden;
+  /* 关键修法 v2：用 align-self 精确控制 flex item · margin-inline auto 在父 align-items: stretch
+   * 下根本不生效（stretch 会强制撑满 cross-axis）。
+   *   align-self: center  → 覆盖父 align-items: stretch · wrapper 不被强制撑大
+   *   width: fit-content  → cross-axis size 落到 card aspect-ratio 决定的宽度
+   * 这样 .pc-behind (absolute inset:0) 跟随 wrapper 而非父容器，halo 不再溢出 card 右侧。
+   * 居中显示同时也是 desktop / mobile 都需要的视觉（去掉了之前的 margin-inline auto）。 */
+  align-self: center;
+  width: fit-content;
+  max-width: 100%;
 }
 
 /* ===============================================================
@@ -2097,45 +2305,180 @@ body {
    设计延续整站：accent 用在泡泡 + 强调按钮；面板黑白单色 + 圆角 + 阴影。
    =============================================================== */
 
-/* --- 泡泡按钮 --- */
-.ai-avatar-bubble {
+/* --- 悬浮吉祥物按钮 --- */
+.ai-avatar-petbtn {
   position: fixed;
-  right: clamp(16px, 3vw, 28px);
-  bottom: clamp(16px, 3vw, 28px);
+  right: clamp(12px, 3vw, 24px);
+  bottom: clamp(12px, 3vw, 22px);
   z-index: 100;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
   border: none;
-  background: var(--accent);
-  color: #fff;
+  background: none;
+  padding: 0;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 24px rgba(216, 85, 46, 0.35),
-    0 2px 6px rgba(29, 29, 31, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.ai-avatar-bubble:hover {
-  transform: scale(1.06);
-  box-shadow: 0 10px 32px rgba(216, 85, 46, 0.45),
-    0 4px 10px rgba(29, 29, 31, 0.16);
+
+/* --- 吉祥物 sprite + 影子 --- */
+.claude-pet {
+  position: relative;
+  display: inline-block;
 }
-.ai-avatar-bubble:active {
-  transform: scale(0.96);
+.claude-pet-sprite {
+  display: block;
+  width: auto;
+  height: clamp(74px, 9vw, 86px);
+  transform-origin: 50% 100%;
+  will-change: transform;
+  user-select: none;
+  -webkit-user-drag: none;
 }
-.ai-avatar-bubble.open {
-  background: var(--ink);
-  box-shadow: 0 6px 24px rgba(29, 29, 31, 0.3),
-    0 2px 6px rgba(29, 29, 31, 0.12);
+.claude-pet-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 58%;
+  height: 9px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(60, 40, 30, 0.28),
+    transparent 70%
+  );
+  z-index: -1;
+}
+
+/* idle 待机：浮动 + 极轻呼吸 */
+.claude-pet.state-idle .claude-pet-sprite {
+  animation: cp-idle 4.2s ease-in-out infinite;
+}
+.claude-pet.state-idle .claude-pet-shadow {
+  animation: cp-idle-sh 4.2s ease-in-out infinite;
+}
+@keyframes cp-idle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-4px) scale(0.998, 1.004);
+  }
+}
+@keyframes cp-idle-sh {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateX(-50%) scale(0.93);
+    opacity: 0.65;
+  }
+}
+
+/* hello 打招呼（hover）：弹起 + 左右摇摆 */
+.claude-pet.state-hello .claude-pet-sprite {
+  animation: cp-hello 1.6s ease-in-out infinite;
+}
+@keyframes cp-hello {
+  0% {
+    transform: translateY(0) rotate(0) scale(1, 1);
+  }
+  16% {
+    transform: translateY(-7px) scale(0.99, 1.01);
+  }
+  32% {
+    transform: translateY(0) scale(1.015, 0.985);
+  }
+  48% {
+    transform: translateY(-3px) rotate(-4deg);
+  }
+  64% {
+    transform: translateY(0) rotate(4deg);
+  }
+  80% {
+    transform: rotate(-2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+/* talk 说话（AI 回答中）：小幅弹动 */
+.claude-pet.state-talk .claude-pet-sprite {
+  animation: cp-talk 0.5s ease-in-out infinite;
+}
+@keyframes cp-talk {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.006, 0.994);
+  }
+}
+
+/* think 思考：歪头 + 慢摆（保留备用） */
+.claude-pet.state-think .claude-pet-sprite {
+  animation: cp-think 4.6s ease-in-out infinite;
+  transform-origin: 50% 92%;
+}
+@keyframes cp-think {
+  0%,
+  100% {
+    transform: rotate(-5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-7deg) translateY(-2px);
+  }
+}
+
+/* sleep 睡觉：下沉 + 慢呼吸（保留备用） */
+.claude-pet.state-sleep .claude-pet-sprite {
+  animation: cp-sleep 5.6s ease-in-out infinite;
+}
+@keyframes cp-sleep {
+  0%,
+  100% {
+    transform: translateY(2px) scale(1.008, 0.992);
+  }
+  50% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+/* error 出错（请求失败）：抖动 + 去色 */
+.claude-pet.state-error .claude-pet-sprite {
+  animation: cp-err 0.62s ease-in-out infinite;
+  filter: saturate(0.32) brightness(0.95);
+}
+@keyframes cp-err {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+  15% {
+    transform: translateX(-3px) rotate(-1.5deg);
+  }
+  30% {
+    transform: translateX(3px) rotate(1.5deg);
+  }
+  45% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  60% {
+    transform: translateX(2px) rotate(1deg);
+  }
+  78% {
+    transform: translateX(-1px) rotate(0);
+  }
 }
 
 /* --- Chat 面板 --- */
 .ai-avatar-panel {
   position: fixed;
   right: clamp(16px, 3vw, 28px);
-  bottom: calc(56px + clamp(16px, 3vw, 28px) + 14px);
+  bottom: calc(86px + clamp(12px, 3vw, 22px) + 12px);
   z-index: 100;
   width: 380px;
   max-width: calc(100vw - 32px);
@@ -2343,7 +2686,7 @@ body {
     left: 8px;
     width: auto;
     max-width: none;
-    bottom: calc(56px + 8px + 12px);
+    bottom: calc(80px + 8px + 12px);
     height: min(560px, calc(100vh - 120px));
   }
 }
@@ -2353,9 +2696,13 @@ body {
   .ai-avatar-panel {
     animation: none !important;
   }
-  .ai-avatar-bubble,
   .ai-avatar-send {
     transition: none;
+  }
+  /* 吉祥物保持静止（去色仍保留，作为出错的可读信号） */
+  .claude-pet-sprite,
+  .claude-pet-shadow {
+    animation: none !important;
   }
 }
 

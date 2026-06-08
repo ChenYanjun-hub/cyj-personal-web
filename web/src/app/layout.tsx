@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Permanent_Marker } from "next/font/google";
+import { Permanent_Marker, Bebas_Neue } from "next/font/google";
 import localFont from "next/font/local";
 import AiAvatar from "@/components/ai-avatar/ai-avatar";
 import "./globals.css";
@@ -38,6 +38,16 @@ const smileySans = localFont({
   display: "swap",
 });
 
+// V2 阶段加：Bebas Neue · Brutalist condensed display
+// 用途：about 幕巨字标题 "ABOUT YANJUN CHEN"（参考 Jasmine Gunarto 风格）
+// 拉丁字体、体积小（约 20KB），next/font 本地化打包，国内可达
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas-neue",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "陈彦均 · AI 产品经理求职",
   description:
@@ -52,7 +62,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${permanentMarker.variable} ${smileySans.variable} h-full antialiased`}
+      className={`${permanentMarker.variable} ${smileySans.variable} ${bebasNeue.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

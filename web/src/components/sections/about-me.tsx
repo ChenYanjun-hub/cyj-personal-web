@@ -22,6 +22,23 @@ import { useEffect, useRef, useState } from "react";
 // 通过 `npx jsrepo@latest add` 拉到 src/components/reactbits/
 // 国内可达，组件本身只用 React hooks + CSS（无 motion/three 等重型依赖）
 import ProfileCard from "@/components/reactbits/ProfileCard";
+import type { MouseEvent as ReactMouseEvent } from "react";
+
+// v2.1: ABOUT 标题文本拆字符 · 用于每字母独立 hover 动画
+const ABOUT_TITLE_CHARS = "ABOUT YANJUN CHEN".split("");
+
+// 动画时长（必须与 globals.css 里 letter-fly-cycle 的 duration 一致）
+const LETTER_CYCLE_MS = 650;
+
+// 单字母 hover handler · 用 setTimeout 兜底，不依赖 onAnimationEnd（React fast refresh 后偶尔不绑）
+function handleLetterEnter(e: ReactMouseEvent<HTMLSpanElement>) {
+  const el = e.currentTarget;
+  if (el.classList.contains("cycling")) return;
+  el.classList.add("cycling");
+  window.setTimeout(() => {
+    el.classList.remove("cycling");
+  }, LETTER_CYCLE_MS + 20);
+}
 
 const EDUCATION = {
   date: "2019.09 — 2024.06",
@@ -30,11 +47,50 @@ const EDUCATION = {
   honor: "24 届优秀毕业设计",
 };
 
-const WORK = {
+// 一段工作经历里同时担两个 role（a 城乡规划师 / b 宣传部新媒体）
+// 每个 role 可选 lead / deep / participated 三个层级
+type WorkRole = {
+  title: string;
+  lead?: string;
+  deep?: string[];
+  participated?: string[];
+};
+
+const WORK: {
+  date: string;
+  org: string;
+  detail: string;
+  roles: WorkRole[];
+} = {
   date: "2025.04 — 2026.05",
   org: "同济规划设计研究院分院",
   detail: "下属上海隆际建筑规划设计有限公司",
-  role: "城乡规划师 · 主导信阳柳林矿坑文旅项目",
+  roles: [
+    {
+      title: "城乡规划师",
+      lead: "信阳柳林矿坑文旅项目",
+      deep: [
+        "长丰汽车城战略规划项目",
+        "长丰核聚变城设计项目",
+        "信阳青年营地设计项目",
+        "南安市乡村振兴项目",
+        "哈密市国土空间规划评估工作",
+      ],
+      participated: [
+        "巴里坤县村庄规划项目",
+        "徐汇美丽街区建设项目",
+        "连心门改造项目",
+      ],
+    },
+    {
+      title: "宣传部新媒体宣传",
+      deep: [
+        "长丰汽车城战略规划项目宣传视频剪辑",
+        "同济规划院宣传部数字人+LOGO 设计",
+        "规划院青年-曹威宜访谈-综艺感宣传视频剪辑",
+      ],
+    },
+  ],
 };
 
 const AI_PROJECTS = [
@@ -75,14 +131,62 @@ export default function AboutMe() {
     return () => obs.disconnect();
   }, []);
 
+  // v2：双向 observer · 把 about 幕的可见状态写到 body[data-section]
+  // 用途：在 about 幕（橄榄绿底）滚到时，让 fixed nav 文字色自动切换为米黄
+  // 阈值 0.3：视口里 30% 是 about 内容才算"进入"，避免边缘抖动
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            document.body.dataset.section = "about";
+          } else if (document.body.dataset.section === "about") {
+            delete document.body.dataset.section;
+          }
+        }
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(node);
+    return () => {
+      obs.disconnect();
+      if (document.body.dataset.section === "about") {
+        delete document.body.dataset.section;
+      }
+    };
+  }, []);
+
   return (
     <section
       ref={sectionRef}
       id="about-me"
       className={`about${visible ? " visible" : ""}`}
     >
-      {/* 居中大标题：About me */}
-      <h2 className="about-title">About me</h2>
+      {/* 居中大标题：ABOUT YANJUN CHEN
+       * v2 巨字 Bebas Neue condensed 撑满 viewport
+       * v2.1 每个字母 hover 触发 "向左滑出 + 从右划入归位" cycle 动画
+       *  - aria-label 给屏幕阅读器完整文本
+       *  - 子 span aria-hidden 跳过逐字读 */}
+      <h2 className="about-title" aria-label="ABOUT YANJUN CHEN">
+        {ABOUT_TITLE_CHARS.map((ch, i) =>
+          ch === " " ? (
+            <span key={i} aria-hidden="true" className="letter-space">
+              &nbsp;
+            </span>
+          ) : (
+            <span
+              key={i}
+              aria-hidden="true"
+              className="letter"
+              onMouseEnter={handleLetterEnter}
+            >
+              {ch}
+            </span>
+          )
+        )}
+      </h2>
 
       <div className="about-grid">
         {/* 左栏：ProfileCard（3D 倾斜 holographic 卡片，me.png 当 avatar）+ 大字拼音姓名 */}
@@ -128,7 +232,10 @@ export default function AboutMe() {
             </div>
           </section>
 
-          {/* WORK EXPERIENCE */}
+          {/* WORK EXPERIENCE
+           *  这一段工作经历同时担两个 role（a 城乡规划师 / b 宣传部新媒体），
+           *  每个 role 内可有 主导 / 深度参与 / 参与 三个层级（按需出现）。
+           *  排版策略：role 之间留间距，每个层级一行 + 自然换行（line-height 1.6） */}
           <section className="about-block">
             <h3 className="about-block-title">WORK EXPERIENCE</h3>
             <div className="about-entry">
@@ -136,7 +243,29 @@ export default function AboutMe() {
               <p className="about-entry-line">
                 {WORK.detail} ｜ {WORK.date}
               </p>
-              <p className="about-entry-line muted">{WORK.role}</p>
+              {WORK.roles.map((role, idx) => (
+                <div key={role.title} className="work-role-block">
+                  <p className="about-entry-line">
+                    <span className="work-role-marker">
+                      {String.fromCharCode(97 + idx)}、
+                    </span>
+                    {role.title}
+                  </p>
+                  {role.lead ? (
+                    <p className="about-entry-line muted">主导：{role.lead}</p>
+                  ) : null}
+                  {role.deep ? (
+                    <p className="about-entry-line muted">
+                      深度参与：{role.deep.join("、")}
+                    </p>
+                  ) : null}
+                  {role.participated ? (
+                    <p className="about-entry-line muted">
+                      参与：{role.participated.join("、")}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
             </div>
           </section>
 

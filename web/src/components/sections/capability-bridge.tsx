@@ -89,7 +89,7 @@ export default function CapabilityBridge() {
   const sectionRef = useRef<HTMLElement>(null);
   // 入场动画一次性触发：进入视口后置 true，并 disconnect observer
   const [visible, setVisible] = useState(false);
-  // 哪些行处于展开状态（Set 支持多行同时展开）
+  // v3 表格风：哪些行处于展开状态（Set 支持多行同时展开）
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   // 入场触发：当 section 至少有 15% 进入视口时启动
@@ -113,6 +113,7 @@ export default function CapabilityBridge() {
     return () => observer.disconnect();
   }, []);
 
+  // v3 表格风：点击行 toggle 展开/折叠（Set 支持多行同时展开）
   const toggle = (id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -140,75 +141,87 @@ export default function CapabilityBridge() {
         <h2 className="bridge-title">你凭什么能跳过来</h2>
       </header>
 
-      {/* 5 行对照 */}
-      <div className="bridge-rows">
+      {/* v3 · editorial 表格风
+       *  - 黑底浅字表头（参考图同款）
+       *  - 5 行能力对照，每行 hover/open 整体变深底浅字（参考图同款交互）
+       *  - 点击行 toggle 展开 leftDetail + rightDetail 双栏详细描述
+       *  - 键盘可达：role=button + Enter/Space toggle */}
+      <div className="bridge-table">
+        <div className="bridge-table-head" aria-hidden>
+          <div className="bridge-row-pane bridge-row-pane-left">
+            <span className="bridge-col-num">No.</span>
+            <span className="bridge-col-left">城乡规划师素养</span>
+          </div>
+          <span className="bridge-col-sep" />
+          <div className="bridge-row-pane bridge-row-pane-right">
+            <span className="bridge-col-right">AI 产品经理素养</span>
+            <span className="bridge-col-toggle" />
+          </div>
+        </div>
+
         {ROWS.map((row, idx) => {
           const isOpen = expanded.has(row.id);
           return (
-            <article
+            <div
               key={row.id}
-              className={`bridge-row${isOpen ? " open" : ""}`}
-              // CSS 变量：让每行用 idx 控制 stagger delay
-              style={
-                { ["--row-i"]: idx } as React.CSSProperties
-              }
-            >
-              {/* 编号（accent 色，与 Hero 风格一致） */}
-              <span className="bridge-num">[{row.id}]</span>
-
-              {/* 左栏 · 规划师的我 */}
-              <div className="bridge-left">
-                <h3 className="bridge-side-title">
-                  {row.leftTitle}
-                  {row.flag && (
-                    <span className="bridge-flag">· {row.flag}</span>
-                  )}
-                </h3>
-                <p className="bridge-summary">{row.leftSummary}</p>
-                {isOpen && (
-                  <p className="bridge-detail">{row.leftDetail}</p>
-                )}
-              </div>
-
-              {/* 中间分隔符号 ↔（移动端通过 CSS 隐藏） */}
-              <span className="bridge-arrow" aria-hidden>
-                ↔
-              </span>
-
-              {/* 右栏 · 产品能力的翻译 */}
-              <div className="bridge-right">
-                <h3 className="bridge-side-title">{row.rightTitle}</h3>
-                <p className="bridge-summary">{row.rightSummary}</p>
-                {isOpen && (
-                  <p className="bridge-detail">{row.rightDetail}</p>
-                )}
-              </div>
-
-              {/* Chevron toggle 按钮 */}
-              <button
-                type="button"
-                className="bridge-toggle"
-                aria-expanded={isOpen}
-                aria-label={
-                  isOpen ? `收起第 ${row.id} 组具体场景` : `展开第 ${row.id} 组具体场景`
+              className={`bridge-table-row${isOpen ? " open" : ""}`}
+              style={{ ["--row-i"]: idx } as React.CSSProperties}
+              role="button"
+              tabIndex={0}
+              aria-expanded={isOpen}
+              onClick={() => toggle(row.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggle(row.id);
                 }
-                onClick={() => toggle(row.id)}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-            </article>
+              }}
+            >
+              <div className="bridge-row-summary">
+                <div className="bridge-row-pane bridge-row-pane-left">
+                  <span className="bridge-col-num">{row.id}</span>
+                  <span className="bridge-col-left">
+                    {row.leftTitle}
+                    {row.flag ? (
+                      <span className="bridge-flag-inline">{row.flag}</span>
+                    ) : null}
+                  </span>
+                </div>
+                <span className="bridge-col-sep" aria-hidden>
+                  ↔
+                </span>
+                <div className="bridge-row-pane bridge-row-pane-right">
+                  <span className="bridge-col-right">{row.rightTitle}</span>
+                  <span className="bridge-col-toggle" aria-hidden>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+
+              {isOpen ? (
+                <div className="bridge-row-detail">
+                  <div className="bridge-detail-block bridge-detail-left">
+                    <h4>城乡规划师 · 具体场景</h4>
+                    <p>{row.leftDetail}</p>
+                  </div>
+                  <div className="bridge-detail-block bridge-detail-right">
+                    <h4>AI 产品经理 · 能力翻译</h4>
+                    <p>{row.rightDetail}</p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           );
         })}
       </div>

@@ -6,6 +6,90 @@
 
 ---
 
+## 2026-06-08 · 阶段十二：About Me v2 色块化 + 能力对照子幕 v3 editorial 表格（3 次迭代）
+
+### 这一阶段的主线
+关于我（About Me）整幕落地用户拍板的"Jasmine 同款色块导览"方向 · 能力对照子幕经历 3 次方向迭代最终落定 editorial 表格风。
+
+副线：
+- 用户在另一个 session 接入 Claude 机甲虎吉祥物（独立 commit）
+- 一次 Python 脚本 anchor 误匹配导致 hero stage mobile @media 块被误删 + 恢复
+
+---
+
+### Part 1 · About Me 主体 v2 改造
+
+**用户拍板**：参考 GSAP / Brandon Bartram / Jasmine Gunarto 三张图后定 Jasmine 风格 —— 每幕一个色块 + 极致大字 + 零装饰 + 严格构图。
+
+**改动**：
+- `.about` 主体：橄榄绿 `#4A5C0E` 底 + 米黄 `#F0E8D8` 字
+- 巨字标题 `ABOUT YANJUN CHEN`：Bebas Neue condensed 撑满 viewport（next/font/google 本地化引入）
+- 每个字母独立 hover 触发"向左滑出 + 从右划入归位" cycle 动画
+- 双向 IntersectionObserver 写 `body.dataset.section="about"` → fixed nav 字色自动从黑切米黄
+- ProfileCard 蓝色 behind glow 溢出修复（`width: fit-content` + `align-self: center`，配合父 flex 默认 stretch）
+- 工作经历项目重构：主导 1 / 深度参与 5 / 参与 3 三层
+
+**关键技术决策**：
+- `.about` scope 内 redefine `--ink / --ink-2 / --paper` CSS variables —— 所有用 `var(--ink)` 的子选择器自动适配，零 override
+- 字母 hover handler 用 imperative class + `setTimeout(LETTER_CYCLE_MS + 20)` 替代 `onAnimationEnd`，绕开 React fast refresh 偶尔不绑 animationend 事件的坑
+- ProfileCard wrapper 用 `align-self: center` 覆盖父 flex `align-items: stretch`（`margin-inline: auto` 在 stretch 模式下根本不生效）
+
+---
+
+### Part 2 · 能力对照子幕 · 3 次方向迭代
+
+| 版本 | 视觉 | 用户反馈 |
+|---|---|---|
+| **v2 电池组 + 能量带** | 5 对电池（左规划师 / 右 AI PM）+ 中间 SVG path stroke-dashoffset 绘制 + drop-shadow glow | "效果不佳" |
+| **v2.1 苹果磨砂卡片** | 删电池外壳、正极 cap、充电条 → 半透白磨砂卡片 + `backdrop-filter: blur(20px) saturate(160%)` + 多层 inset/外阴影 | "不够有感觉，缺乏极致构图" |
+| **v3 editorial 表格** | 参考用户给的 BLOG 列表图：黑底浅字表头 + 5 行 + 点击展开 leftDetail/rightDetail 双栏 | 方向对，需要再调 |
+| **v3.1 撑满 + 只右栏黑底** | 拆 row 为 `bridge-row-pane-left` / `bridge-row-pane-right` 两个 div；hover/open 只让右 pane 黑底浅字（左栏始终透明）；`.bridge-table` 去 max-width / backdrop-filter / border / box-shadow / border-radius，撑满整幕 | 收口 |
+
+**关键技术决策**：
+- 用 React state（`expanded: Set<string>`）控制 detail 展开（v2 阶段试过纯 CSS `:has()` 触发能量带绘制，v3 改回 React state 因为要点击切换）
+- `role="button" + tabIndex={0} + onKeyDown` 让 row 可键盘可达
+- `prefers-reduced-motion` selector 同步更新（`.bridge-row` → `.bridge-table-row` / `.bridge-detail` → `.bridge-row-detail`）
+
+---
+
+### Part 3 · Claude 机甲虎吉祥物接入（独立 commit）
+
+- 新组件 `claude-pet.tsx`（6 态 sprite：idle / hello / talk / think / sleep / error）
+- `ai-avatar.tsx` 接 streaming / error / hovering 实时计算 `petState`
+- 吉祥物 PNG 资产 `claude-pet.png`（300KB）
+- `.claude-pet` 系列 CSS 已在 globals.css（用户另一个 session 写的）
+
+---
+
+### Part 4 · 踩坑：Python 脚本 anchor 误匹配 → 误删 Hero stage mobile @media
+
+**症状**：v3.1 改动跑完后，窄屏汉堡按钮消失。
+
+**Root cause**：之前用 Python 脚本删 bridge 段的 v1 残留 mobile @media，anchor 是 `"\n/* --- 窄屏适配："`。`str.find()` 找**文件第一个**匹配 —— 文件里实际有多处带冒号的窄屏适配注释，匹配先撞上的是 hero stage 的 `/* --- 窄屏适配：隐藏不适合小屏的元素 --- */`，**不是**预期的 bridge v1 残留。脚本把 hero 那段当成"残留"删了，含 `.stage .nav-hamburger { display: flex; }` 等 8 条窄屏 nav 规则。
+
+**修复**：`git show HEAD:web/src/app/globals.css` 抓回原版完整段，Python 脚本用 ASCII 唯一的 `@keyframes hero-cue-bob {...}` 做 insertion anchor 重新插入。
+
+**学到的教训**：
+1. `str.find()` 在文件多处可能匹配的 anchor 上**只取第一个** —— 用 anchor 前要 grep 一下确认文件里唯一性
+2. 批量 / 移动操作之前用 `print()` 打印 anchor 命中位置（行号 / 字节）确认对了再实际跑
+3. 优先选 **ASCII 唯一字符串**做 anchor（如 `@keyframes ...`），避开中文标点字节差异 + 多处匹配两个坑同时踩
+4. 工具用 Edit 在中文全角括号上反复失败 → 已经踩过 2-3 次了；Python 脚本是稳定 fallback，但 anchor 要更小心
+
+---
+
+### 当前已知开放项
+
+- 吉祥物"切层高级动画"（用户提到待做）
+- v3.1 mobile 视图触屏没 hover，open 后右 pane 持续黑底（视觉一致 OK，但可能要测一下点击区域）
+- 能力对照的 leftDetail / rightDetail 内容仍是 v1 时写的信阳柳林贯穿证据，新加的 8 个工作项目暂未作为 detail 证据使用
+
+### 下一阶段（候选）
+- 能力对照内容微调
+- 转入子幕 b · 具备技能（skills）v2
+- 继续 hero / about 其他细节
+
+---
+
 ## 2026-06-08 · 阶段十一：Hero 顶部 nav 重做 + V2 拍方向探索复盘
 
 ### 这一阶段的双线
