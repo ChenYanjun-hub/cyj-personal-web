@@ -1108,7 +1108,8 @@ body[data-section="about"] .stage .nav-loc-dot {
 
 /* prefers-reduced-motion · 直接跳过 letter 动画（无障碍） */
 @media (prefers-reduced-motion: reduce) {
-  .about-title .letter.cycling {
+  .about-title .letter.cycling,
+  .portfolio-title .letter.cycling {
     animation: none;
   }
 }
@@ -1345,6 +1346,12 @@ body[data-section="about"] .stage .nav-loc-dot {
    =============================================================== */
 
 .portfolio {
+  /* v2 风格（仿 about）：赭石/赤土色块 + 米黄字
+   * scope 内 redefine --ink / --ink-2 / --paper · 子选择器自动适配 */
+  --ink: #f0e8d8;
+  --ink-2: rgba(240, 232, 216, 0.62);
+  --paper: #b85a35;
+
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
@@ -1353,334 +1360,192 @@ body[data-section="about"] .stage .nav-loc-dot {
   flex-direction: column;
 }
 
-/* --- 章节大标题 --- */
+/* --- 章节大标题 · v2 巨字 Bebas Neue condensed（与 about-title 一致效果）--- */
 .portfolio-title {
-  font-family: var(--sans);
-  font-size: clamp(52px, 6.4vw, 96px);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.05;
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(64px, 13.5vw, 220px);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 0.9;
   text-align: center;
-  margin: 0 auto 12px;
+  margin: 0 auto 16px;
   color: var(--ink);
   opacity: 0;
   transform: translateY(22px);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .portfolio.visible .portfolio-title {
   animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
 }
 
-.portfolio-subtitle {
-  font-size: clamp(13px, 1.05vw, 16px);
-  color: var(--ink-2);
-  text-align: center;
-  margin: 0 auto clamp(56px, 8vh, 96px);
-  letter-spacing: 0.02em;
-  opacity: 0;
-  transform: translateY(22px);
+/* letter cycle 动画 · 复用 about-title 段定义的 @keyframes letter-fly-cycle */
+.portfolio-title .letter {
+  display: inline-block;
+  user-select: none;
+  will-change: transform, opacity;
+  padding: 0 0.02em;
 }
-.portfolio.visible .portfolio-subtitle {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
+.portfolio-title .letter-space {
+  display: inline-block;
+  width: 0.25em;
+}
+.portfolio-title .letter.cycling {
+  animation: letter-fly-cycle 0.65s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
-/* --- 板块通用 --- */
-.portfolio-block {
-  max-width: 1200px;
+/* === v2 双栏 split：左 AI / 右 规划 + 中间极简竖线分隔 === */
+.portfolio-split {
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding-top: clamp(48px, 6vh, 80px);
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: clamp(40px, 6vw, 80px);
+  align-items: stretch;
   opacity: 0;
   transform: translateY(22px);
 }
-.portfolio-block:first-of-type {
-  padding-top: 0;
-}
-.portfolio.visible .portfolio-block-core {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.34s;
-}
-.portfolio.visible .portfolio-block-wip {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.5s;
-}
-.portfolio.visible .portfolio-block-lab {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.62s;
+.portfolio.visible .portfolio-split {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.25s;
 }
 
-.portfolio-block-header {
+/* 中间一条极简竖线 */
+.portfolio-split-line {
+  background: rgba(240, 232, 216, 0.25);
+  width: 1px;
+  align-self: stretch;
+}
+
+/* 单栏 link · 整个区域可点 · Next.js Link 渲染为 <a> */
+.portfolio-side {
   display: flex;
-  align-items: baseline;
-  gap: clamp(14px, 2vw, 28px);
-  margin-bottom: clamp(28px, 4vh, 48px);
-  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
-  padding-bottom: 18px;
-}
-.portfolio-block-title {
-  font-size: clamp(18px, 1.8vw, 24px);
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  flex-direction: column;
+  gap: clamp(24px, 3vh, 40px);
   color: var(--ink);
-}
-.portfolio-block-desc {
-  font-size: clamp(12px, 1vw, 14px);
-  color: var(--ink-2);
-  letter-spacing: 0.02em;
-}
-
-/* --- 卡片通用 --- */
-.portfolio-card {
-  background: var(--paper);
-  border: 1px solid rgba(29, 29, 31, 0.12);
+  text-decoration: none;
+  padding: clamp(20px, 3vh, 40px) clamp(16px, 2vw, 28px);
   border-radius: 4px;
-  padding: clamp(20px, 2.5vw, 32px);
-  transition: border-color 0.2s ease, transform 0.2s ease;
-  position: relative;
+  transition: transform 0.4s ease, background 0.4s ease;
+  cursor: pointer;
 }
-.portfolio-card:hover {
-  border-color: rgba(29, 29, 31, 0.4);
-}
-.portfolio-num {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: clamp(12px, 1vw, 14px);
-  color: var(--ink-2);
-  letter-spacing: 0.04em;
+.portfolio-side:hover,
+.portfolio-side:focus-visible {
+  background: rgba(240, 232, 216, 0.06);
+  transform: translateY(-4px);
+  outline: none;
 }
 
-/* --- CORE 卡片（大、纵向排列） --- */
-.portfolio-core-list {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(20px, 2.5vh, 28px);
-}
-.portfolio-card-core .portfolio-card-head {
-  display: grid;
-  grid-template-columns: 56px 1fr 40px;
-  gap: clamp(16px, 2vw, 28px);
-  align-items: start;
-}
-.portfolio-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0; /* 防止 grid 子项溢出 */
-}
-.portfolio-card-name {
-  font-size: clamp(20px, 2vw, 28px);
-  font-weight: 600;
-  letter-spacing: -0.012em;
-  color: var(--ink);
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.portfolio-card-type {
-  font-size: clamp(11px, 0.95vw, 14px);
-  font-weight: 500;
-  color: var(--ink-2);
-  letter-spacing: 0.04em;
-}
-.portfolio-card-oneliner {
-  font-size: clamp(14px, 1.1vw, 16px);
-  color: var(--ink-2);
-  line-height: 1.55;
-}
-
-/* 技术栈 chips（简洁的下划线分隔，不用 pill） */
-.portfolio-stack {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin-top: 8px;
-}
-.portfolio-stack-item {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: clamp(11px, 0.9vw, 13px);
-  color: var(--ink);
-  letter-spacing: 0.02em;
-  padding: 2px 8px;
-  border: 1px solid rgba(29, 29, 31, 0.16);
-  border-radius: 3px;
-}
-
-/* 亮点 bullets */
-.portfolio-highlights {
-  list-style: none;
+/* 顶部 label · 中英双语 */
+.portfolio-side-head {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: 10px;
 }
-.portfolio-highlights li {
-  font-size: clamp(13px, 1vw, 15px);
-  color: var(--ink-2);
-  line-height: 1.6;
-  position: relative;
-  padding-left: 14px;
-}
-.portfolio-highlights li::before {
-  content: "·";
-  color: var(--ink);
-  position: absolute;
-  left: 0;
-  font-weight: 700;
-}
-
-/* Chevron toggle */
-.portfolio-toggle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(29, 29, 31, 0.15);
-  background: transparent;
-  color: var(--ink-2);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease, color 0.2s ease, border-color 0.2s ease;
-  margin-top: 4px;
-}
-.portfolio-toggle:hover {
-  color: var(--ink);
-  border-color: var(--ink);
-}
-.portfolio-card-core.open .portfolio-toggle {
-  transform: rotate(180deg);
-  color: var(--ink);
-  border-color: var(--ink);
-}
-
-/* inline 展开详情面板 */
-.portfolio-detail {
-  margin-top: clamp(20px, 3vh, 28px);
-  padding-top: clamp(20px, 3vh, 28px);
-  border-top: 1px solid rgba(29, 29, 31, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: clamp(14px, 2vh, 20px);
-  animation: portfolio-detail-in 0.45s ease both;
-}
-@keyframes portfolio-detail-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.portfolio-detail-row {
-  display: grid;
-  grid-template-columns: minmax(140px, 0.4fr) 1fr;
-  gap: clamp(14px, 2vw, 28px);
-  align-items: baseline;
-}
-.portfolio-detail-label {
-  font-size: clamp(12px, 1vw, 14px);
+.portfolio-side-label-zh {
+  font-size: clamp(20px, 2vw, 28px);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--ink);
-  text-transform: uppercase;
-}
-.portfolio-detail-value {
-  font-size: clamp(13px, 1.05vw, 15px);
-  line-height: 1.65;
+  letter-spacing: -0.005em;
   color: var(--ink);
 }
-.portfolio-detail-placeholder {
-  color: var(--ink-2);
-  opacity: 0.6;
-  font-style: italic;
-}
-
-/* --- WIP / LAB 卡片网格 --- */
-.portfolio-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(20px, 2.5vw, 32px);
-}
-.portfolio-grid-2col {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-.portfolio-card-wip,
-.portfolio-card-lab {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.portfolio-card-wip .portfolio-card-name,
-.portfolio-card-lab .portfolio-card-name {
-  font-size: clamp(16px, 1.4vw, 19px);
-  margin-top: 6px;
-}
-
-/* WIP 验证方向 */
-.portfolio-validate {
-  font-size: clamp(12px, 1vw, 14px);
-  color: var(--ink);
-  margin-top: 4px;
-}
-.portfolio-validate-label {
-  color: var(--ink-2);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-/* LAB 平台 */
-.portfolio-platform {
-  font-size: clamp(12px, 1vw, 14px);
-  color: var(--ink);
+.portfolio-side-label-en {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(11px, 0.9vw, 13px);
   font-weight: 500;
-  letter-spacing: 0.02em;
-  margin-top: 2px;
-}
-
-/* WIP 卡片视觉处理：虚线边框传达"待建"意味（PROJECT_GUIDE 第 171 行） */
-.portfolio-card-wip {
-  border-style: dashed;
-}
-
-/* --- 章节收尾 --- */
-.portfolio-segue {
-  text-align: center;
-  font-size: clamp(13px, 1.05vw, 15px);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
   color: var(--ink-2);
-  margin-top: clamp(64px, 8vh, 100px);
+}
+
+/* 项目列表 */
+.portfolio-side-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.8vh, 20px);
+  flex: 1;
+}
+.portfolio-side-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: clamp(14px, 1.8vh, 20px);
+  border-bottom: 1px solid rgba(240, 232, 216, 0.12);
+}
+.portfolio-side-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.portfolio-side-item-zh {
+  font-size: clamp(14px, 1.1vw, 17px);
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.portfolio-side-item-en {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+
+/* 底部"查看全部 →"提示 · hover 时变亮 + 箭头微动 */
+.portfolio-side-cue {
+  margin-top: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(12px, 0.95vw, 14px);
   letter-spacing: 0.12em;
-  opacity: 0.6;
+  color: var(--ink-2);
+  transition: color 0.3s ease, transform 0.3s ease;
+  align-self: flex-start;
+}
+.portfolio-side:hover .portfolio-side-cue,
+.portfolio-side:focus-visible .portfolio-side-cue {
+  color: var(--ink);
+  transform: translateX(4px);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .portfolio-title,
-  .portfolio-subtitle,
-  .portfolio-block {
+  .portfolio-split {
     opacity: 1;
     transform: none;
     animation: none !important;
   }
-  .portfolio-detail {
-    animation: none !important;
-  }
 }
 
-/* --- 窄屏适配 --- */
+/* --- 窄屏适配 · 双栏 → 上下堆叠，竖线变水平线 --- */
 @media (max-width: 760px) {
   .portfolio {
     padding: 72px 20px;
   }
   .portfolio-title {
-    font-size: 44px;
+    font-size: clamp(44px, 13vw, 80px);
+    white-space: normal;
+    letter-spacing: 0.01em;
   }
-  .portfolio-card-core .portfolio-card-head {
-    grid-template-columns: 36px 1fr 36px;
-    gap: 12px;
-  }
-  .portfolio-card-name {
-    font-size: 18px;
-  }
-  .portfolio-grid,
-  .portfolio-grid-2col {
+  .portfolio-split {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 24px;
   }
-  .portfolio-detail-row {
-    grid-template-columns: 1fr;
-    gap: 4px;
+  .portfolio-split-line {
+    width: 100%;
+    height: 1px;
+  }
+  .portfolio-side {
+    padding: 12px 0;
+    gap: 18px;
+  }
+  .portfolio-side-label-zh {
+    font-size: 20px;
+  }
+  .portfolio-side-item-zh {
+    font-size: 15px;
   }
 }
 
