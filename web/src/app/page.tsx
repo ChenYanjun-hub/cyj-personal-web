@@ -17,7 +17,7 @@ import Closing from "@/components/sections/closing";
        <CapabilityBridge />   ← 子幕 b · 能力对照（已实现）
        <Skills />             ← 子幕 c · 能力技能（已实现）
      <Portfolio />          ← 第三幕 · 作品集（已实现）
-     <Life />               ← 第四幕 · 视觉与生活（已实现）
+     <Life />               ← 第四幕 · 其他 Other（漫画爱好卡牌 · 点击进 /hobbies/[slug]）
      <Closing />            ← 第五幕 · 收尾（已实现）
 
   AI 数字分身悬浮组件将放在 layout.tsx 里全站可见。

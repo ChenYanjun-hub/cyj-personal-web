@@ -1550,330 +1550,321 @@ body[data-section="about"] .stage .nav-loc-dot {
 }
 
 /* ===============================================================
-   第四幕 · 视觉与生活 Life & Vision
+   第四幕 · 其他 Other（漫画卡牌版）
    ---------------------------------------------------------------
-   视觉策略：与 About Me / Portfolio 同源（纯黑白 / 全大写英文板块标题 / hairline / 克制留白）。
-   三板块：GALLERY（视觉创作）/ CRAFT（生活切片）/ BOOKSHELF（我的书架）。
-   素材状态：除了素描 8 级证书（已知事实）+ AIGC 1 张（hero-bg.png 已有），
-   其余几乎全部待补全，占位用 TBD 提示。
+   参考 Studio375「Ten Years Away」：漫画纸牌扇形漂浮 + 角色化肩章。
+   交互在 sections/life.tsx：指针拖拽 / 方向键 / 左右按钮切换，
+   侧牌点击归中、中心牌点击进 /hobbies/<slug>。
+   布局常量放 .other-stage 的 CSS 变量里，JS 读取计算（响应式只改 CSS）。
    =============================================================== */
 
 .life {
+  position: relative;
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
   padding: clamp(80px, 11vh, 130px) clamp(24px, 6vw, 96px);
   display: flex;
   flex-direction: column;
-}
-
-/* --- 章节标题 --- */
-.life-title {
-  font-family: var(--sans);
-  font-size: clamp(52px, 6.4vw, 96px);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.05;
-  text-align: center;
-  margin: 0 auto 12px;
-  color: var(--ink);
-  opacity: 0;
-  transform: translateY(22px);
-}
-.life.visible .life-title {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
-}
-.life-subtitle {
-  font-size: clamp(13px, 1.05vw, 16px);
-  color: var(--ink-2);
-  text-align: center;
-  margin: 0 auto clamp(56px, 8vh, 96px);
-  letter-spacing: 0.02em;
-  opacity: 0;
-  transform: translateY(22px);
-}
-.life.visible .life-subtitle {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
-}
-
-/* --- 板块通用 --- */
-.life-block {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-  padding-top: clamp(48px, 6vh, 80px);
-  opacity: 0;
-  transform: translateY(22px);
-}
-.life-block:first-of-type {
-  padding-top: 0;
-}
-.life.visible .life-block-gallery {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.34s;
-}
-.life.visible .life-block-craft {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.5s;
-}
-.life.visible .life-block-shelf {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.62s;
-}
-
-.life-block-header {
-  display: flex;
-  align-items: baseline;
-  gap: clamp(14px, 2vw, 28px);
-  margin-bottom: clamp(28px, 4vh, 48px);
-  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
-  padding-bottom: 18px;
-}
-.life-block-title {
-  font-size: clamp(18px, 1.8vw, 24px);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--ink);
-}
-.life-block-desc {
-  font-size: clamp(12px, 1vw, 14px);
-  color: var(--ink-2);
-  letter-spacing: 0.02em;
-}
-
-/* --- 素描 8 级证书徽章（GALLERY 板块的王牌） --- */
-.life-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 18px;
-  border: 1px solid var(--ink);
-  border-radius: 100px;
-  margin-bottom: clamp(28px, 4vh, 40px);
-  font-size: clamp(12px, 1vw, 14px);
-  letter-spacing: 0.04em;
-}
-.life-badge-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  padding-right: 12px;
-  border-right: 1px solid rgba(29, 29, 31, 0.2);
-}
-.life-badge-value {
-  font-weight: 600;
-  color: var(--ink);
-}
-
-/* --- GALLERY 网格 --- */
-.life-gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(20px, 2.5vw, 32px);
-}
-
-.life-artwork {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.life-artwork-image {
-  position: relative;
-  aspect-ratio: 4 / 5;
   overflow: hidden;
-  background: #f4f4f6;
 }
-.life-artwork-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+
+/* 右上角半调网点装饰 */
+.other-halftone {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: clamp(180px, 24vw, 340px);
+  height: clamp(180px, 24vw, 340px);
+  background-image: radial-gradient(
+    rgba(29, 29, 31, 0.16) 2px,
+    transparent 2.4px
+  );
+  background-size: 14px 14px;
+  -webkit-mask-image: radial-gradient(circle at center, #000 38%, transparent 70%);
+  mask-image: radial-gradient(circle at center, #000 38%, transparent 70%);
+  pointer-events: none;
 }
-.life-artwork-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #f4f4f6 0%, #e8e8eb 100%);
-  border: 1px dashed rgba(29, 29, 31, 0.18);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+
+/* --- 标题区 --- */
+.other-head {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.life.visible .other-head {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.05s;
+}
+.other-eyebrow {
+  margin: 0 0 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(12px, 1vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.other-title {
+  margin: 0;
+  font-size: clamp(40px, 6vw, 86px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  color: var(--ink);
+}
+.other-title-accent {
+  color: var(--accent);
+}
+.other-sub {
+  margin: 14px 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(12px, 1vw, 14px);
+  letter-spacing: 0.06em;
   color: var(--ink-2);
 }
-.life-artwork-medium-tag {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border: 1px solid currentColor;
-  border-radius: 100px;
+
+/* --- 卡牌舞台 --- */
+.other-stage {
+  position: relative;
+  height: clamp(380px, 52vh, 560px);
+  margin: clamp(20px, 4vh, 44px) 0 clamp(8px, 2vh, 20px);
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y; /* 纵向滚动留给页面，横向手势我们自己接管 */
+  outline: none;
+  opacity: 0;
+  transform: translateY(24px);
+
+  /* 布局常量 · JS 读取 */
+  --card-w: clamp(190px, 22vw, 280px);
+  --card-spacing: clamp(92px, 12.5vw, 156px);
+  --card-angle: 7;
+  --card-dip: clamp(18px, 2.8vw, 38px);
+  --card-scale-step: 0.07;
 }
-.life-artwork-tbd {
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  opacity: 0.6;
+.life.visible .other-stage {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.18s;
 }
-.life-artwork-caption {
+.other-stage:active {
+  cursor: grabbing;
+}
+.other-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+/* 单张漫画纸牌 · transform 由 JS 注入（含 -50% 居中） */
+.other-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w);
+  aspect-ratio: 3 / 4.2;
+  transform: translate(-50%, -50%);
+  transition: transform 0.55s cubic-bezier(0.16, 0.84, 0.3, 1),
+    opacity 0.4s ease, box-shadow 0.4s ease;
+  will-change: transform;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+
+  /* 漫画纸感：米白纸 + 粗墨边 + 硬投影 */
+  background: #fbfbf7;
+  border: 2px solid #1d1d1f;
+  border-radius: 10px;
+  box-shadow: 6px 10px 0 rgba(29, 29, 31, 0.16),
+    0 18px 40px rgba(29, 29, 31, 0.16);
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
-.life-artwork-meta {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
+.other-card:not(.is-active) {
+  filter: saturate(0.9) brightness(0.97);
 }
-.life-artwork-medium {
+.other-card.is-active {
+  box-shadow: 8px 14px 0 rgba(216, 85, 46, 0.85),
+    0 24px 50px rgba(29, 29, 31, 0.28);
+}
+
+/* 肩章 · 角色化标签（参考图 "THE ___"） */
+.other-card-ribbon {
+  position: absolute;
+  top: 16px;
+  left: -7px;
+  z-index: 2;
+  background: #1d1d1f;
+  color: #fbfbf7;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-2);
+  padding: 4px 11px;
+  transform: rotate(-4deg);
 }
-.life-artwork-title {
-  font-size: clamp(14px, 1.15vw, 16px);
-  font-weight: 600;
-  color: var(--ink);
-}
-.life-artwork-note {
-  font-size: clamp(12px, 1vw, 14px);
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-.life-artwork-empty .life-artwork-note {
-  opacity: 0.7;
-  font-style: italic;
+.other-card.is-active .other-card-ribbon {
+  background: var(--accent);
 }
 
-/* --- CRAFT 网格 --- */
-.life-craft-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(24px, 3vw, 40px);
-}
-.life-craft {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.life-craft-image {
+/* 漫画封面 · 爱好主色渐变 + 半调网点 + 大图标 */
+.other-card-cover {
   position: relative;
-  aspect-ratio: 4 / 3;
+  flex: 1;
+  border-radius: 6px;
   overflow: hidden;
-  background: #f4f4f6;
-}
-.life-craft-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.life-craft-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #f4f4f6 0%, #e8e8eb 100%);
-  border: 1px dashed rgba(29, 29, 31, 0.18);
+  border: 1px solid rgba(29, 29, 31, 0.5);
+  background: radial-gradient(120% 120% at 30% 18%, var(--tone-a), var(--tone-b));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink-2);
 }
-.life-craft-tbd {
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  opacity: 0.6;
+.other-card-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.24) 1.2px,
+    transparent 1.7px
+  );
+  background-size: 9px 9px;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+.other-card-glyph {
+  font-size: clamp(46px, 7vw, 80px);
+  line-height: 1;
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.32));
+}
+
+/* 牌脚：英文小字 + 中文名 */
+.other-card-foot {
+  padding: 0 4px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.other-card-en {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-.life-craft-title {
-  font-size: clamp(16px, 1.4vw, 20px);
-  font-weight: 600;
-  color: var(--ink);
-  margin-top: 4px;
-}
-.life-craft-note {
-  font-size: clamp(13px, 1vw, 15px);
-  line-height: 1.55;
   color: var(--ink-2);
 }
-.life-craft-empty .life-craft-note {
-  opacity: 0.7;
-  font-style: italic;
+.other-card-zh {
+  font-size: clamp(14px, 1.3vw, 18px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
-/* --- BOOKSHELF 网格：4 列（每列一个分类） --- */
-.life-shelf-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(20px, 2.5vw, 36px);
-}
-.life-shelf-col {
+/* --- 控制区 --- */
+.other-controls {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
-  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 3vw, 40px);
+  opacity: 0;
+  transform: translateY(22px);
 }
-.life-shelf-cat {
-  font-size: clamp(13px, 1.1vw, 16px);
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.life.visible .other-controls {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.3s;
+}
+.other-nav-btn {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: transparent;
   color: var(--ink);
-  border-bottom: 1px solid rgba(29, 29, 31, 0.12);
-  padding-bottom: 8px;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease,
+    opacity 0.25s ease;
 }
-.life-shelf-cat-zh {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
+.other-nav-btn:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+  transform: scale(1.06);
 }
-.life-shelf-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.other-nav-btn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
 }
-.life-shelf-book {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.life-shelf-book-title {
-  font-size: clamp(13px, 1.05vw, 15px);
-  font-weight: 600;
-  color: var(--ink);
-}
-.life-shelf-book-note {
-  font-size: clamp(12px, 0.95vw, 13px);
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-.life-shelf-book-empty .life-shelf-book-note {
-  opacity: 0.6;
-  font-style: italic;
-}
-
-/* --- 章节收尾 --- */
-.life-segue {
+.other-caption {
   text-align: center;
-  font-size: clamp(13px, 1.05vw, 15px);
+  min-width: min(440px, 78vw);
+}
+.other-caption-index {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+.other-caption-zh {
+  margin: 8px 0 6px;
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.other-caption-tag {
+  margin: 0 auto;
+  max-width: 32em;
+  font-size: clamp(14px, 1.1vw, 16px);
+  line-height: 1.7;
   color: var(--ink-2);
-  margin-top: clamp(64px, 8vh, 100px);
-  letter-spacing: 0.12em;
-  opacity: 0.6;
+}
+.other-caption-cta {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 16px;
+  padding: 10px 22px;
+  border: 1.5px solid var(--accent);
+  border-radius: 100px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  text-decoration: none;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+.other-caption-cta:hover {
+  background: var(--accent);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+
+.life-segue {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(36px, 6vh, 64px);
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .life-title,
-  .life-subtitle,
-  .life-block {
+  .other-head,
+  .other-stage,
+  .other-controls {
     opacity: 1;
     transform: none;
     animation: none !important;
+  }
+  .other-card {
+    transition: opacity 0.2s ease;
   }
 }
 
@@ -1882,23 +1873,349 @@ body[data-section="about"] .stage .nav-loc-dot {
   .life {
     padding: 72px 20px;
   }
-  .life-title {
-    font-size: 44px;
+  .other-stage {
+    height: clamp(360px, 56vh, 480px);
+    --card-w: clamp(170px, 56vw, 230px);
+    --card-spacing: clamp(74px, 24vw, 110px);
+    --card-angle: 6;
+    --card-dip: 22px;
+    --card-scale-step: 0.09;
   }
-  .life-gallery-grid {
+  .other-nav-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 22px;
+  }
+  .other-caption {
+    min-width: 0;
+  }
+}
+
+/* ===============================================================
+   书架传送带 · BOOKSHELF（第四幕下方）
+   ---------------------------------------------------------------
+   横向无限循环：track 渲染两遍 + translateX(-50%) 无缝衔接。
+   每本"格"宽 = 封面宽 + margin-right（gap 烘进格内，保证 -50% 精确对齐）。
+   鼠标悬停暂停；prefers-reduced-motion 改为手动横向滚动。
+   封面图待补：cover 为空时显示分类色占位。
+   =============================================================== */
+.shelf {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(40px, 6vh, 76px);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.life.visible .shelf {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.42s;
+}
+.shelf-head {
+  margin-bottom: clamp(16px, 2.4vh, 26px);
+}
+.shelf-desc {
+  margin: 6px 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(12px, 1vw, 14px);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+
+/* 传送带视窗：两侧渐隐遮罩 */
+.shelf-belt {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 7%,
+    #000 93%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 7%,
+    #000 93%,
+    transparent
+  );
+}
+.shelf-track {
+  display: flex;
+  width: max-content;
+  animation: shelf-scroll 40s linear infinite;
+}
+.shelf-belt:hover .shelf-track {
+  animation-play-state: paused;
+}
+@keyframes shelf-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* 单本书 · 格宽含右间距（无缝循环关键） */
+.shelf-book {
+  flex: 0 0 auto;
+  width: clamp(108px, 12vw, 148px);
+  margin-right: clamp(16px, 1.6vw, 24px);
+}
+.shelf-book-cover {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #1d1d1f;
+  box-shadow: 4px 6px 0 rgba(29, 29, 31, 0.14);
+  background: linear-gradient(140deg, var(--cover-tone), #1d1d1f);
+}
+.shelf-book-img {
+  object-fit: cover;
+}
+/* 封面占位：分类色 + 书脊高光 + 文案 */
+.shelf-book-ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 10px;
+}
+.shelf-book-ph::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.shelf-book-ph-cat {
+  color: #fff;
+  font-size: clamp(15px, 1.4vw, 20px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.shelf-book-ph-note {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+  .shelf-track {
+    animation: none;
+  }
+  .shelf-belt {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .shelf-book {
+    width: clamp(92px, 28vw, 120px);
+    margin-right: 14px;
+  }
+  .shelf-track {
+    animation-duration: 30s;
+  }
+}
+
+/* ===============================================================
+   /hobbies/[slug] · 爱好详情页（卡牌跳转目标）
+   ---------------------------------------------------------------
+   光纸底 + 爱好主色 Hero 带；正文骨架占位（待负责人补全）。
+   =============================================================== */
+
+.hobby {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部返回条 */
+.hobby-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px clamp(20px, 5vw, 64px);
+}
+.hobby-back {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.hobby-back:hover {
+  opacity: 0.55;
+}
+.hobby-topbar-persona {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ink-2);
+}
+
+/* Hero 主色带 */
+.hobby-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 52vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 18px;
+  margin: 0 clamp(16px, 4vw, 48px);
+  padding: clamp(40px, 7vh, 80px) clamp(28px, 5vw, 64px);
+  border-radius: 20px;
+  color: #fbfbf7;
+  background: radial-gradient(130% 120% at 78% 8%, var(--tone-a), var(--tone-b) 76%);
+}
+.hobby-hero-halftone {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.2) 1.4px,
+    transparent 1.9px
+  );
+  background-size: 12px 12px;
+  mix-blend-mode: screen;
+  opacity: 0.45;
+  pointer-events: none;
+}
+.hobby-glyph {
+  position: relative;
+  font-size: clamp(64px, 12vw, 130px);
+  line-height: 1;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.05s;
+}
+.hobby-hero-text {
+  position: relative;
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.16s;
+}
+.hobby-en {
+  margin: 0 0 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.hobby-zh {
+  margin: 0;
+  font-size: clamp(40px, 7vw, 92px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+}
+.hobby-tag {
+  margin: 14px 0 0;
+  max-width: 36em;
+  font-size: clamp(15px, 1.3vw, 19px);
+  line-height: 1.8;
+  opacity: 0.92;
+}
+
+/* 正文 */
+.hobby-body {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(56px, 9vh, 104px) clamp(24px, 5vw, 48px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(48px, 8vh, 88px);
+}
+.hobby-section-eyebrow {
+  margin: 0 0 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.hobby-section-heading {
+  margin: 0 0 18px;
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.hobby-tbd {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px dashed rgba(29, 29, 31, 0.28);
+  border-radius: 10px;
+  font-size: clamp(14px, 1.1vw, 16px);
+  line-height: 1.8;
+  color: var(--ink-2);
+}
+.hobby-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.6vw, 20px);
+}
+.hobby-gallery-ph {
+  aspect-ratio: 4 / 5;
+  border-radius: 12px;
+  border: 1px dashed rgba(29, 29, 31, 0.24);
+  background: #f1f0ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--ink-2);
+}
+
+/* 页尾 */
+.hobby-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 48px) clamp(48px, 8vh, 88px);
+}
+.hobby-footer-link {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+.hobby-footer-link:hover {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hobby-glyph,
+  .hobby-hero-text {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .hobby-gallery {
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .life-craft-grid {
-    grid-template-columns: 1fr;
-  }
-  .life-shelf-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-  .life-badge {
-    width: 100%;
-    justify-content: center;
   }
 }
 
@@ -2717,5 +3034,970 @@ body[data-section="about"] .stage .nav-loc-dot {
   }
   .skills-title {
     font-size: 36px;
+  }
+}
+
+/* ===============================================================
+   /works/ai · AI 项目作品集跳转页
+   ---------------------------------------------------------------
+   风格参考：Andy Reff 作品集（黑底 + 巨字 + 纵向大卡片流）。
+   scope 内 redefine --ink / --ink-2 / --paper（与 about/portfolio 同套路）：
+   近黑暖底 + 暖米白字，accent 沿用全站 #d8552e。
+   巨字标题复用 letter-fly-cycle；入场复用 bridge-rise（元素预设 opacity 0）。
+   =============================================================== */
+
+/* 画布染色：/works 系列页把 html/body 一起染成近黑。
+ * 不染的话，macOS 橡皮筋回弹 / 快速滚动 / 移动端工具栏伸缩时，
+ * main 之外露出的是 body 的米白底（--paper），黑底像"没占满整页"。
+ * :has() 纯 CSS、SSR 首帧即生效（Chrome 105+ / Safari 15.4+ / Firefox 121+）。 */
+html:has(.aiworks),
+html:has(.case),
+body:has(.aiworks),
+body:has(.case) {
+  background: #121110;
+}
+
+.aiworks {
+  --ink: #f0ece2;
+  --ink-2: rgba(240, 236, 226, 0.58);
+  --paper: #121110;
+
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0 clamp(20px, 4.5vw, 56px) clamp(48px, 7vh, 88px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 顶部三段式 nav：姓名 / 城市+实时秒钟（绝对居中）/ 链接 --- */
+.aiworks-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px clamp(20px, 4.5vw, 56px) 18px;
+  /* 上深下透渐变 · 卡片滚过 nav 下方时文字仍可读 */
+  background: linear-gradient(
+    180deg,
+    rgba(18, 17, 16, 0.94) 55%,
+    rgba(18, 17, 16, 0)
+  );
+}
+.aiworks-nav-name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: opacity 0.2s ease;
+}
+.aiworks-nav-name:hover {
+  opacity: 0.55;
+}
+.aiworks-nav-status {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.aiworks-nav-links {
+  display: flex;
+  gap: clamp(16px, 2.4vw, 34px);
+}
+.aiworks-nav-links a {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s ease;
+}
+.aiworks-nav-links a:hover {
+  opacity: 0.55;
+}
+
+/* --- 巨字标题区 · 左对齐（参考图 "WORK" 同位） --- */
+.aiworks-header {
+  padding-top: clamp(96px, 14vh, 150px);
+}
+.aiworks-title {
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(72px, 15vw, 230px);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 0.88;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin: 0;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(22px);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.05s;
+}
+/* letter cycle · 复用 about-title 段的 @keyframes letter-fly-cycle */
+.aiworks-title .letter {
+  display: inline-block;
+  user-select: none;
+  will-change: transform, opacity;
+  padding: 0 0.02em;
+}
+.aiworks-title .letter-space {
+  display: inline-block;
+  width: 0.25em;
+}
+.aiworks-title .letter.cycling {
+  animation: letter-fly-cycle 0.65s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.aiworks-subtitle {
+  margin: 18px 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(12px, 1vw, 14px);
+  letter-spacing: 0.12em;
+  color: var(--ink-2);
+  opacity: 0;
+  transform: translateY(22px);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.18s;
+}
+
+/* --- 卡片流 --- */
+.aiworks-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vh, 36px);
+  margin-top: clamp(28px, 4vh, 48px);
+}
+
+/* 单卡：左文案 + 右视觉 · IO 入场（.in 由 JS 加） */
+.aiwork-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(320px, 5fr) 7fr;
+  background: #191816;
+  border: 1px solid rgba(240, 236, 226, 0.07);
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: clamp(420px, 62vh, 620px);
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 0.84, 0.3, 1);
+
+  /* 边缘辉光 · 由 JS（rAF mousemove）写入：光心坐标 + 强度 */
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-o: 0;
+}
+.aiwork-card.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* 边缘辉光双层：
+ * ::after = 边框光环——径向渐变铺满卡片，双层 mask exclude 合成后
+ *   只留 2px 边框环；颜色 = 本卡 --tone-a 提亮 → accent（每卡一色，彩色）。
+ * ::before = 卡内微光晕——同一光心的大半径弱光，给光环加体积感。
+ * 强度 --glow-o：指针在卡内 = 1，距边缘 140px 内渐亮（见 ai-works.tsx）。 */
+.aiwork-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--glow-x) var(--glow-y),
+    rgba(240, 236, 226, 0.07),
+    transparent 70%
+  );
+  opacity: var(--glow-o);
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.aiwork-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  /* 第一行为 color-mix 不支持时的 accent 单色回退 */
+  background: radial-gradient(
+    300px circle at var(--glow-x) var(--glow-y),
+    var(--accent) 0%,
+    rgba(216, 85, 46, 0.55) 38%,
+    transparent 72%
+  );
+  background: radial-gradient(
+    300px circle at var(--glow-x) var(--glow-y),
+    color-mix(in oklab, var(--tone-a) 45%, #ffe8d2) 0%,
+    var(--accent) 38%,
+    transparent 72%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: var(--glow-o);
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* --- 左：文案区 --- */
+.aiwork-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: clamp(28px, 4vw, 56px);
+  min-width: 0;
+}
+.aiwork-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.aiwork-tags {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+/* 状态 chip：实心点 = 已做出来（built/shipped）· 空心点 = 规划中 */
+.aiwork-status {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.aiwork-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.aiwork-status.built .aiwork-status-dot,
+.aiwork-status.shipped .aiwork-status-dot {
+  background: var(--accent);
+}
+.aiwork-status.planned .aiwork-status-dot {
+  background: transparent;
+  border: 1.5px solid var(--ink-2);
+}
+
+.aiwork-card .aiwork-title {
+  margin: 6px 0 0;
+  font-size: clamp(26px, 2.6vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.22;
+  color: var(--ink);
+}
+.aiwork-title-en {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.aiwork-desc {
+  margin: 4px 0 0;
+  font-size: clamp(14px, 1.05vw, 16px);
+  line-height: 1.85;
+  color: rgba(240, 236, 226, 0.78);
+  max-width: 36em;
+}
+
+/* 获奖注记 · 小奖章 chip（圆环 ★ + accent mono 行） */
+.aiwork-award {
+  margin: 6px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.aiwork-award-seal {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  transform: rotate(-8deg);
+}
+
+/* 指标排（参考图 "5x / 60%" 同款）· Bebas 大数字 + mono 小标签 */
+.aiwork-metrics {
+  display: flex;
+  gap: clamp(28px, 3.5vw, 56px);
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 18px;
+}
+.aiwork-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aiwork-metric-num {
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(40px, 4vw, 60px);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.aiwork-metric-label {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  max-width: 22em;
+}
+
+/* 规划中项目：指标位换"想验证什么"（知识库的诚实表达） */
+.aiwork-verify {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: auto 0 0;
+  padding-top: 18px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(240, 236, 226, 0.78);
+  max-width: 32em;
+}
+.aiwork-verify-label {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.aiwork-cue {
+  margin-top: 20px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+  opacity: 0.7;
+}
+
+/* --- 右：视觉区 · 截图占位（渐变 + 蓝图网格 + Bebas 水印词） --- */
+.aiwork-visual {
+  position: relative;
+  min-height: 300px;
+}
+.aiwork-ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  /* 蓝图网格线呼应全站规划师母题 · 渐变两端色由卡片 --tone-a/b 注入 */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(240, 236, 226, 0.05) 0 1px,
+      transparent 1px 56px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(240, 236, 226, 0.05) 0 1px,
+      transparent 1px 56px
+    ),
+    radial-gradient(120% 120% at 80% 18%, var(--tone-a), var(--tone-b) 72%);
+}
+.aiwork-ph-mark {
+  margin: auto;
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(64px, 9vw, 150px);
+  letter-spacing: 0.04em;
+  color: rgba(240, 236, 226, 0.2);
+  user-select: none;
+}
+.aiwork-ph-note {
+  position: absolute;
+  left: clamp(24px, 3vw, 40px);
+  bottom: clamp(20px, 2.5vw, 32px);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: rgba(240, 236, 226, 0.45);
+}
+/* 真实截图（数据里填 shot 字段后启用） */
+.aiwork-shot {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+}
+
+/* --- 页尾双向出口 --- */
+.aiworks-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: clamp(36px, 6vh, 64px);
+}
+.aiworks-footer-link {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.aiworks-footer-link:hover {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aiworks-title,
+  .aiworks-subtitle,
+  .aiwork-card {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+    transition: none;
+  }
+}
+
+/* --- 中屏：卡片左右 → 上下（文案在上 · 视觉在下） --- */
+@media (max-width: 860px) {
+  .aiwork-card {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .aiwork-visual {
+    min-height: 260px;
+  }
+}
+
+/* --- 窄屏适配 --- */
+@media (max-width: 760px) {
+  .aiworks {
+    padding: 0 16px 56px;
+  }
+  .aiworks-nav {
+    padding: 18px 16px 14px;
+  }
+  .aiworks-nav-status {
+    display: none;
+  }
+  .aiworks-header {
+    padding-top: 96px;
+  }
+  .aiworks-title {
+    font-size: clamp(56px, 19vw, 96px);
+  }
+  .aiwork-copy {
+    padding: 24px 20px 28px;
+  }
+  .aiwork-card .aiwork-title {
+    font-size: 24px;
+  }
+  .aiwork-metrics {
+    gap: 24px;
+  }
+  .aiwork-metric-num {
+    font-size: 40px;
+  }
+  .aiwork-visual {
+    min-height: 220px;
+  }
+  .aiwork-ph-mark {
+    font-size: 56px;
+  }
+}
+
+/* ===============================================================
+   /works/ai/<project> · 案例详情页（CaseStudy 模板）
+   ---------------------------------------------------------------
+   风格参考：Andy Reff 案例页。
+   Hero 渐变两端色由页面数据注入（--tone-a / --tone-b，与列表页卡片同源）。
+   正文双栏：左 sticky 元信息 + 右六节内容（mono eyebrow + 中文大标题）。
+   复用 .aiworks-nav（共用顶栏）与 .aiworks-footer（页尾出口）。
+   =============================================================== */
+
+.case {
+  --ink: #f0ece2;
+  --ink-2: rgba(240, 236, 226, 0.58);
+  --paper: #121110;
+
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0 clamp(20px, 4.5vw, 56px) clamp(48px, 7vh, 88px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Hero：渐变底 + 蓝图网格 + 水印词 + 左下内容组 --- */
+.case-hero {
+  position: relative;
+  min-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  overflow: hidden;
+  margin: 0 calc(-1 * clamp(20px, 4.5vw, 56px));
+  padding: clamp(96px, 14vh, 150px) clamp(20px, 4.5vw, 56px)
+    clamp(48px, 7vh, 80px);
+  /* 顶层暗渐变保证左下文字可读 · 网格 + 项目色渐变与列表页占位视觉同源 */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18, 17, 16, 0.18),
+      rgba(18, 17, 16, 0.88) 76%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(240, 236, 226, 0.05) 0 1px,
+      transparent 1px 56px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(240, 236, 226, 0.05) 0 1px,
+      transparent 1px 56px
+    ),
+    radial-gradient(130% 120% at 72% 0%, var(--tone-a), var(--tone-b) 74%);
+}
+.case-hero-mark {
+  position: absolute;
+  top: clamp(72px, 11vh, 120px);
+  right: clamp(12px, 3vw, 48px);
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(110px, 20vw, 300px);
+  line-height: 0.8;
+  letter-spacing: 0.04em;
+  color: rgba(240, 236, 226, 0.12);
+  user-select: none;
+  pointer-events: none;
+}
+.case-hero-content {
+  position: relative;
+  max-width: 880px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.case-hero-category {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateY(22px);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.05s;
+}
+.case-hero-title {
+  margin: 0;
+  font-size: clamp(52px, 8.5vw, 124px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(22px);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.14s;
+}
+.case-hero-en {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  opacity: 0;
+  transform: translateY(22px);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
+}
+.case-hero-intro {
+  margin: 8px 0 0;
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.85;
+  color: rgba(240, 236, 226, 0.82);
+  max-width: 44em;
+  opacity: 0;
+  transform: translateY(22px);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.3s;
+}
+
+/* --- 获奖奖章 · 印章式（双环 + 章心字 + 说明行，呼应审图章母题） --- */
+.case-award {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  opacity: 0;
+  transform: translateY(22px);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.42s;
+}
+.case-award-medal {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--accent);
+  transform: rotate(-8deg);
+  flex-shrink: 0;
+}
+.case-award-medal::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px dashed rgba(216, 85, 46, 0.65);
+  border-radius: 50%;
+}
+.case-award-year {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+.case-award-word {
+  font-family: var(--font-smiley-sans), var(--sans);
+  font-size: 30px;
+  line-height: 1;
+}
+.case-award-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.case-award-line {
+  display: block;
+}
+/* 宽屏：奖章悬停在 hero 右下角，与左下内容组对望 */
+@media (min-width: 981px) {
+  .case-award {
+    position: absolute;
+    right: clamp(32px, 5vw, 72px);
+    bottom: clamp(48px, 7vh, 84px);
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+    margin-top: 0;
+    text-align: right;
+  }
+}
+
+/* --- 正文双栏：左 sticky 元信息 + 右内容 --- */
+.case-body {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: clamp(48px, 7vw, 110px);
+  align-items: start;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: clamp(72px, 11vh, 120px);
+}
+
+/* 左：元信息（ROLE / TEAM / DURATION / TYPE） */
+.case-meta {
+  position: sticky;
+  top: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 4vh, 40px);
+}
+.case-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.case-meta-label {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.case-meta-value {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+/* 右：六节内容 */
+.case-sections {
+  min-width: 0;
+}
+.case-section {
+  margin-bottom: clamp(72px, 12vh, 128px);
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 0.84, 0.3, 1);
+}
+.case-section.in {
+  opacity: 1;
+  transform: none;
+}
+.case-section:last-child {
+  margin-bottom: 0;
+}
+.case-section-eyebrow {
+  margin: 0 0 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.case-section-heading {
+  margin: 0 0 22px;
+  font-size: clamp(28px, 3.2vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.case-section-p {
+  margin: 0 0 14px;
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.95;
+  color: rgba(240, 236, 226, 0.8);
+}
+.case-section-p:last-child {
+  margin-bottom: 0;
+}
+/* bullets 之后的收尾段（与上方列表拉开间距） */
+.case-section-p-after {
+  margin-top: 20px;
+}
+
+/* 圆点列表（参考图 What I Did 的 bullets · accent 圆点） */
+.case-section-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.case-section-list li {
+  position: relative;
+  padding-left: 24px;
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.8;
+  color: rgba(240, 236, 226, 0.8);
+}
+.case-section-list li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.72em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* 知识库未填内容的待补占位条 */
+.case-tbd {
+  display: inline-block;
+  margin: 18px 0 0;
+  padding: 10px 14px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  border: 1px dashed rgba(240, 236, 226, 0.25);
+  border-radius: 8px;
+}
+
+/* 页尾下一案例提示（未建页时纯文字） */
+.case-next-note {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  opacity: 0.65;
+}
+
+/* 列表页 cue 升级为可点链接：accent 加粗 + 周期高光扫过（闪光）
+ * 原理：文字用 background-clip: text 裁出宽渐变，渐变中段藏一条暖白高光带，
+ * 动画移动 background-position 让高光带周期性扫过文字（前 55% 停顿，后 45% 扫过）。
+ * hover：下划线从左展开 + 整体右移 4px。 */
+.aiwork-cue-link {
+  display: inline-block;
+  position: relative;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 1;
+  background: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--accent) 44%,
+    #ffe8d2 50%,
+    var(--accent) 56%,
+    var(--accent) 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: cue-shimmer 2.8s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+@keyframes cue-shimmer {
+  0%,
+  55% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
+.aiwork-cue-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s ease;
+}
+.aiwork-cue-link:hover {
+  transform: translateX(4px);
+}
+.aiwork-cue-link:hover::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .aiwork-cue-link {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-hero-category,
+  .case-hero-title,
+  .case-hero-en,
+  .case-hero-intro,
+  .case-award,
+  .case-section {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+    transition: none;
+  }
+}
+
+/* --- 中屏：双栏 → 单栏，元信息变两列横排（不再 sticky） --- */
+@media (max-width: 860px) {
+  .case-body {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .case-meta {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
+/* 手机窄屏：meta 两列太挤 → 单列 */
+@media (max-width: 560px) {
+  .case-meta {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+/* --- 窄屏适配 --- */
+@media (max-width: 760px) {
+  .case {
+    padding: 0 16px 56px;
+  }
+  .case-hero {
+    min-height: 72vh;
+    margin: 0 -16px;
+    padding: 96px 16px 40px;
+  }
+  .case-hero-title {
+    font-size: clamp(40px, 12vw, 64px);
+  }
+  .case-hero-mark {
+    font-size: clamp(80px, 24vw, 140px);
+  }
+  .case-body {
+    padding-top: 56px;
+  }
+  .case-section {
+    margin-bottom: 64px;
+  }
+  .case-section-heading {
+    font-size: 26px;
+  }
+  .case-award-medal {
+    width: 96px;
+    height: 96px;
+  }
+  .case-award-word {
+    font-size: 26px;
   }
 }

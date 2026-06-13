@@ -1,222 +1,145 @@
 "use client";
 
 /**
- * 第四幕：视觉与生活 · Life & Vision
+ * 第四幕：其他 · Other（漫画卡牌版）
  * ---------------------------------------------------------------
  * 作用（PROJECT_GUIDE 第 5 节）：让 HR 从"评估你能不能干活"切换到"想认识你这个人"。
- * 基调：克制的真诚 — 不要变成朋友圈 / 生活秀。
  *
- * 三板块：
- *  - GALLERY  视觉创作（主体）：素描 8 级证书 + 多媒介作品 + AIGC
- *  - CRAFT    生活切片（轻量）：3D 打印 + 骑行
- *  - BOOKSHELF 我的书架（杀招）：四类（AI / 商业 / PM / 哲学）+ 一句感想
+ * v2 视觉/交互（用户拍板，参考 Studio375「Ten Years Away」）：
+ *  - 把爱好做成一张张漫画风格纸牌，扇形漂浮排布
+ *  - 指针按住左右拖拽 / 方向键 / 左右按钮切换；侧牌点击归中，中心牌点击进详情
+ *  - 每张牌点击跳转 /hobbies/<slug> 详情页
  *
- * 素材状态：除了素描 8 级（已知事实）+ AIGC 1 张（hero-bg.png 已有），
- * 其余几乎全部待负责人补全。当前用占位提示传达"待补"状态。
+ * 性能：拖拽期间用 rAF 直接改 DOM（transform / z / opacity），不走 React state，
+ *      避免每帧 re-render（同 hero 的节流手法）。落定时才 setActive 触发一次干净重排。
  *
- * 视觉延续 About Me / Portfolio：纯黑白 / 全大写英文板块标题 / hairline / 克制留白。
+ * 布局常量（spacing / angle / dip / scaleStep）放在 CSS 变量里，JS 读取后计算，
+ * 这样响应式断点只改 CSS 即可，无需动 JS。
  */
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 
-/* ---------------- 数据 ---------------- */
+import { HOBBIES } from "@/components/hobbies/hobbies-data";
 
-/** 视觉创作作品（GALLERY 板块）·  每张图配标题 + 媒介 + 一句话 */
-type Artwork = {
-  id: string;
-  /** 静态路径 web/public/... ，待补全时为 null（显示占位） */
-  src: string | null;
-  /** 媒介：素描 / 水彩 / 刀画 / 丙烯 / 速写 / AIGC / 摄影 */
-  medium: string;
-  title: string;
-  /** 一句话 — 这张作品的故事或我的想法 */
-  note: string;
-};
+const N = HOBBIES.length;
+const clamp = (v: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, v));
 
-const ARTWORKS: Artwork[] = [
-  {
-    id: "city-axonometric",
-    src: "/hero-bg.png",
-    medium: "AIGC",
-    title: "城市轴测",
-    note: "带专业知识在用 AI · 这张图身上的规划标注是 AIGC 中很少做对的细节。",
-  },
-  {
-    id: "sketch-1",
-    src: null,
-    medium: "素描",
-    title: "TBD",
-    note: "待负责人选图 · 推荐人物 / 静物代表作",
-  },
-  {
-    id: "watercolor-1",
-    src: null,
-    medium: "水彩",
-    title: "TBD",
-    note: "待负责人选图",
-  },
-  {
-    id: "knife-1",
-    src: null,
-    medium: "刀画",
-    title: "TBD",
-    note: "待负责人选图",
-  },
-  {
-    id: "acrylic-1",
-    src: null,
-    medium: "丙烯",
-    title: "TBD",
-    note: "待负责人选图",
-  },
-  {
-    id: "photo-1",
-    src: null,
-    medium: "摄影",
-    title: "TBD",
-    note: "待负责人选图",
-  },
-];
-
-/** 生活切片（CRAFT 板块） · 一两句话点到即止 */
-type CraftItem = {
-  id: string;
-  /** 待补全时 null */
-  src: string | null;
-  title: string;
-  note: string;
-};
-
-const CRAFTS: CraftItem[] = [
-  {
-    id: "3d-print",
-    src: null,
-    title: "3D 打印",
-    note: "爱动手 · 把想法变成实物。待负责人补全图片与一句感想。",
-  },
-  {
-    id: "cycling",
-    src: null,
-    title: "骑行",
-    note: "活力与探索 · 待负责人补全图片与一句感想。",
-  },
-];
-
-/** 书架（BOOKSHELF 板块） · 四类 · 每本一句感想 */
+/* ---------------- 书架传送带数据 ----------------
+ * 我读过的书 · 横向无限循环传送带（鼠标悬停暂停）。
+ * cover：public 下封面图路径，待负责人提供后填入；为 null 时显示分类色占位。
+ * tone：占位封面底色（按分类区分）。 */
 type Book = {
-  title: string;
-  /** 一句感想 — 待负责人补全时为 null */
-  note: string | null;
-};
-
-type Shelf = {
+  id: string;
   category: string;
-  /** 中文标签 */
-  zhCategory: string;
-  books: Book[];
+  categoryEn: string;
+  title: string | null;
+  cover: string | null;
+  tone: string;
 };
 
-/** TODO【负责人】：把真正读过的书填进来，每本配一句感想 */
-const SHELVES: Shelf[] = [
-  {
-    category: "AI",
-    zhCategory: "AI",
-    books: [
-      { title: "（待补）", note: null },
-      { title: "（待补）", note: null },
-    ],
-  },
-  {
-    category: "BUSINESS",
-    zhCategory: "商业分析",
-    books: [
-      { title: "（待补）", note: null },
-      { title: "（待补）", note: null },
-    ],
-  },
-  {
-    category: "PRODUCT",
-    zhCategory: "产品经理",
-    books: [
-      { title: "（待补）", note: null },
-      { title: "（待补）", note: null },
-    ],
-  },
-  {
-    category: "PHILOSOPHY",
-    zhCategory: "哲学",
-    books: [
-      { title: "（待补）", note: null },
-      { title: "（待补）", note: null },
-    ],
-  },
+const BOOKS: Book[] = [
+  { id: "ai-1", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
+  { id: "biz-1", category: "商业", categoryEn: "BUSINESS", title: null, cover: null, tone: "#c08a2e" },
+  { id: "pm-1", category: "产品", categoryEn: "PRODUCT", title: null, cover: null, tone: "#3f6fc4" },
+  { id: "phi-1", category: "哲学", categoryEn: "PHILOSOPHY", title: null, cover: null, tone: "#7a55a8" },
+  { id: "ai-2", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
+  { id: "biz-2", category: "商业", categoryEn: "BUSINESS", title: null, cover: null, tone: "#c08a2e" },
+  { id: "pm-2", category: "产品", categoryEn: "PRODUCT", title: null, cover: null, tone: "#3f6fc4" },
+  { id: "phi-2", category: "哲学", categoryEn: "PHILOSOPHY", title: null, cover: null, tone: "#7a55a8" },
 ];
 
-/* ---------------- 子组件 ---------------- */
-
-function ArtworkCard({ work }: { work: Artwork }) {
+function BookCard({ book, duplicate }: { book: Book; duplicate: boolean }) {
   return (
-    <figure className={`life-artwork${work.src ? "" : " life-artwork-empty"}`}>
-      <div className="life-artwork-image">
-        {work.src ? (
+    <article
+      className="shelf-book"
+      style={{ "--cover-tone": book.tone } as React.CSSProperties}
+      aria-hidden={duplicate ? true : undefined}
+      title={book.title ?? `${book.category} · 书名待补`}
+    >
+      <div className="shelf-book-cover">
+        {book.cover ? (
           <Image
-            src={work.src}
-            alt={work.title}
-            width={800}
-            height={1000}
-            sizes="(max-width: 760px) 80vw, 30vw"
-            className="life-artwork-img"
+            src={book.cover}
+            alt={book.title ?? `${book.category}类书籍`}
+            fill
+            sizes="150px"
+            className="shelf-book-img"
           />
         ) : (
-          <div className="life-artwork-placeholder">
-            <span className="life-artwork-medium-tag">{work.medium}</span>
-            <span className="life-artwork-tbd">TBD</span>
+          <div className="shelf-book-ph">
+            <span className="shelf-book-ph-cat">{book.category}</span>
+            <span className="shelf-book-ph-note">封面整理中</span>
           </div>
         )}
       </div>
-      <figcaption className="life-artwork-caption">
-        <div className="life-artwork-meta">
-          <span className="life-artwork-medium">{work.medium}</span>
-          <span className="life-artwork-title">{work.title}</span>
-        </div>
-        <p className="life-artwork-note">{work.note}</p>
-      </figcaption>
-    </figure>
-  );
-}
-
-function CraftCard({ item }: { item: CraftItem }) {
-  return (
-    <article className={`life-craft${item.src ? "" : " life-craft-empty"}`}>
-      <div className="life-craft-image">
-        {item.src ? (
-          <Image
-            src={item.src}
-            alt={item.title}
-            width={800}
-            height={600}
-            sizes="(max-width: 760px) 90vw, 45vw"
-            className="life-craft-img"
-          />
-        ) : (
-          <div className="life-craft-placeholder">
-            <span className="life-craft-tbd">TBD · 待补图</span>
-          </div>
-        )}
-      </div>
-      <h4 className="life-craft-title">{item.title}</h4>
-      <p className="life-craft-note">{item.note}</p>
     </article>
   );
 }
 
-/* ---------------- 主组件 ---------------- */
-
 export default function Life() {
   const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [active, setActive] = useState(0);
 
+  // 不触发 re-render 的可变量
+  const activeRef = useRef(0);
+  const consts = useRef({ spacing: 130, angle: 7, dip: 32, scaleStep: 0.07 });
+  const drag = useRef({ on: false, startX: 0, dx: 0, moved: false, raf: 0 });
+
+  const cards = () =>
+    stageRef.current
+      ? Array.from(
+          stageRef.current.querySelectorAll<HTMLElement>(".other-card")
+        )
+      : [];
+
+  // 从 CSS 变量读布局常量（mount + resize）
+  const readConsts = useCallback(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const cs = getComputedStyle(el);
+    const num = (k: string, d: number) => {
+      const v = parseFloat(cs.getPropertyValue(k));
+      return Number.isFinite(v) ? v : d;
+    };
+    consts.current = {
+      spacing: num("--card-spacing", 130),
+      angle: num("--card-angle", 7),
+      dip: num("--card-dip", 32),
+      scaleStep: num("--card-scale-step", 0.07),
+    };
+  }, []);
+
+  // 核心布局：给定（可为小数的）activeFloat，算出每张牌的 transform
+  const applyLayout = useCallback((activeFloat: number, animate: boolean) => {
+    const { spacing, angle, dip, scaleStep } = consts.current;
+    cards().forEach((el, i) => {
+      const rel = i - activeFloat;
+      const ax = Math.abs(rel);
+      const tx = rel * spacing;
+      const ty = ax * dip; // 外侧牌向下沉 → 向下的扇形弧
+      const rot = rel * angle;
+      const scale = Math.max(0.72, 1 - ax * scaleStep);
+      const far = ax > 3.4; // 太远的牌剔除
+      el.style.transition = animate ? "" : "none";
+      el.style.transform = `translate(-50%, -50%) translateX(${tx}px) translateY(${ty}px) rotate(${rot}deg) scale(${scale})`;
+      el.style.zIndex = String(100 - Math.round(ax * 10));
+      el.style.opacity = far ? "0" : "1";
+      el.style.pointerEvents = far ? "none" : "auto";
+      el.classList.toggle("is-active", Math.round(activeFloat) === i);
+    });
+  }, []);
+
+  // 入场：进入视口置 visible
   useEffect(() => {
     const node = sectionRef.current;
     if (!node) return;
@@ -236,86 +159,202 @@ export default function Life() {
     return () => obs.disconnect();
   }, []);
 
+  // mount：读常量 + 初始定位（无动画）+ resize 重排
+  useEffect(() => {
+    readConsts();
+    applyLayout(0, false);
+    const onResize = () => {
+      readConsts();
+      applyLayout(activeRef.current, true);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [readConsts, applyLayout]);
+
+  // active 变化：同步 ref + 带动画重排
+  useEffect(() => {
+    activeRef.current = active;
+    applyLayout(active, true);
+  }, [active, applyLayout]);
+
+  /* ---------------- 指针拖拽 ---------------- */
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    d.on = true;
+    d.startX = e.clientX;
+    d.dx = 0;
+    d.moved = false;
+    stageRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d.on) return;
+    d.dx = e.clientX - d.startX;
+    if (Math.abs(d.dx) > 6) d.moved = true;
+    if (d.raf) return;
+    d.raf = requestAnimationFrame(() => {
+      d.raf = 0;
+      const af = activeRef.current - d.dx / consts.current.spacing;
+      applyLayout(af, false);
+    });
+  };
+
+  const endDrag = () => {
+    const d = drag.current;
+    if (!d.on) return;
+    d.on = false;
+    if (d.raf) {
+      cancelAnimationFrame(d.raf);
+      d.raf = 0;
+    }
+    if (d.moved) {
+      const target = clamp(
+        Math.round(activeRef.current - d.dx / consts.current.spacing),
+        0,
+        N - 1
+      );
+      if (target === activeRef.current) applyLayout(target, true);
+      else setActive(target);
+    }
+    // 未移动 = 点击：交给卡片 onClick 处理
+  };
+
+  // 卡片点击：拖拽中拦截；侧牌归中；中心牌放行导航
+  const onCardClick = (i: number, e: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (drag.current.moved) {
+      e.preventDefault();
+      return;
+    }
+    if (i !== activeRef.current) {
+      e.preventDefault();
+      setActive(i);
+    }
+  };
+
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      setActive((a) => clamp(a - 1, 0, N - 1));
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      setActive((a) => clamp(a + 1, 0, N - 1));
+    }
+  };
+
+  const cur = HOBBIES[active];
+
   return (
     <section
       ref={sectionRef}
       id="life"
       className={`life${visible ? " visible" : ""}`}
     >
-      {/* 章节大标题 */}
-      <h2 className="life-title">Life &amp; Vision</h2>
-      <p className="life-subtitle">关于人，关于眼睛 · 克制的真诚</p>
+      {/* 装饰：右上角半调网点（漫画母题） */}
+      <span className="other-halftone" aria-hidden />
 
-      {/* ===== GALLERY 板块：视觉创作 ===== */}
-      <section className="life-block life-block-gallery">
-        <header className="life-block-header">
-          <h3 className="life-block-title">GALLERY</h3>
-          <p className="life-block-desc">
-            视觉创作 · 传统功底 × AI 延伸
-          </p>
-        </header>
+      <header className="other-head">
+        <p className="other-eyebrow">OTHER · 工作之外</p>
+        <h2 className="other-title">
+          这些<span className="other-title-accent">也是我</span>
+        </h2>
+        <p className="other-sub">按住左右拖动翻牌 · 点开任意一张了解更多</p>
+      </header>
 
-        {/* 素描 8 级证书徽章（PROJECT_GUIDE：王牌 · 官方背书的硬资质） */}
-        <div className="life-badge">
-          <span className="life-badge-label">官方资质</span>
-          <span className="life-badge-value">素描 · 专业 8 级证书</span>
+      {/* 卡牌舞台 · 指针拖拽 + 键盘 */}
+      <div
+        ref={stageRef}
+        className="other-stage"
+        role="group"
+        aria-label="爱好卡牌 · 左右拖动切换"
+        tabIndex={0}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onKeyDown={onKeyDown}
+      >
+        {HOBBIES.map((h, i) => (
+          <Link
+            key={h.slug}
+            href={`/hobbies/${h.slug}`}
+            className="other-card"
+            style={
+              {
+                "--tone-a": h.tone[0],
+                "--tone-b": h.tone[1],
+              } as React.CSSProperties
+            }
+            aria-label={`${h.zh} — ${h.tagline}`}
+            draggable={false}
+            onClick={(e) => onCardClick(i, e)}
+          >
+            <span className="other-card-ribbon">{h.persona}</span>
+            <span className="other-card-cover">
+              <span className="other-card-glyph" aria-hidden>
+                {h.glyph}
+              </span>
+            </span>
+            <span className="other-card-foot">
+              <span className="other-card-en">{h.en}</span>
+              <span className="other-card-zh">{h.zh}</span>
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      {/* 控制区：上一张 / 当前爱好说明 + 进入 / 下一张 */}
+      <div className="other-controls">
+        <button
+          type="button"
+          className="other-nav-btn"
+          aria-label="上一张"
+          disabled={active === 0}
+          onClick={() => setActive((a) => clamp(a - 1, 0, N - 1))}
+        >
+          ‹
+        </button>
+
+        <div className="other-caption">
+          <span className="other-caption-index">
+            {String(active + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}
+          </span>
+          <h3 className="other-caption-zh">{cur.zh}</h3>
+          <p className="other-caption-tag">{cur.tagline}</p>
+          <Link href={`/hobbies/${cur.slug}`} className="other-caption-cta">
+            进入 {cur.en} →
+          </Link>
         </div>
 
-        {/* 多媒介作品网格 */}
-        <div className="life-gallery-grid">
-          {ARTWORKS.map((w) => (
-            <ArtworkCard key={w.id} work={w} />
-          ))}
-        </div>
-      </section>
+        <button
+          type="button"
+          className="other-nav-btn"
+          aria-label="下一张"
+          disabled={active === N - 1}
+          onClick={() => setActive((a) => clamp(a + 1, 0, N - 1))}
+        >
+          ›
+        </button>
+      </div>
 
-      {/* ===== CRAFT 板块：生活切片 ===== */}
-      <section className="life-block life-block-craft">
-        <header className="life-block-header">
-          <h3 className="life-block-title">CRAFT</h3>
-          <p className="life-block-desc">
-            生活切片 · 爱动手、爱探索（点到即止）
-          </p>
+      {/* 书架传送带 · 横向无限循环（鼠标悬停暂停） */}
+      <section className="shelf">
+        <header className="shelf-head">
+          <p className="other-eyebrow">BOOKSHELF · 我的书架</p>
+          <p className="shelf-desc">读过的书 · 封面陆续补全（鼠标悬停暂停）</p>
         </header>
-
-        <div className="life-craft-grid">
-          {CRAFTS.map((item) => (
-            <CraftCard key={item.id} item={item} />
-          ))}
-        </div>
-      </section>
-
-      {/* ===== BOOKSHELF 板块：我的书架 ===== */}
-      <section className="life-block life-block-shelf">
-        <header className="life-block-header">
-          <h3 className="life-block-title">BOOKSHELF</h3>
-          <p className="life-block-desc">
-            真读过的书 · 每本一句感想（把书架变成我的大脑）
-          </p>
-        </header>
-
-        <div className="life-shelf-grid">
-          {SHELVES.map((shelf) => (
-            <div key={shelf.category} className="life-shelf-col">
-              <h4 className="life-shelf-cat">
-                {shelf.category}
-                <span className="life-shelf-cat-zh">· {shelf.zhCategory}</span>
-              </h4>
-              <ul className="life-shelf-list">
-                {shelf.books.map((b, i) => (
-                  <li
-                    key={`${shelf.category}-${i}`}
-                    className={`life-shelf-book${b.note ? "" : " life-shelf-book-empty"}`}
-                  >
-                    <p className="life-shelf-book-title">{b.title}</p>
-                    <p className="life-shelf-book-note">
-                      {b.note ?? "待负责人补 · 真读过 + 一句感想"}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="shelf-belt">
+          {/* 渲染两遍（原 + aria-hidden 副本）实现 translateX(-50%) 无缝循环 */}
+          <div className="shelf-track">
+            {[...BOOKS, ...BOOKS].map((b, i) => (
+              <BookCard
+                key={`${b.id}-${i}`}
+                book={b}
+                duplicate={i >= BOOKS.length}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
