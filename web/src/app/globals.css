@@ -3727,7 +3727,7 @@ body:has(.case) {
 }
 .case-hero-content {
   position: relative;
-  max-width: 880px;
+  max-width: 1080px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -3750,6 +3750,7 @@ body:has(.case) {
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.04;
+  text-wrap: balance;
   color: var(--ink);
   opacity: 0;
   transform: translateY(22px);
