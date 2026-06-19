@@ -91,9 +91,25 @@ export default function Life() {
   const [active, setActive] = useState(0);
 
   // 不触发 re-render 的可变量
+  // active 不再 clamp，可无限增减（环形）；显示用的索引另取模
   const activeRef = useRef(0);
-  const consts = useRef({ spacing: 130, angle: 7, dip: 32, scaleStep: 0.07 });
+  // 圆弧布局常量：step=每张牌的圆心角(deg)，radius=圆弧半径(px，越大越平)
+  const consts = useRef({ step: 10, radius: 1600, scaleStep: 0.04 });
   const drag = useRef({ on: false, startX: 0, dx: 0, moved: false, raf: 0 });
+  // 拖拽：把像素位移换算成"翻了几张" → 用近中心的水平步距（弦长 radius·sin(step)）
+  const dragSpacing = () =>
+    consts.current.radius *
+    Math.sin((consts.current.step * Math.PI) / 180);
+  // 每张牌上一帧的环形 rel，用于检测"跨接缝回绕"以瞬移
+  const prevRels = useRef<number[]>([]);
+
+  // 环形最近距离：把 (i - activeFloat) 折到 [-N/2, N/2]
+  const circRel = (i: number, activeFloat: number) => {
+    let rel = ((i - activeFloat) % N + N) % N;
+    if (rel > N / 2) rel -= N;
+    return rel;
+  };
+  const modIdx = (v: number) => ((Math.round(v) % N) + N) % N;
 
   const cards = () =>
     stageRef.current
@@ -102,40 +118,46 @@ export default function Life() {
         )
       : [];
 
-  // 从 CSS 变量读布局常量（mount + resize）
+  // 按视口宽度计算弧的布局常量（mount + resize）
+  // 注意：不要把 radius 放进 CSS 自定义属性再用 getComputedStyle 读——clamp() 不会被解析成
+  // px（返回字面串），parseFloat 得 NaN，会一直回退默认值。弧常量是行为参数，直接 JS 算最稳。
+  // radius 决定相邻牌中心距（弦长 ≈ radius·sin(step)）→ 越大牌越疏。
   const readConsts = useCallback(() => {
-    const el = stageRef.current;
-    if (!el) return;
-    const cs = getComputedStyle(el);
-    const num = (k: string, d: number) => {
-      const v = parseFloat(cs.getPropertyValue(k));
-      return Number.isFinite(v) ? v : d;
-    };
-    consts.current = {
-      spacing: num("--card-spacing", 130),
-      angle: num("--card-angle", 7),
-      dip: num("--card-dip", 32),
-      scaleStep: num("--card-scale-step", 0.07),
-    };
+    const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
+    const mobile = vw <= 760;
+    consts.current = mobile
+      ? { step: 12, radius: clamp(4.2 * vw, 1300, 1750), scaleStep: 0.06 }
+      : { step: 10, radius: clamp(1.3 * vw, 1150, 2800), scaleStep: 0.04 };
   }, []);
 
-  // 核心布局：给定（可为小数的）activeFloat，算出每张牌的 transform
+  // 核心布局：把牌摆在一个大圆弧上（位置/旋转/下沉由 半径+角度 耦合，像参考图那样
+  // 一张张分开、平铺无 3D、阶梯状下沉），activeFloat 可为小数（环形）
   const applyLayout = useCallback((activeFloat: number, animate: boolean) => {
-    const { spacing, angle, dip, scaleStep } = consts.current;
+    const { step, radius, scaleStep } = consts.current;
+    const activeIdx = modIdx(activeFloat);
     cards().forEach((el, i) => {
-      const rel = i - activeFloat;
+      const rel = circRel(i, activeFloat); // 环形最近距离 → 一侧滑出、另一侧转入
       const ax = Math.abs(rel);
-      const tx = rel * spacing;
-      const ty = ax * dip; // 外侧牌向下沉 → 向下的扇形弧
-      const rot = rel * angle;
-      const scale = Math.max(0.72, 1 - ax * scaleStep);
-      const far = ax > 3.4; // 太远的牌剔除
-      el.style.transition = animate ? "" : "none";
-      el.style.transform = `translate(-50%, -50%) translateX(${tx}px) translateY(${ty}px) rotate(${rot}deg) scale(${scale})`;
+      const phi = (rel * step * Math.PI) / 180; // 该牌在圆弧上的角度
+      const tx = radius * Math.sin(phi); // 沿弧水平展开
+      const ty = radius * (1 - Math.cos(phi)); // 沿弧向下沉（两侧都更低 → 微笑弧）
+      const rotZ = rel * step; // 切向旋转（与位置耦合，自然不别扭）
+      const scale = Math.max(0.82, 1 - ax * scaleStep); // 尺寸接近，中心仅略大
+      const op = clamp(1 - (ax - 2.2) / 1.0, 0, 1); // ±2 仍满显（在视口边缘被裁露一截）
+      const far = ax > 2.9;
+      // 跨接缝回绕（rel 突变 > N/2）的牌：本帧不过渡，瞬移到另一侧（此刻它在背面已隐形）
+      const prev = prevRels.current[i];
+      const wrapped = prev !== undefined && Math.abs(rel - prev) > N / 2;
+      prevRels.current[i] = rel;
+      const smooth = animate && !wrapped;
+      el.style.transition = smooth ? "" : "none";
+      // 落定时按距离加延迟 → 沿弧涟漪式归位（拖拽中 / 瞬移无延迟）
+      el.style.transitionDelay = smooth ? `${(ax * 0.04).toFixed(3)}s` : "0s";
+      el.style.transform = `translate(-50%, -50%) translateX(${tx.toFixed(1)}px) translateY(${ty.toFixed(1)}px) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
       el.style.zIndex = String(100 - Math.round(ax * 10));
-      el.style.opacity = far ? "0" : "1";
+      el.style.opacity = op.toFixed(3);
       el.style.pointerEvents = far ? "none" : "auto";
-      el.classList.toggle("is-active", Math.round(activeFloat) === i);
+      el.classList.toggle("is-active", activeIdx === i);
     });
   }, []);
 
@@ -196,7 +218,7 @@ export default function Life() {
     if (d.raf) return;
     d.raf = requestAnimationFrame(() => {
       d.raf = 0;
-      const af = activeRef.current - d.dx / consts.current.spacing;
+      const af = activeRef.current - d.dx / dragSpacing();
       applyLayout(af, false);
     });
   };
@@ -210,40 +232,40 @@ export default function Life() {
       d.raf = 0;
     }
     if (d.moved) {
-      const target = clamp(
-        Math.round(activeRef.current - d.dx / consts.current.spacing),
-        0,
-        N - 1
-      );
+      // 不 clamp：环形可无限增减
+      const target = Math.round(activeRef.current - d.dx / dragSpacing());
       if (target === activeRef.current) applyLayout(target, true);
       else setActive(target);
     }
     // 未移动 = 点击：交给卡片 onClick 处理
   };
 
-  // 卡片点击：拖拽中拦截；侧牌归中；中心牌放行导航
+  // 卡片点击：拖拽中拦截；侧牌走环形最近路径归中；中心牌放行导航
   const onCardClick = (i: number, e: ReactMouseEvent<HTMLAnchorElement>) => {
     if (drag.current.moved) {
       e.preventDefault();
       return;
     }
-    if (i !== activeRef.current) {
+    if (i !== modIdx(activeRef.current)) {
       e.preventDefault();
-      setActive(i);
+      // 沿最近一侧把第 i 张转到中心
+      let d = ((i - modIdx(activeRef.current)) % N + N) % N;
+      if (d > N / 2) d -= N;
+      setActive((a) => a + d);
     }
   };
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
-      setActive((a) => clamp(a - 1, 0, N - 1));
+      setActive((a) => a - 1);
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
-      setActive((a) => clamp(a + 1, 0, N - 1));
+      setActive((a) => a + 1);
     }
   };
 
-  const cur = HOBBIES[active];
+  const cur = HOBBIES[modIdx(active)];
 
   return (
     <section
@@ -290,15 +312,20 @@ export default function Life() {
             draggable={false}
             onClick={(e) => onCardClick(i, e)}
           >
-            <span className="other-card-ribbon">{h.persona}</span>
-            <span className="other-card-cover">
-              <span className="other-card-glyph" aria-hidden>
-                {h.glyph}
+            {/* 飘动层：异步浮动（负 delay 错开相位 + 微调时长，像风里的纸） */}
+            <span
+              className="other-card-float"
+              style={{
+                animationDelay: `-${(i * 0.8).toFixed(2)}s`,
+                animationDuration: `${(5.6 + (i % 3) * 0.7).toFixed(2)}s`,
+              }}
+            >
+              <span className="other-card-page">
+                <span className="other-card-glyph" aria-hidden>
+                  {h.glyph}
+                </span>
               </span>
-            </span>
-            <span className="other-card-foot">
-              <span className="other-card-en">{h.en}</span>
-              <span className="other-card-zh">{h.zh}</span>
+              <span className="other-card-label">{h.persona}</span>
             </span>
           </Link>
         ))}
@@ -310,15 +337,15 @@ export default function Life() {
           type="button"
           className="other-nav-btn"
           aria-label="上一张"
-          disabled={active === 0}
-          onClick={() => setActive((a) => clamp(a - 1, 0, N - 1))}
+          onClick={() => setActive((a) => a - 1)}
         >
           ‹
         </button>
 
         <div className="other-caption">
           <span className="other-caption-index">
-            {String(active + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}
+            {String(modIdx(active) + 1).padStart(2, "0")} /{" "}
+            {String(N).padStart(2, "0")}
           </span>
           <h3 className="other-caption-zh">{cur.zh}</h3>
           <p className="other-caption-tag">{cur.tagline}</p>
@@ -331,8 +358,7 @@ export default function Life() {
           type="button"
           className="other-nav-btn"
           aria-label="下一张"
-          disabled={active === N - 1}
-          onClick={() => setActive((a) => clamp(a + 1, 0, N - 1))}
+          onClick={() => setActive((a) => a + 1)}
         >
           ›
         </button>

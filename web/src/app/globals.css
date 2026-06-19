@@ -370,10 +370,14 @@ body {
 }
 body[data-section="about"] .stage .nav-status,
 body[data-section="about"] .stage .navlinks a,
-body[data-section="about"] .stage .nav-hamburger {
+body[data-section="about"] .stage .nav-hamburger,
+body[data-section="closing"] .stage .nav-status,
+body[data-section="closing"] .stage .navlinks a,
+body[data-section="closing"] .stage .nav-hamburger {
   color: #F0E8D8;
 }
-body[data-section="about"] .stage .nav-loc-dot {
+body[data-section="about"] .stage .nav-loc-dot,
+body[data-section="closing"] .stage .nav-loc-dot {
   background: #F0E8D8;
 }
 
@@ -1624,10 +1628,13 @@ body[data-section="about"] .stage .nav-loc-dot {
   color: var(--ink-2);
 }
 
-/* --- 卡牌舞台 --- */
+/* --- 卡牌舞台 ---
+ * 圆弧布局（参考 Studio375）：把牌摆在一个大圆弧上，一张张分开、平铺无 3D、阶梯下沉。
+ * 撑满视口左右：radius 用 vw 驱动 → ±2 边缘卡贴近视口边、被 .life 的 overflow:hidden 裁切露一截。
+ * 卡片 left:50% 相对 stage（= 视口中心，section 左右 padding 对称），位移用 vw 故能触及视口边。 */
 .other-stage {
   position: relative;
-  height: clamp(380px, 52vh, 560px);
+  height: clamp(460px, 60vh, 700px);
   margin: clamp(20px, 4vh, 44px) 0 clamp(8px, 2vh, 20px);
   cursor: grab;
   user-select: none;
@@ -1636,12 +1643,8 @@ body[data-section="about"] .stage .nav-loc-dot {
   opacity: 0;
   transform: translateY(24px);
 
-  /* 布局常量 · JS 读取 */
-  --card-w: clamp(190px, 22vw, 280px);
-  --card-spacing: clamp(92px, 12.5vw, 156px);
-  --card-angle: 7;
-  --card-dip: clamp(18px, 2.8vw, 38px);
-  --card-scale-step: 0.07;
+  /* 卡片宽度（仅此项是真 CSS 样式；弧的 step/radius/scaleStep 由 JS 按视口算，见 life.tsx） */
+  --card-w: clamp(180px, 18vw, 320px);
 }
 .life.visible .other-stage {
   animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.18s;
@@ -1655,7 +1658,9 @@ body[data-section="about"] .stage .nav-loc-dot {
   border-radius: 12px;
 }
 
-/* 单张漫画纸牌 · transform 由 JS 注入（含 -50% 居中） */
+/* 单张卡 = 一页漫画纸（全幅插画 · 无白边）
+ * 三层：.other-card（JS 弧形 transform）> .other-card-float（飘动）> .other-card-page（纸面）
+ * transform 由 JS 注入（圆弧布局：-50% 居中 + 沿弧位移 + rotateZ 切向旋转 + scale）。 */
 .other-card {
   position: absolute;
   left: 50%;
@@ -1663,99 +1668,115 @@ body[data-section="about"] .stage .nav-loc-dot {
   width: var(--card-w);
   aspect-ratio: 3 / 4.2;
   transform: translate(-50%, -50%);
-  transition: transform 0.55s cubic-bezier(0.16, 0.84, 0.3, 1),
-    opacity 0.4s ease, box-shadow 0.4s ease;
+  /* 弹性缓动：落定时轻微过冲，像有重量的纸；transition-delay 由 JS 按距离设（涟漪） */
+  transition: transform 0.7s cubic-bezier(0.34, 1.42, 0.5, 1),
+    opacity 0.45s ease;
   will-change: transform;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
-
-  /* 漫画纸感：米白纸 + 粗墨边 + 硬投影 */
-  background: #fbfbf7;
-  border: 2px solid #1d1d1f;
-  border-radius: 10px;
-  box-shadow: 6px 10px 0 rgba(29, 29, 31, 0.16),
-    0 18px 40px rgba(29, 29, 31, 0.16);
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.other-card:not(.is-active) {
-  filter: saturate(0.9) brightness(0.97);
-}
-.other-card.is-active {
-  box-shadow: 8px 14px 0 rgba(216, 85, 46, 0.85),
-    0 24px 50px rgba(29, 29, 31, 0.28);
 }
 
-/* 肩章 · 角色化标签（参考图 "THE ___"） */
-.other-card-ribbon {
+/* 飘动层：整页轻微上下浮 + 微旋（per-card 异步 · inline 设 delay/duration）
+ * 绝对填充 .other-card（其高来自 aspect-ratio，对绝对定位是确定高，% 高则不可靠） */
+.other-card-float {
   position: absolute;
-  top: 16px;
-  left: -7px;
-  z-index: 2;
-  background: #1d1d1f;
-  color: #fbfbf7;
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  padding: 4px 11px;
-  transform: rotate(-4deg);
+  inset: 0;
+  animation: paper-float 6s ease-in-out infinite;
+  transform-origin: center 38%;
 }
-.other-card.is-active .other-card-ribbon {
-  background: var(--accent);
+@keyframes paper-float {
+  0% {
+    transform: translateY(0) rotate(-0.6deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(0.7deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-0.6deg);
+  }
 }
 
-/* 漫画封面 · 爱好主色渐变 + 半调网点 + 大图标 */
-.other-card-cover {
-  position: relative;
-  flex: 1;
-  border-radius: 6px;
+/* 纸面：全幅漫画页 + 墨边 + 漂浮投影 + 半调网点 */
+.other-card-page {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(29, 29, 31, 0.5);
-  background: radial-gradient(120% 120% at 30% 18%, var(--tone-a), var(--tone-b));
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 2px solid #1d1d1f;
+  background: radial-gradient(
+    125% 120% at 30% 16%,
+    var(--tone-a),
+    var(--tone-b)
+  );
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.18) inset,
+    0 26px 44px -18px rgba(29, 29, 31, 0.55),
+    0 6px 14px -6px rgba(29, 29, 31, 0.4);
+  transition: box-shadow 0.45s ease, filter 0.45s ease;
 }
-.other-card-cover::after {
+/* 内框线（漫画分格感） */
+.other-card-page::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+}
+/* 半调网点叠加（纸张质感） */
+.other-card-page::after {
   content: "";
   position: absolute;
   inset: 0;
   background-image: radial-gradient(
-    rgba(255, 255, 255, 0.24) 1.2px,
+    rgba(255, 255, 255, 0.22) 1.2px,
     transparent 1.7px
   );
   background-size: 9px 9px;
   mix-blend-mode: screen;
   opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
 }
 .other-card-glyph {
-  font-size: clamp(46px, 7vw, 80px);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(54px, 8vw, 92px);
   line-height: 1;
-  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.32));
+  filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.34));
+  z-index: 1;
+}
+/* 非中心牌压暗；中心牌浮得更高（投影更重） */
+.other-card:not(.is-active) .other-card-page {
+  filter: saturate(0.88) brightness(0.9);
+}
+.other-card.is-active .other-card-page {
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.2) inset,
+    0 40px 60px -22px rgba(29, 29, 31, 0.6),
+    0 10px 20px -8px rgba(29, 29, 31, 0.45);
 }
 
-/* 牌脚：英文小字 + 中文名 */
-.other-card-foot {
-  padding: 0 4px 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.other-card-en {
+/* 角色标签 · 卡片下方（随卡倾斜，参考图 "THE ___"）；非中心牌淡出 */
+.other-card-label {
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 10px;
+  font-size: clamp(11px, 1vw, 13px);
+  font-weight: 700;
   letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-.other-card-zh {
-  font-size: clamp(14px, 1.3vw, 18px);
-  font-weight: 800;
-  letter-spacing: -0.01em;
   color: var(--ink);
+  opacity: 0.36;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.other-card.is-active .other-card-label {
+  opacity: 1;
 }
 
 /* --- 控制区 --- */
@@ -1866,6 +1887,9 @@ body[data-section="about"] .stage .nav-loc-dot {
   .other-card {
     transition: opacity 0.2s ease;
   }
+  .other-card-float {
+    animation: none !important;
+  }
 }
 
 /* --- 窄屏适配 --- */
@@ -1874,12 +1898,8 @@ body[data-section="about"] .stage .nav-loc-dot {
     padding: 72px 20px;
   }
   .other-stage {
-    height: clamp(360px, 56vh, 480px);
-    --card-w: clamp(170px, 56vw, 230px);
-    --card-spacing: clamp(74px, 24vw, 110px);
-    --card-angle: 6;
-    --card-dip: 22px;
-    --card-scale-step: 0.09;
+    height: clamp(380px, 58vh, 520px);
+    --card-w: clamp(165px, 52vw, 220px);
   }
   .other-nav-btn {
     width: 46px;
@@ -2220,189 +2240,294 @@ body[data-section="about"] .stage .nav-loc-dot {
 }
 
 /* ===============================================================
-   第五幕 · 收尾 Closing
+   第五幕 · 收尾 Get in touch（v2 暗色 finale）
    ---------------------------------------------------------------
-   视觉策略：与 About Me / Portfolio / Life 同源（黑白单色 / 全大写英文板块标题 / hairline / 克制留白）。
-   三构成：TESTIMONIALS（精选寄语）/ GET IN TOUCH（联系 CTA）/ MESSAGES（V2 留言入口占位）。
+   全站唯一的暗色块收尾：近黑暖底 + 米黄字。Bebas 巨字标题 +
+   AI 分身主 CTA（招牌）+ 邮箱/GitHub/简历 副入口。撤掉空寄语墙；留言板 #board 并入分身卡。
+   scope 内 redefine --ink/--ink-2/--paper；nav 在此幕转米黄(见 body[data-section=closing])。
    =============================================================== */
 
 .closing {
+  --ink: #f0e8d8;
+  --ink-2: rgba(240, 232, 216, 0.58);
+  --paper: #16140f;
+
+  position: relative;
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
-  padding: clamp(80px, 11vh, 130px) clamp(24px, 6vw, 96px);
+  padding: clamp(96px, 13vh, 150px) clamp(24px, 6vw, 96px) clamp(40px, 6vh, 72px);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-/* --- 章节标题 --- */
-.closing-title {
-  font-family: var(--sans);
-  font-size: clamp(52px, 6.4vw, 96px);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.05;
+/* 左下角半调网点装饰（漫画母题，呼应 OTHER 幕） */
+.closing-halftone {
+  position: absolute;
+  left: -40px;
+  bottom: -40px;
+  width: clamp(180px, 22vw, 320px);
+  height: clamp(180px, 22vw, 320px);
+  background-image: radial-gradient(
+    rgba(240, 232, 216, 0.14) 2px,
+    transparent 2.4px
+  );
+  background-size: 14px 14px;
+  -webkit-mask-image: radial-gradient(circle at center, #000 38%, transparent 70%);
+  mask-image: radial-gradient(circle at center, #000 38%, transparent 70%);
+  pointer-events: none;
+}
+
+/* --- 巨字标题区 --- */
+.closing-head {
+  position: relative;
+  z-index: 1;
   text-align: center;
-  margin: 0 auto 12px;
+}
+.closing-eyebrow {
+  margin: 0 0 14px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(12px, 1vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.closing.visible .closing-eyebrow {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.05s;
+}
+.closing-title {
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(64px, 12vw, 190px);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin: 0;
   color: var(--ink);
   opacity: 0;
   transform: translateY(22px);
 }
 .closing.visible .closing-title {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.1s;
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.16s;
+}
+/* letter hover cycle · 复用 about-title 段定义的 @keyframes letter-fly-cycle */
+.closing-title .letter {
+  display: inline-block;
+  user-select: none;
+  will-change: transform, opacity;
+  padding: 0 0.02em;
+}
+.closing-title .letter-space {
+  display: inline-block;
+  width: 0.26em;
+}
+.closing-title .letter.cycling {
+  animation: letter-fly-cycle 0.65s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 .closing-subtitle {
-  font-size: clamp(13px, 1.05vw, 16px);
+  margin: 16px auto 0;
+  max-width: 40em;
+  font-size: clamp(14px, 1.15vw, 17px);
+  line-height: 1.7;
   color: var(--ink-2);
-  text-align: center;
-  margin: 0 auto clamp(56px, 8vh, 96px);
-  letter-spacing: 0.02em;
   opacity: 0;
   transform: translateY(22px);
 }
 .closing.visible .closing-subtitle {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.22s;
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.26s;
 }
 
-/* --- 板块通用 --- */
-.closing-block {
-  max-width: 1100px;
-  margin: 0 auto;
+/* --- 主体 grid：左 分身大卡 / 右 联系副入口 --- */
+.closing-grid {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
   width: 100%;
-  padding-top: clamp(48px, 6vh, 80px);
+  margin: clamp(40px, 6vh, 76px) auto 0;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: stretch;
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateY(24px);
 }
-.closing-block:first-of-type {
-  padding-top: 0;
-}
-.closing.visible .closing-block-testimonials {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.34s;
-}
-.closing.visible .closing-block-contact {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.5s;
-}
-.closing.visible .closing-block-board {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.62s;
+.closing.visible .closing-grid {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.36s;
 }
 
-.closing-block-header {
-  display: flex;
-  align-items: baseline;
-  gap: clamp(14px, 2vw, 28px);
-  margin-bottom: clamp(28px, 4vh, 48px);
-  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
-  padding-bottom: 18px;
-}
-.closing-block-title {
-  font-size: clamp(18px, 1.8vw, 24px);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--ink);
-}
-.closing-block-desc {
-  font-size: clamp(12px, 1vw, 14px);
-  color: var(--ink-2);
-  letter-spacing: 0.02em;
-}
-
-/* --- TESTIMONIALS 寄语墙 --- */
-.closing-testimonial-list {
-  list-style: none;
+/* --- 主 CTA · AI 分身大卡 --- */
+.closing-agent {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(240, 232, 216, 0.16);
+  border-radius: 22px;
+  background: rgba(240, 232, 216, 0.035);
+  padding: clamp(28px, 4vw, 52px);
   display: flex;
   flex-direction: column;
-  gap: clamp(28px, 4vh, 44px);
+  gap: 14px;
 }
-.closing-testimonial {
-  border-left: 2px solid var(--ink);
-  padding-left: clamp(20px, 2.5vw, 32px);
+/* 右上角 accent 辉光，把视觉焦点压在分身卡上 */
+.closing-agent-glow {
+  position: absolute;
+  top: -30%;
+  right: -20%;
+  width: 70%;
+  height: 90%;
+  background: radial-gradient(
+    circle,
+    rgba(216, 85, 46, 0.4),
+    transparent 68%
+  );
+  filter: blur(8px);
+  pointer-events: none;
 }
-.closing-testimonial-empty {
-  border-left-color: rgba(29, 29, 31, 0.18);
-  border-left-style: dashed;
+.closing-agent-eyebrow {
+  position: relative;
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--accent);
 }
-.closing-quote {
-  font-size: clamp(18px, 1.8vw, 26px);
-  line-height: 1.45;
-  font-weight: 500;
+.closing-agent-title {
+  position: relative;
+  margin: 2px 0 0;
+  font-size: clamp(26px, 3vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
   color: var(--ink);
-  margin-bottom: 12px;
-  letter-spacing: -0.005em;
 }
-.closing-testimonial-empty .closing-quote {
-  color: var(--ink-2);
-  opacity: 0.6;
-  font-style: italic;
-  font-weight: 400;
+.closing-agent-desc {
+  position: relative;
+  margin: 0;
+  max-width: 34em;
+  font-size: clamp(14px, 1.05vw, 16px);
+  line-height: 1.85;
+  color: rgba(240, 232, 216, 0.78);
 }
-.closing-cite {
-  font-style: normal;
-  font-size: clamp(13px, 1.05vw, 15px);
-  color: var(--ink-2);
+/* 主按钮：实心 accent 胶囊 + hover 上浮 */
+.closing-agent-cta {
+  position: relative;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 100px;
+  background: var(--accent);
+  color: #fff;
+  font-size: clamp(14px, 1.1vw, 16px);
+  font-weight: 700;
   letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 12px 30px -10px rgba(216, 85, 46, 0.7);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
-.closing-cite-relation {
+.closing-agent-cta:hover {
+  transform: translateY(-2px);
+  background: #e0633c;
+  box-shadow: 0 18px 38px -10px rgba(216, 85, 46, 0.8);
+}
+.closing-agent-cta-arrow {
+  font-size: 1.1em;
+  transition: transform 0.25s ease;
+}
+.closing-agent-cta:hover .closing-agent-cta-arrow {
+  transform: translateX(4px);
+}
+/* 快捷提问 chips */
+.closing-agent-chips {
+  position: relative;
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.closing-agent-chip {
+  padding: 8px 14px;
+  border: 1px solid rgba(240, 232, 216, 0.2);
+  border-radius: 100px;
+  background: transparent;
   color: var(--ink-2);
-  opacity: 0.75;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.closing-agent-chip:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: rgba(216, 85, 46, 0.12);
 }
 
-/* --- GET IN TOUCH 联系方式 --- */
-.closing-callout {
-  font-family: var(--font-smiley-sans), var(--sans);
-  font-size: clamp(28px, 3vw, 44px);
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--ink);
-  text-align: center;
-  margin: 0 auto clamp(36px, 5vh, 56px);
-  max-width: 760px;
+/* --- 副入口 · 直接联系 --- */
+.closing-direct {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2.5vh, 28px);
+  padding: clamp(20px, 2vw, 28px) 0;
 }
-.closing-callout em {
+.closing-direct-callout {
+  margin: 0;
+  font-size: clamp(16px, 1.4vw, 21px);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.closing-direct-callout em {
   font-style: normal;
   color: var(--accent);
 }
 
 .closing-contact-list {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  max-width: 720px;
-  margin: 0 auto;
 }
 .closing-contact-row {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: clamp(16px, 2vw, 32px);
-  align-items: center;
-  padding: clamp(16px, 2vh, 22px) 0;
-  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
+  display: flex;
+  align-items: baseline;
+  gap: clamp(12px, 1.5vw, 20px);
+  padding: clamp(14px, 1.8vh, 18px) 0;
+  border-top: 1px solid rgba(240, 232, 216, 0.12);
 }
-.closing-contact-row:first-child {
-  border-top: 1px solid rgba(29, 29, 31, 0.1);
+.closing-contact-row:last-child {
+  border-bottom: 1px solid rgba(240, 232, 216, 0.12);
 }
 .closing-contact-label {
+  flex-shrink: 0;
+  width: 64px;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: clamp(11px, 0.95vw, 13px);
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.16em;
-  text-transform: uppercase;
   color: var(--ink-2);
 }
 .closing-contact-link {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: clamp(15px, 1.3vw, 18px);
+  gap: 8px;
+  font-size: clamp(15px, 1.2vw, 18px);
   font-weight: 500;
   color: var(--ink);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.25s ease;
+  word-break: break-all;
 }
 .closing-contact-arrow {
-  transition: transform 0.25s ease;
   color: var(--ink-2);
+  transition: transform 0.25s ease, color 0.25s ease;
 }
 .closing-contact-link:hover {
   color: var(--accent);
@@ -2411,84 +2536,73 @@ body[data-section="about"] .stage .nav-loc-dot {
   transform: translateX(4px);
   color: var(--accent);
 }
-
 .closing-privacy-note {
-  margin-top: clamp(28px, 4vh, 40px);
-  text-align: center;
-  font-size: clamp(12px, 1vw, 14px);
+  margin: 0;
+  font-size: clamp(12px, 1vw, 13px);
+  line-height: 1.6;
   color: var(--ink-2);
-  opacity: 0.7;
-  letter-spacing: 0.02em;
 }
 
-/* --- MESSAGES (V2) 占位 --- */
-.closing-board-placeholder {
-  border: 1px dashed rgba(29, 29, 31, 0.18);
-  padding: clamp(28px, 4vh, 40px) clamp(20px, 3vw, 36px);
-  text-align: center;
-  background: linear-gradient(180deg, rgba(244, 244, 246, 0.5) 0%, transparent 100%);
-}
-.closing-board-placeholder p {
-  font-size: clamp(13px, 1.05vw, 15px);
-  line-height: 1.7;
-  color: var(--ink-2);
-  font-style: italic;
-}
-
-/* --- 章节收尾（最末的最末） --- */
+/* --- 页尾 --- */
 .closing-footer {
-  margin-top: clamp(80px, 10vh, 120px);
-  padding-top: clamp(28px, 4vh, 40px);
-  border-top: 1px solid rgba(29, 29, 31, 0.08);
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+  padding-top: clamp(48px, 8vh, 88px);
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 .closing-thanks {
-  font-size: clamp(14px, 1.1vw, 16px);
+  margin: 0 0 8px;
+  font-size: clamp(14px, 1.2vw, 17px);
   color: var(--ink);
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 .closing-meta {
-  font-size: clamp(11px, 0.9vw, 12px);
-  color: var(--ink-2);
-  opacity: 0.6;
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(11px, 0.9vw, 13px);
   letter-spacing: 0.04em;
+  color: var(--ink-2);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .closing-eyebrow,
   .closing-title,
   .closing-subtitle,
-  .closing-block {
+  .closing-grid {
     opacity: 1;
     transform: none;
     animation: none !important;
   }
+  .closing-title .letter.cycling {
+    animation: none;
+  }
 }
 
-/* --- 窄屏适配 --- */
+/* --- 窄屏适配：grid → 单栏堆叠 --- */
+@media (max-width: 860px) {
+  .closing-grid {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 760px) {
   .closing {
-    padding: 72px 20px;
+    padding: 96px 20px 48px;
   }
   .closing-title {
-    font-size: 44px;
+    font-size: clamp(48px, 16vw, 92px);
+    white-space: normal;
   }
-  .closing-callout {
-    font-size: 26px;
+  .closing-agent {
+    border-radius: 18px;
   }
-  .closing-contact-row {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    padding: 16px 0;
+  .closing-agent-cta {
+    align-self: stretch;
+    justify-content: center;
   }
   .closing-contact-label {
+    width: 52px;
     font-size: 10px;
-  }
-  .closing-contact-link {
-    font-size: 16px;
   }
 }
 

@@ -1,46 +1,53 @@
 "use client";
 
 /**
- * 第五幕：收尾 · 背书与联系
+ * 第五幕：收尾 · Get in touch（v2 暗色 finale）
  * ---------------------------------------------------------------
- * 作用（PROJECT_GUIDE 第 6 节）：六幕叙事的最后一击 ——
- *  - 用真实寄语为前面五幕背书（精选 · 不开放评论防垃圾）
- *  - 给 HR 明确的下一步动作（CTA + 联系方式）
+ * 六幕叙事的最后一击。v2 调整（用户拍板）：
+ *  - 全站唯一的暗色块收尾 + Bebas Neue 巨字标题（与 ABOUT/PORTFOLIO/OTHER 一致的字母 hover）
+ *  - 主 CTA = AI 数字分身（全站招牌）：唤起右下角分身 + 4 个快捷提问 + JD 匹配
+ *  - 副入口 = 邮箱 / GitHub / 简历；撤掉空寄语墙；留言板 #board 并入分身卡
  *
- * 三构成（PROJECT_GUIDE 原方案）：
- *  1. TESTIMONIALS  精选寄语墙（主）· 真实有分量
- *  2. GET IN TOUCH  联系方式 + 召唤语
- *  3. (V2) 折叠开放留言（Supabase 后端 · V1 不做）
+ * 唤起分身：分身组件(ai-avatar.tsx)自己管开合，这里用 window 自定义事件 "ai-avatar:open"
+ *          跨组件唤起（可带 send 自动发一条问题）。
  *
- * 视觉延续 About Me / Portfolio / Life：黑白单色 / 全大写英文板块标题 / hairline。
+ * 暗底导航：closing 进视口时双向 IO 写 body[data-section]="closing"，
+ *          让 fixed nav 文字转米黄（见 globals.css 的 body[data-section=closing] 规则）。
  */
 
 import { useEffect, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
-/* ---------------- 数据 ---------------- */
+// v2 巨字标题字母 hover cycle（复用 globals.css 的 @keyframes letter-fly-cycle）
+const TITLE_CHARS = "GET IN TOUCH".split("");
+const LETTER_CYCLE_MS = 650;
 
-type Testimonial = {
-  id: string;
-  /** 寄语正文 — 待负责人提前求人时为 null */
-  quote: string | null;
-  /** 寄语人姓名 / 称呼 */
-  from: string | null;
-  /** 关系（如：前同事 · 项目负责人 / 师长 · 同济规划院总工 / 等） */
-  relation: string | null;
-};
+function handleLetterEnter(e: ReactMouseEvent<HTMLSpanElement>) {
+  const el = e.currentTarget;
+  if (el.classList.contains("cycling")) return;
+  el.classList.add("cycling");
+  window.setTimeout(() => el.classList.remove("cycling"), LETTER_CYCLE_MS + 20);
+}
 
-/** TODO【负责人】：提前向前同事/师长/合作者收集 3-5 句真实寄语 */
-const TESTIMONIALS: Testimonial[] = [
-  { id: "t1", quote: null, from: null, relation: null },
-  { id: "t2", quote: null, from: null, relation: null },
-  { id: "t3", quote: null, from: null, relation: null },
+// 唤起右下角 AI 分身（可选 send：唤起后自动发送的一条问题）
+function openAgent(send?: string) {
+  window.dispatchEvent(
+    new CustomEvent("ai-avatar:open", { detail: send ? { send } : {} })
+  );
+}
+
+// 与分身面板内的预设问题一致（点击 → 唤起分身并自动发送）
+const QUICK_ASKS = [
+  "他的核心优势是什么？",
+  "他为什么从规划转 AI？",
+  "他做过哪些 AI 项目？",
+  "帮我做一个 JD 匹配分析",
 ];
 
 type ContactLink = {
   label: string;
   value: string;
   href: string;
-  /** 是否在新标签页打开 */
   external?: boolean;
 };
 
@@ -58,19 +65,18 @@ const CONTACTS: ContactLink[] = [
   },
   {
     label: "RESUME",
-    // TODO【负责人】：把简历 PDF 放到 web/public/resume.pdf
+    // TODO【负责人】：把简历 PDF 放到 web/public/resume.pdf（没放前点击会 404）
     value: "下载简历（PDF）",
     href: "/resume.pdf",
     external: true,
   },
 ];
 
-/* ---------------- 主组件 ---------------- */
-
 export default function Closing() {
   const sectionRef = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
 
+  // 入场动画一次性触发
   useEffect(() => {
     const node = sectionRef.current;
     if (!node) return;
@@ -90,108 +96,134 @@ export default function Closing() {
     return () => obs.disconnect();
   }, []);
 
+  // 双向 IO：closing 进视口时写 body[data-section]="closing" → fixed nav 文字转米黄（暗底可读）
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            document.body.dataset.section = "closing";
+          } else if (document.body.dataset.section === "closing") {
+            delete document.body.dataset.section;
+          }
+        }
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(node);
+    return () => {
+      obs.disconnect();
+      if (document.body.dataset.section === "closing") {
+        delete document.body.dataset.section;
+      }
+    };
+  }, []);
+
   return (
     <section
       ref={sectionRef}
       id="contact"
       className={`closing${visible ? " visible" : ""}`}
     >
-      {/* 章节大标题 */}
-      <h2 className="closing-title">Get in touch</h2>
-      <p className="closing-subtitle">让我们认识</p>
+      {/* 装饰：左下角半调网点 */}
+      <span className="closing-halftone" aria-hidden />
 
-      {/* ===== TESTIMONIALS 板块：精选寄语墙 ===== */}
-      <section className="closing-block closing-block-testimonials">
-        <header className="closing-block-header">
-          <h3 className="closing-block-title">TESTIMONIALS</h3>
-          <p className="closing-block-desc">
-            精选寄语 · 真实评价（非开放评论）
-          </p>
-        </header>
-
-        <ul className="closing-testimonial-list">
-          {TESTIMONIALS.map((t) => (
-            <li
-              key={t.id}
-              className={`closing-testimonial${t.quote ? "" : " closing-testimonial-empty"}`}
-            >
-              <blockquote className="closing-quote">
-                {t.quote ?? "等一句话，从某位前同事 / 师长 / 合作者处来"}
-              </blockquote>
-              <cite className="closing-cite">
-                {t.from ? `— ${t.from}` : "— 待负责人补"}
-                {t.relation && (
-                  <span className="closing-cite-relation"> · {t.relation}</span>
-                )}
-              </cite>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ===== GET IN TOUCH 板块：联系方式 + 召唤语 ===== */}
-      <section className="closing-block closing-block-contact">
-        <header className="closing-block-header">
-          <h3 className="closing-block-title">GET IN TOUCH</h3>
-          <p className="closing-block-desc">最直接的下一步</p>
-        </header>
-
-        {/* 召唤语（PROJECT_GUIDE 第 228 行原话） */}
-        <p className="closing-callout">
-          如果你在找一个 <em>会动手的 AI 产品经理</em>
-        </p>
-
-        <ul className="closing-contact-list">
-          {CONTACTS.map((c) => (
-            <li key={c.label} className="closing-contact-row">
-              <span className="closing-contact-label">{c.label}</span>
-              <a
-                className="closing-contact-link"
-                href={c.href}
-                {...(c.external
-                  ? { target: "_blank", rel: "noopener noreferrer" }
-                  : {})}
+      {/* 巨字标题区 */}
+      <header className="closing-head">
+        <p className="closing-eyebrow">CONTACT · 下一步</p>
+        <h2 className="closing-title" aria-label="GET IN TOUCH">
+          {TITLE_CHARS.map((ch, i) =>
+            ch === " " ? (
+              <span key={i} aria-hidden="true" className="letter-space">
+                &nbsp;
+              </span>
+            ) : (
+              <span
+                key={i}
+                aria-hidden="true"
+                className="letter"
+                onMouseEnter={handleLetterEnter}
               >
-                {c.value}
-                <span className="closing-contact-arrow" aria-hidden>
-                  →
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        {/* 隐私边界提示（PROJECT_GUIDE 第 227 行：手机号/微信由分身做中介） */}
-        <p className="closing-privacy-note">
-          手机号 / 微信不直接公开，请通过邮箱联系后由本人确认交换。
+                {ch}
+              </span>
+            )
+          )}
+        </h2>
+        <p className="closing-subtitle">
+          不确定他合不合适？先把 JD 发给他的 AI 分身，30 秒看匹配度。
         </p>
-      </section>
+      </header>
 
-      {/* ===== V2 折叠留言入口（占位） ===== */}
-      <section id="board" className="closing-block closing-block-board">
-        <header className="closing-block-header">
-          <h3 className="closing-block-title">MESSAGES</h3>
-          <p className="closing-block-desc">
-            也欢迎留下你的建议 · V2 上线
+      <div className="closing-grid">
+        {/* 主 CTA · AI 分身（留言板 #board 并入此处） */}
+        <div id="board" className="closing-agent">
+          <span className="closing-agent-glow" aria-hidden />
+          <p className="closing-agent-eyebrow">★ 最快的方式</p>
+          <h3 className="closing-agent-title">和他的 AI 分身聊</h3>
+          <p className="closing-agent-desc">
+            基于真实资料回答项目、能力、转型相关的问题；也能把你的招聘 JD
+            发进来，做一份诚实的匹配分析——高亮匹配点，也直说成长项。
           </p>
-        </header>
-
-        <div className="closing-board-placeholder">
-          <p>
-            留言入口将在 V2 阶段接入（Supabase 后端 + 经本站中转，保国内可达）。
-            <br />
-            目前请直接邮件或 GitHub。
-          </p>
+          <button
+            type="button"
+            className="closing-agent-cta"
+            onClick={() => openAgent()}
+          >
+            唤起 AI 分身
+            <span className="closing-agent-cta-arrow" aria-hidden>
+              →
+            </span>
+          </button>
+          <div className="closing-agent-chips">
+            {QUICK_ASKS.map((q) => (
+              <button
+                key={q}
+                type="button"
+                className="closing-agent-chip"
+                onClick={() => openAgent(q)}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
         </div>
-      </section>
 
-      {/* 最后一抹小字 */}
+        {/* 副入口 · 直接联系 */}
+        <aside className="closing-direct">
+          <p className="closing-direct-callout">
+            如果你需要一个<em>会动手的 AI 产品经理</em>，欢迎把他招进你的团队。
+          </p>
+          <ul className="closing-contact-list">
+            {CONTACTS.map((c) => (
+              <li key={c.label} className="closing-contact-row">
+                <span className="closing-contact-label">{c.label}</span>
+                <a
+                  className="closing-contact-link"
+                  href={c.href}
+                  {...(c.external
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                >
+                  {c.value}
+                  <span className="closing-contact-arrow" aria-hidden>
+                    →
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p className="closing-privacy-note">
+            手机号 / 微信不直接公开，邮件联系后由本人确认交换。
+          </p>
+        </aside>
+      </div>
+
       <footer className="closing-footer">
-        <p className="closing-thanks">
-          看到这里 · 感谢你给我的 30 秒
-        </p>
+        <p className="closing-thanks">看到这里 · 谢谢你给我的这几分钟</p>
         <p className="closing-meta">
-          © 2026 陈彦均 · 用 Claude Code vibe coding 自己打的
+          © 2026 陈彦均 Yanjun Chen · 本站由本人独立设计与开发
         </p>
       </footer>
     </section>

@@ -162,6 +162,24 @@ export default function AiAvatar() {
     }
   };
 
+  // 外部唤起：收尾幕 CTA 通过 window 事件 "ai-avatar:open" 打开面板，
+  // 可带 detail.send 自动发送一条问题。用 latest-ref 拿到最新 send（含最新历史）。
+  const sendRef = useRef(send);
+  useEffect(() => {
+    sendRef.current = send;
+  });
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      setIsOpen(true);
+      const detail = (e as CustomEvent).detail as { send?: string } | undefined;
+      if (detail?.send) {
+        window.setTimeout(() => sendRef.current(detail.send as string), 80);
+      }
+    };
+    window.addEventListener("ai-avatar:open", onOpen);
+    return () => window.removeEventListener("ai-avatar:open", onOpen);
+  }, []);
+
   const showPresets = messages.length <= 1 && !streaming;
 
   return (
