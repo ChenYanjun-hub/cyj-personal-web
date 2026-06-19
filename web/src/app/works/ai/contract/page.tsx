@@ -9,7 +9,7 @@ import CaseStudy, {
   AI 作品集列表「购销合同审查助手」卡片的 CASE STUDY 跳转目标 · 用 CaseStudy 模板渲染。
 
   内容来源：md/分身知识库采集清单.md 项目 C（C.1–C.12，由负责人填全）。
-  角色如实区分：他负责前后端产品化落地（封装队友在 Coze 搭的审查工作流），
+  角色如实区分：他独立完成产品化与全栈工程（AI 审查工作流逻辑由同事在 Coze 配置），
   非 0-to-1 主导——口径与卡片 / 分身一致，不夸大。
 */
 
@@ -17,12 +17,12 @@ const DATA: CaseStudyData = {
   category: "AI Workflow · toB · 合同初审",
   title: "购销合同审查助手",
   titleEn: "Sales Contract Review Assistant",
-  intro: `把队友在 Coze 搭建的合同审查工作流，做成可上传文件、可审查、可下载报告的完整 Web 产品——一个已上线 Vercel 的购销合同初审辅助工具。`,
+  intro: `他独立完成产品设计与全栈工程，把一个 Coze 审查工作流，做成可上传文件、可审查、可下载报告的完整 Web 产品——一个已上线 Vercel 的购销合同初审辅助工具。`,
   tone: ["#5a5246", "#171411"],
   mark: "CONTRACT",
   meta: [
     { label: "Role", value: "前后端产品化落地 · 工程接入 · 部署" },
-    { label: "Team", value: "他（产品化）+ 队友（Coze 工作流配置）" },
+    { label: "Team", value: "他独立完成产品与全栈工程 · 同事配置 Coze 审查工作流" },
     { label: "Stack", value: "Next.js · Vercel · Coze 文件工作流" },
     { label: "Type", value: "toB · AI Workflow · 垂直场景 MVP" },
   ],
@@ -48,7 +48,7 @@ const DATA: CaseStudyData = {
       eyebrow: "What I Did",
       heading: "我做了什么",
       paragraphs: [
-        `我负责的是前后端产品化落地——把队友在 Coze 搭好的审查工作流，封装成一个可访问、可演示、可部署的完整 Web 产品。队友负责 Coze 内部工作流与审查逻辑，我负责把它接入前后端系统，并解决联调、协议对齐和上线问题。`,
+        `我独立完成了这个产品从设计到上线的全部产品化与全栈工程——把一个还停留在 Coze 概念的审查工作流，一个人做成了真正能上线的完整产品。合同审查的工作流逻辑由同事在 Coze 配置，其余全部——产品设计、前后端、联调、协议对齐、上线——都由我完成。`,
       ],
       bullets: [
         `三大核心页面：首页 / 审查工作台 / 结果页 的设计与实现`,

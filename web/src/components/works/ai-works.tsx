@@ -103,7 +103,7 @@ const AI_WORKS: AiWork[] = [
     en: "Sales Contract Review Assistant",
     tags: ["AI Workflow", "To B", "Coze"],
     status: { kind: "shipped", label: "已上线 Vercel · 垂直场景 MVP" },
-    desc: `把队友在 Coze 搭建的合同审查工作流，做成可上传文件、可审查、可下载报告的完整 Web 产品。负责前后端产品化落地：三大页面 + .txt/.docx 解析 + Coze 文件工作流接入 + 结果标准化 + 异常退回示例兜底，已部署 Vercel 生产环境。`,
+    desc: `独立完成产品设计与全栈工程，把一个 Coze 审查工作流做成可上传文件、可审查、可下载报告的完整 Web 产品：三大页面 + .txt/.docx 解析 + 后端 API + Coze 文件工作流联调 + 结果标准化 + 异常退回示例兜底，已部署 Vercel 生产环境。`,
     metrics: [
       { num: "MVP", label: "完整链路跑通 · 已上线 Vercel" },
       { num: "2", label: "采购方 / 销售方 双立场审查" },
