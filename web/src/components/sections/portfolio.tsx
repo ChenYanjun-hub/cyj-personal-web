@@ -55,8 +55,8 @@ const AI_WORKS: WorkLink[] = [
   },
   {
     id: "contract",
-    zh: "合同审查助手",
-    en: "Contract Review Assistant",
+    zh: "购销合同审查助手",
+    en: "Sales Contract Review Assistant",
   },
   {
     id: "moogu",
