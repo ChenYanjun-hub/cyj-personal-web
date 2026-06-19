@@ -14,6 +14,7 @@ import CaseStudy, {
 */
 
 const DATA: CaseStudyData = {
+  slug: "contract",
   category: "AI Workflow · toB · 合同初审",
   title: "购销合同审查助手",
   titleEn: "Sales Contract Review Assistant",
@@ -125,7 +126,6 @@ const DATA: CaseStudyData = {
   ],
   backHref: "/works/ai",
   backLabel: "返回 AI 作品集",
-  nextNote: "NEXT · 更多 AI 项目案例整理中",
 };
 
 export const metadata: Metadata = {

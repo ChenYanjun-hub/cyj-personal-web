@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import WorksNav from "@/components/works/works-nav";
+import { AI_CASES } from "@/components/works/ai-cases";
 
 /* ---------------- 数据类型 ---------------- */
 
@@ -52,6 +53,8 @@ export type CaseAward = {
 };
 
 export type CaseStudyData = {
+  /** 路由 slug · 对应 ai-cases.ts 里的条目，用于算上一个/下一个项目 */
+  slug: string;
   /** hero 顶部类别 mono 行（如 "AI 全栈 · BTOBTOC · RAG"） */
   category: string;
   title: string;
@@ -65,11 +68,9 @@ export type CaseStudyData = {
   award?: CaseAward;
   meta: CaseMeta[];
   sections: CaseSection[];
-  /** 页尾左侧返回链接 */
+  /** 页尾返回链接 */
   backHref: string;
   backLabel: string;
-  /** 页尾右侧下一案例提示（未建页时纯文字） */
-  nextNote?: string;
 };
 
 /* ---------------- Component ---------------- */
@@ -98,6 +99,13 @@ export default function CaseStudy({ data }: { data: CaseStudyData }) {
     nodes.forEach((n) => obs.observe(n));
     return () => obs.disconnect();
   }, []);
+
+  // 上一个 / 下一个项目（环形）。n=2 时 prev===next → 只显一张"下一个"卡，避免重复
+  const idx = AI_CASES.findIndex((c) => c.slug === data.slug);
+  const n = AI_CASES.length;
+  const prev = idx >= 0 && n > 1 ? AI_CASES[(idx - 1 + n) % n] : null;
+  const next = idx >= 0 && n > 1 ? AI_CASES[(idx + 1) % n] : null;
+  const single = !!prev && !!next && prev.slug === next.slug;
 
   return (
     <main
@@ -183,13 +191,52 @@ export default function CaseStudy({ data }: { data: CaseStudyData }) {
         </div>
       </div>
 
-      {/* 页尾出口（复用 works 系列页脚样式） */}
-      <footer className="aiworks-footer">
-        <Link href={data.backHref} className="aiworks-footer-link">
-          ← {data.backLabel}
-        </Link>
-        {data.nextNote ? (
-          <span className="case-next-note">{data.nextNote}</span>
+      {/* 页尾 · 上一个 / 下一个项目 pager（醒目大字 + 项目色辉光） */}
+      <footer className="case-pager">
+        <div className="case-pager-head">
+          <span className="case-pager-eyebrow">SEE MORE</span>
+          <Link href={data.backHref} className="case-pager-back">
+            ↑ {data.backLabel}
+          </Link>
+        </div>
+
+        {prev || next ? (
+          <div className={`case-pager-grid${single ? " single" : ""}`}>
+            {prev && !single ? (
+              <Link
+                href={`/works/ai/${prev.slug}`}
+                className="case-pager-item case-pager-prev"
+                style={
+                  {
+                    "--tone-a": prev.tone[0],
+                    "--tone-b": prev.tone[1],
+                  } as React.CSSProperties
+                }
+              >
+                <span className="case-pager-glow" aria-hidden />
+                <span className="case-pager-dir">← 上一个</span>
+                <span className="case-pager-zh">{prev.zh}</span>
+                <span className="case-pager-en">{prev.en}</span>
+              </Link>
+            ) : null}
+            {next ? (
+              <Link
+                href={`/works/ai/${next.slug}`}
+                className={`case-pager-item${single ? "" : " case-pager-next"}`}
+                style={
+                  {
+                    "--tone-a": next.tone[0],
+                    "--tone-b": next.tone[1],
+                  } as React.CSSProperties
+                }
+              >
+                <span className="case-pager-glow" aria-hidden />
+                <span className="case-pager-dir">下一个 →</span>
+                <span className="case-pager-zh">{next.zh}</span>
+                <span className="case-pager-en">{next.en}</span>
+              </Link>
+            ) : null}
+          </div>
         ) : null}
       </footer>
     </main>

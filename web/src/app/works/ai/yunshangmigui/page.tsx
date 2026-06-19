@@ -15,6 +15,7 @@ import CaseStudy, {
 */
 
 const DATA: CaseStudyData = {
+  slug: "yunshangmigui",
   category: "AI 全栈 · BtoBtoC · RAG",
   title: "云上米轨",
   titleEn: "Yun Shang Mi Gui · Yunnan–Vietnam Railway Knowledge Platform",
@@ -133,7 +134,6 @@ const DATA: CaseStudyData = {
   ],
   backHref: "/works/ai",
   backLabel: "返回 AI 作品集",
-  nextNote: "NEXT · 建景规规范问答助手（整理中）",
 };
 
 export const metadata: Metadata = {

@@ -86,16 +86,17 @@ const AI_WORKS: AiWork[] = [
   {
     id: "jianjinggui",
     zh: "建景规规范问答助手",
-    en: "Architecture · Landscape · Planning Q&A Assistant",
-    tags: ["To B", "垂类 RAG", "PRD"],
-    status: { kind: "built", label: "已开发 · 评测迭代中" },
-    desc: `面向建筑 / 景观 / 规划设计师的规范知识问答助手。主导设计完整 RAG pipeline，独立撰写覆盖执行摘要、用户调研、竞品调研、理想态与评测、技术附录五大板块的完整 PRD——用评测集驱动回答质量持续迭代。`,
+    en: "Architectural Norm RAG Assistant",
+    tags: ["To B", "垂类 RAG", "评测体系"],
+    status: { kind: "built", label: "已开发 · 7 维评测受控 v1.0" },
+    desc: `AI 版设计规范"法条数据库"——用自然语言查规划 / 建筑 / 景观 / 消防 / 结构 / 市政 6 类规范，每条回答附规范号、条文号、原文跳转，严守"不编造"红线。主导产品定义、技术选型、7 维评测体系与红线工程化，AI 辅助开发落地。`,
     metrics: [
-      { num: "10+", label: "竞品调研维度" },
-      { num: "50→250", label: "评测集条数 · 迭代扩展中" },
+      { num: "90.3", label: "7 维评测综合分 / 100（86.6→90.3）" },
+      { num: "94%", label: "原文用词准确（86.2%→94%）" },
     ],
     mark: "RAG",
     tone: ["#2b4a72", "#0d1420"],
+    caseHref: "/works/ai/jianjinggui",
   },
   {
     id: "contract",

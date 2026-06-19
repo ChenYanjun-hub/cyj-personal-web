@@ -3977,12 +3977,117 @@ body:has(.case) {
 }
 
 /* 页尾下一案例提示（未建页时纯文字） */
-.case-next-note {
+/* --- 页尾 pager · 上一个 / 下一个项目（醒目大字 + 项目色辉光） --- */
+.case-pager {
+  margin-top: clamp(64px, 10vh, 120px);
+  border-top: 1px solid rgba(240, 236, 226, 0.12);
+  padding-top: clamp(28px, 4vh, 48px);
+}
+.case-pager-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: clamp(18px, 2.6vh, 30px);
+}
+.case-pager-eyebrow {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.case-pager-back {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 13px;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--ink-2);
-  opacity: 0.65;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+.case-pager-back:hover {
+  color: var(--ink);
+}
+.case-pager-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(14px, 1.6vw, 24px);
+}
+.case-pager-grid.single {
+  grid-template-columns: 1fr;
+}
+.case-pager-item {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: clamp(28px, 4vw, 56px);
+  border: 1px solid rgba(240, 236, 226, 0.12);
+  border-radius: 18px;
+  background: rgba(240, 236, 226, 0.025);
+  text-decoration: none;
+  transition: border-color 0.3s ease, transform 0.3s ease, background 0.3s ease;
+}
+.case-pager-item:hover {
+  border-color: rgba(240, 236, 226, 0.32);
+  transform: translateY(-3px);
+}
+/* 各自项目色辉光（hover 浮现）· prev 左上、next 右上 */
+.case-pager-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 120% at 82% 0%, var(--tone-a), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.case-pager-prev .case-pager-glow {
+  background: radial-gradient(120% 120% at 18% 0%, var(--tone-a), transparent 70%);
+}
+.case-pager-item:hover .case-pager-glow {
+  opacity: 0.3;
+}
+.case-pager-dir {
+  position: relative;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.case-pager-zh {
+  position: relative;
+  font-size: clamp(26px, 3.4vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  color: var(--ink);
+}
+.case-pager-en {
+  position: relative;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+/* 下一个右对齐（与上一个镜像，强化方向感） */
+.case-pager-next {
+  text-align: right;
+  align-items: flex-end;
+}
+@media (max-width: 680px) {
+  .case-pager-grid {
+    grid-template-columns: 1fr;
+  }
+  .case-pager-next {
+    text-align: left;
+    align-items: flex-start;
+  }
 }
 
 /* 列表页 cue 升级为可点链接：accent 加粗 + 周期高光扫过（闪光）
