@@ -15,8 +15,18 @@
  *          让 fixed nav 文字转米黄（见 globals.css 的 body[data-section=closing] 规则）。
  */
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
+
+import MessageBoard from "@/components/board/message-board";
+
+// PixelBlast 背景着色器（reactbits · Three.js + postprocessing）。
+// 动态导入 + ssr:false：代码分割 ~Three.js 到独立 chunk，且跳过预渲染（避免 WebGL/document 报错）。
+// 只在 closing 进视口 + 非 reduced-motion 时才挂载（见下方 visible / motionOK 门控）。
+const PixelBlast = dynamic(() => import("@/components/reactbits/PixelBlast"), {
+  ssr: false,
+});
 
 // v2 巨字标题字母 hover cycle（复用 globals.css 的 @keyframes letter-fly-cycle）
 const TITLE_CHARS = "GET IN TOUCH".split("");
@@ -75,6 +85,14 @@ const CONTACTS: ContactLink[] = [
 export default function Closing() {
   const sectionRef = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
+  // 背景着色器门控：默认关，mount 后若非 reduced-motion 才开（无障碍 + 避免 SSR 不一致）
+  const [motionOK, setMotionOK] = useState(false);
+
+  useEffect(() => {
+    setMotionOK(
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }, []);
 
   // 入场动画一次性触发
   useEffect(() => {
@@ -127,6 +145,27 @@ export default function Closing() {
       id="contact"
       className={`closing${visible ? " visible" : ""}`}
     >
+      {/* 背景着色器（PixelBlast）· 在内容之下（z-index 0）。
+       *  仅在 closing 进视口（visible）+ 非 reduced-motion（motionOK）时挂载——
+       *  Three.js chunk 滚到这一幕才加载；autoPauseOffscreen 再滚走时自动暂停。 */}
+      <div className="closing-bg" aria-hidden>
+        {visible && motionOK ? (
+          <PixelBlast
+            variant="square"
+            color="#d8552e"
+            pixelSize={5}
+            patternScale={2.6}
+            patternDensity={0.8}
+            speed={0.4}
+            edgeFade={0.3}
+            enableRipples
+            rippleSpeed={0.3}
+            transparent
+            autoPauseOffscreen
+          />
+        ) : null}
+      </div>
+
       {/* 装饰：左下角半调网点 */}
       <span className="closing-halftone" aria-hidden />
 
@@ -157,8 +196,8 @@ export default function Closing() {
       </header>
 
       <div className="closing-grid">
-        {/* 主 CTA · AI 分身（留言板 #board 并入此处） */}
-        <div id="board" className="closing-agent">
+        {/* 主 CTA · AI 分身 */}
+        <div className="closing-agent">
           <span className="closing-agent-glow" aria-hidden />
           <p className="closing-agent-eyebrow">★ 最快的方式</p>
           <h3 className="closing-agent-title">和他的 AI 分身聊</h3>
@@ -219,6 +258,9 @@ export default function Closing() {
           </p>
         </aside>
       </div>
+
+      {/* 留言板（id="board" 在组件内）· 联系区之后、页尾之前 */}
+      <MessageBoard />
 
       <footer className="closing-footer">
         <p className="closing-thanks">看到这里 · 谢谢你给我的这几分钟</p>

@@ -41,4 +41,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# 留言板 SQLite 数据（dev 默认落在 web/data/；生产用 BOARD_DB_PATH 指向持久化目录）
+/data/
 next-env.d.ts

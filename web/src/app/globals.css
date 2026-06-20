@@ -2262,6 +2262,35 @@ body[data-section="closing"] .stage .nav-loc-dot {
   overflow: hidden;
 }
 
+/* PixelBlast 背景着色器层 · 铺满、置于内容之下
+ * pointer-events:none → 纯环境特效，绝不挡内容点击 / 触摸滚动
+ * opacity 压低 → 赭橘像素场不抢戏，巨字与正文保持可读 */
+.closing-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.6;
+  pointer-events: none;
+  /* 自上而下遮罩：顶部（巨字标题区）透明 → 下半部渐显至实，把像素场沉到整个底部 */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 22%,
+    #000 62%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 22%,
+    #000 62%,
+    #000 100%
+  );
+}
+/* PixelBlast 内部容器（reactbits .pixel-blast-container）撑满 */
+.closing-bg > * {
+  width: 100%;
+  height: 100%;
+}
+
 /* 左下角半调网点装饰（漫画母题，呼应 OTHER 幕） */
 .closing-halftone {
   position: absolute;
@@ -2563,6 +2592,288 @@ body[data-section="closing"] .stage .nav-loc-dot {
   font-size: clamp(11px, 0.9vw, 13px);
   letter-spacing: 0.04em;
   color: var(--ink-2);
+}
+
+/* --- 留言板 · 网格底板 + 手绘夹子可拖动便签（收尾幕内，id=board） --- */
+.board {
+  position: relative;
+  z-index: 1; /* 浮在 PixelBlast 背景之上 */
+  max-width: 1180px;
+  width: 100%;
+  margin: clamp(56px, 9vh, 110px) auto 0;
+}
+.board-desc {
+  margin: 10px 0 0;
+  font-size: clamp(13px, 1vw, 15px);
+  color: var(--ink-2);
+}
+
+/* 站长管理条 */
+.board-admin {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.board-admin .board-input {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: 320px;
+}
+.board-admin-status {
+  margin: 14px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.board-admin-exit {
+  padding: 4px 12px;
+  border: 1px solid rgba(240, 232, 216, 0.24);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.board-admin-exit:hover {
+  color: var(--ink);
+  border-color: var(--ink-2);
+}
+
+/* 便签删除 ✕（仅管理模式渲染） */
+.board-note-del {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(29, 40, 80, 0.3);
+  opacity: 0.92;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.board-note-del:hover {
+  opacity: 1;
+  transform: scale(1.12);
+}
+
+/* 发表条（横向，贴在网格板上方） */
+.board-form {
+  margin-top: clamp(18px, 2.6vh, 28px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 12px;
+  padding: clamp(14px, 1.6vw, 20px);
+  border: 1px solid rgba(240, 232, 216, 0.14);
+  border-radius: 14px;
+  background: rgba(20, 18, 14, 0.72);
+  backdrop-filter: blur(4px);
+}
+.board-input {
+  flex: 0 0 auto;
+  width: clamp(120px, 18%, 200px);
+}
+.board-textarea {
+  flex: 1 1 240px;
+  min-height: 44px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.board-input,
+.board-textarea {
+  padding: 11px 14px;
+  border: 1px solid rgba(240, 232, 216, 0.16);
+  border-radius: 10px;
+  background: rgba(240, 232, 216, 0.04);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.board-input:focus,
+.board-textarea:focus {
+  border-color: var(--accent);
+}
+.board-input::placeholder,
+.board-textarea::placeholder {
+  color: rgba(240, 232, 216, 0.4);
+}
+/* 蜜罐 */
+.board-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.board-form-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+}
+.board-count {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.board-submit {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 100px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+}
+.board-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #e0633c;
+}
+.board-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.board-error {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
+  color: #ff9b7a;
+}
+
+/* 网格纸底板 */
+.board-canvas {
+  position: relative;
+  margin-top: clamp(16px, 2.2vh, 24px);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(60, 90, 160, 0.18);
+  background-color: #efe9db;
+  background-image:
+    linear-gradient(rgba(58, 86, 168, 0.13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58, 86, 168, 0.13) 1px, transparent 1px);
+  background-size: 26px 26px;
+  box-shadow: inset 0 0 60px rgba(58, 86, 168, 0.05);
+  touch-action: pan-y; /* 画布空白处仍可竖向滚页 */
+}
+.board-empty {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #6b6f86;
+  font-size: 15px;
+}
+
+/* 便签 · 绝对定位，transform（含旋转）由 JS 设 */
+.board-note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 210px;
+  padding: 16px 16px 14px;
+  background: #fffdf8;
+  border: 1px solid rgba(29, 29, 31, 0.1);
+  border-radius: 3px;
+  box-shadow: 3px 5px 14px rgba(29, 40, 80, 0.18);
+  cursor: grab;
+  user-select: none;
+  touch-action: none; /* 便签上按下 = 拖拽，不滚页 */
+  transition: box-shadow 0.2s ease;
+  will-change: transform;
+}
+.board-note:hover {
+  box-shadow: 4px 7px 20px rgba(29, 40, 80, 0.24);
+}
+.board-note.dragging {
+  cursor: grabbing;
+  box-shadow: 6px 12px 28px rgba(29, 40, 80, 0.3);
+  transition: none;
+}
+/* 手绘夹子 · 顶部中间夹住 */
+.board-note-clip {
+  position: absolute;
+  top: -17px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 30px;
+  color: var(--accent);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgba(29, 40, 80, 0.18));
+}
+.board-note-clip svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.board-clip-body {
+  fill: #fffdf8;
+}
+.board-note-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 2px 0 8px;
+}
+.board-note-name {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: #1f2230;
+}
+.board-note-time {
+  flex-shrink: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  color: #8a8ea2;
+}
+.board-note-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #3a3d4d;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 760px) {
+  .board-input {
+    width: 100%;
+  }
+  .board-form-foot {
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

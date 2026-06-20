@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
     // 显式声明项目根 = pnpm 启动时的 cwd（即 web/），防止 Turbopack 顺着上层 lockfile 越界
     root: process.cwd(),
   },
+  // 留言板的 better-sqlite3 是 native 模块（.node 绑定），不能被打包器内联，
+  // 标记为外部依赖，运行时由 Node 直接 require。
+  serverExternalPackages: ["better-sqlite3"],
 };
 
 export default nextConfig;
