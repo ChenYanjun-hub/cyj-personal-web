@@ -1565,7 +1565,16 @@ body[data-section="closing"] .stage .nav-loc-dot {
 .life {
   position: relative;
   min-height: 100vh;
-  background: var(--paper);
+  /* 84% 纸色蒙版盖在底图上 → 底图透出约 16%（淡淡的底，不挡卡片/文字） */
+  background-color: var(--paper);
+  background-image: linear-gradient(
+      rgba(251, 251, 253, 0.84),
+      rgba(251, 251, 253, 0.84)
+    ),
+    url("/other-scene-bg.png");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
   color: var(--ink);
   padding: clamp(80px, 11vh, 130px) clamp(24px, 6vw, 96px);
   display: flex;
@@ -1748,6 +1757,18 @@ body[data-section="closing"] .stage .nav-loc-dot {
   line-height: 1;
   filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.34));
   z-index: 1;
+}
+/* 卡牌插画铺满卡面（图已自带卡框/标题，故关掉内框线 + 半调网点叠加） */
+.other-card-img {
+  object-fit: cover;
+  z-index: 0;
+}
+.other-card-page.has-img {
+  background: #1d1d1f;
+}
+.other-card-page.has-img::before,
+.other-card-page.has-img::after {
+  display: none;
 }
 /* 非中心牌压暗；中心牌浮得更高（投影更重） */
 .other-card:not(.is-active) .other-card-page {
@@ -2121,6 +2142,20 @@ body[data-section="closing"] .stage .nav-loc-dot {
   line-height: 1;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
   animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.05s;
+}
+/* 详情页 Hero · 卡牌插画竖版（替代 emoji glyph 作为主视觉） */
+.hobby-hero-card {
+  position: relative;
+  width: clamp(150px, 20vw, 240px);
+  aspect-ratio: 3 / 4.2;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #1d1d1f;
+  box-shadow: 0 26px 50px -20px rgba(0, 0, 0, 0.55);
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.05s;
+}
+.hobby-hero-card-img {
+  object-fit: cover;
 }
 .hobby-hero-text {
   position: relative;
@@ -4285,6 +4320,138 @@ body:has(.case) {
   color: var(--ink-2);
   border: 1px dashed rgba(240, 236, 226, 0.25);
   border-radius: 8px;
+}
+
+/* === 案例配图 · next/image（hero 特征图 + 分节插图，暗底画廊感）=== */
+.case-feature {
+  width: 100%;
+  max-width: 1180px;
+  margin: clamp(28px, 5vh, 56px) auto clamp(8px, 2vh, 16px);
+}
+.case-feature-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(240, 236, 226, 0.14);
+  box-shadow: 0 40px 80px -36px rgba(0, 0, 0, 0.7);
+}
+.case-figure {
+  margin: clamp(30px, 4vh, 46px) auto 4px;
+}
+.case-figure-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(240, 236, 226, 0.14);
+  box-shadow: 0 26px 54px -30px rgba(0, 0, 0, 0.65);
+}
+.case-figure-cap {
+  margin-top: 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+/* 局部裁剪小图（输入条 / 单面板等）：收窄展示，避免铺满正文列显得过大 */
+.case-figure-compact {
+  max-width: 460px;
+}
+/* 超长整页图：固定视窗 + 侧边可拖动滑块（原生滚轮/触控也可滚） */
+.case-scroll {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.case-scroll-view {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: clamp(360px, 56vh, 560px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(240, 236, 226, 0.14);
+  box-shadow: 0 26px 54px -30px rgba(0, 0, 0, 0.65);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.case-scroll-view::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.case-scroll-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.case-scroll-rail {
+  position: relative;
+  flex: 0 0 6px;
+  width: 6px;
+  border-radius: 999px;
+  background: rgba(240, 236, 226, 0.08);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.case-scroll-rail.on {
+  opacity: 1;
+}
+.case-scroll-thumb {
+  position: absolute;
+  left: -2px;
+  width: 10px;
+  border-radius: 999px;
+  background: rgba(240, 236, 226, 0.4);
+  cursor: grab;
+  touch-action: none;
+  transition: background 0.18s ease;
+}
+.case-scroll-thumb:hover {
+  background: rgba(240, 236, 226, 0.62);
+}
+.case-scroll-thumb:active {
+  background: var(--accent);
+  cursor: grabbing;
+}
+.case-scroll-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  padding: 5px 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  background: rgba(18, 17, 16, 0.66);
+  border: 1px solid rgba(240, 236, 226, 0.18);
+  border-radius: 999px;
+  pointer-events: none;
+}
+.case-scroll-full {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  z-index: 2;
+  padding: 5px 11px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: rgba(18, 17, 16, 0.66);
+  border: 1px solid rgba(240, 236, 226, 0.2);
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.case-scroll-full:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 /* 页尾下一案例提示（未建页时纯文字） */

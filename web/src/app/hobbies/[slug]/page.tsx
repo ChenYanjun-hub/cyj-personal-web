@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 import { HOBBIES, getHobby } from "@/components/hobbies/hobbies-data";
 
@@ -60,9 +61,21 @@ export default async function HobbyPage({
       {/* Hero：爱好主色带 + 漫画图标 + 中英名 + 一句话 */}
       <header className="hobby-hero">
         <span className="hobby-hero-halftone" aria-hidden />
-        <span className="hobby-glyph" aria-hidden>
-          {h.glyph}
-        </span>
+        {h.image ? (
+          <span className="hobby-hero-card">
+            <Image
+              src={h.image}
+              alt={`${h.zh} · ${h.persona} 漫画卡牌`}
+              fill
+              sizes="(max-width: 760px) 60vw, 240px"
+              className="hobby-hero-card-img"
+            />
+          </span>
+        ) : (
+          <span className="hobby-glyph" aria-hidden>
+            {h.glyph}
+          </span>
+        )}
         <div className="hobby-hero-text">
           <p className="hobby-en">{h.en}</p>
           <h1 className="hobby-zh">{h.zh}</h1>

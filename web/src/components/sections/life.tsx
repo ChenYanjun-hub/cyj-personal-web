@@ -320,10 +320,23 @@ export default function Life() {
                 animationDuration: `${(5.6 + (i % 3) * 0.7).toFixed(2)}s`,
               }}
             >
-              <span className="other-card-page">
-                <span className="other-card-glyph" aria-hidden>
-                  {h.glyph}
-                </span>
+              <span
+                className={`other-card-page${h.image ? " has-img" : ""}`}
+              >
+                {h.image ? (
+                  <Image
+                    src={h.image}
+                    alt={`${h.zh} · ${h.persona} 漫画卡牌`}
+                    fill
+                    sizes="(max-width: 760px) 60vw, 320px"
+                    className="other-card-img"
+                    draggable={false}
+                  />
+                ) : (
+                  <span className="other-card-glyph" aria-hidden>
+                    {h.glyph}
+                  </span>
+                )}
               </span>
               <span className="other-card-label">{h.persona}</span>
             </span>

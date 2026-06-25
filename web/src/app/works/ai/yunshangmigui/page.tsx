@@ -27,6 +27,14 @@ const DATA: CaseStudyData = {
     seal: "获奖",
     lines: ["中国国际大学生创新大赛", "研究生组 · 获奖项目"],
   },
+  hero: {
+    src: "/works/yunshangmigui/01-home.png",
+    alt: "云上米轨平台首页 · 沉浸式落地页，巨字「一条云上米轨 半部西南近代史」+ 六大模块入口",
+    w: 1600,
+    h: 1004,
+    caption:
+      "平台首页 · 老地图肌理打底，巨字主张 + 六大模块入口（史料藏馆 / 云游导览 / 光影展览 / 研学社区 / 南渡 AI / 文创商城）",
+  },
   meta: [
     { label: "Role", value: "产品负责人 · 唯一平台开发者" },
     { label: "Team", value: "昆明理工大学建筑学院 · 段文教授团队合作" },
@@ -73,6 +81,25 @@ const DATA: CaseStudyData = {
         `工程层：Next.js 16 + React 19 + Supabase 全栈——6 角色 RLS 权限在数据库层强制、7 个用户端模块 + 5 类 Admin 后台、完整 Auth 体系（注册 / 登录 / 邮件找回密码）、Leaflet GIS 地图（OSM 实测线路 + WGS84/GCJ-02 坐标系转换）、桌面 / 移动三端响应式`,
         `运维层：阿里云东京节点独立部署（nginx + pm2 + Next.js production），实战处理 ICP 备案约束、Google Fonts 被墙导致构建失败等真实问题`,
       ],
+      images: [
+        {
+          src: "/works/yunshangmigui/02-nandu-ai.png",
+          alt: "南渡 AI 实际问答 · 回答内联 [n] 引用角标 + 底部「文位引据」档案卡片",
+          w: 1600,
+          h: 1239,
+          caption:
+            "南渡 AI · 实际问答 —— 回答内联 [n] 引用角标、底部「文位引据」档案卡片回链原始史料（RAG：DashScope embedding 1024 维 + pgvector top-4 + DeepSeek V3）",
+        },
+        {
+          src: "/works/yunshangmigui/04-archive.png",
+          alt: "数字米轨史料藏馆 · 史料卡片网格",
+          w: 1200,
+          h: 2415,
+          tall: true,
+          caption:
+            "史料藏馆 · 结构化史料网格（老地图 / 机车老照片 / 工程图纸 / 桥隧档案），全部向量化、可检索可问答",
+        },
+      ],
     },
     {
       id: "decisions",
@@ -87,6 +114,16 @@ const DATA: CaseStudyData = {
         `RAG 而非微调——可解释（引用回链的前提）、可维护（新增史料 = 1 次 embedding）、冷启动友好、成本低一个量级；相似度阈值 0.40 在测试集上反复标定：宁可拒答，不可编造`,
         `成本结构——DeepSeek V3（中文质量接近 GPT-4o、成本约 1/10）+ DashScope embedding，以 OpenAI 兼容协议接入，换模型是一行配置的事；实测单次对话成本约 $0.001`,
         `数据真实性 > 视觉对齐——34 个站点坐标与 OSM 实测线路偏差 5–77 公里，我推翻了已经跑通的"样条硬掰对齐"实现，保留真实偏差并留档说明：考据型产品宁可暴露数据瑕疵，不可制造虚假精确`,
+      ],
+      images: [
+        {
+          src: "/works/yunshangmigui/03-map.png",
+          alt: "米轨 GIS 地图 · 全线 855 公里实测线路",
+          w: 1600,
+          h: 1004,
+          caption:
+            "GIS 地图 · 34 站点 + 522 点 OSM 实测线路覆盖全线 855km；站点与线路偏差 5–77km，保留真实偏差而非硬掰对齐",
+        },
       ],
     },
     {
@@ -106,6 +143,16 @@ const DATA: CaseStudyData = {
       paragraphsAfter: [
         `如实说明：项目当前处于团队演示与汇报阶段，尚未对公众开放运营。以上是工程质量与 AI 质量数据，不是业务数据——B 端签约与商业化验证是下一阶段的事。`,
       ],
+      images: [
+        {
+          src: "/works/yunshangmigui/05-admin.png",
+          alt: "Admin 管理控制台 · 数据总览",
+          w: 1600,
+          h: 1002,
+          caption:
+            "Admin 后台 · 6 角色 RLS 分权（总览 / 史料 / 影像 / 商品 / 社区审核 / 用户），权限在数据库层强制",
+        },
+      ],
     },
     {
       id: "value",
@@ -115,6 +162,17 @@ const DATA: CaseStudyData = {
         `市场侧：B 端机构（博物馆 / 档案馆 / 文旅局 / 中小学 / 国企党建）全国超 10 万家，云南本地政企研学与数字化项目年需求测算超 10 亿元；C 端核心客群约 210–230 万人，核心市场年规模测算 2–7 亿元。项目填补的是西南米轨垂直领域数字化平台的空白。`,
         `模式侧：变现路径"展示但不深做"——VIP 会员与文创商城完成了入口与体系设计（6 级角色、商品架构），支付闭环留到验证期。对外，这证明商业模式想清楚了；对内，省下的资源全部投给核心体验。砍掉的不是能力，是优先级。`,
         `对我个人：它是"1 Person + AI = A Team"的最强证据——产品、AI、工程、运维一个人走通全链路。这是我和大多数转型 PM 的关键差异。`,
+      ],
+      images: [
+        {
+          src: "/works/yunshangmigui/06-community.png",
+          alt: "米轨同好社区 · UGC 帖子流",
+          w: 1200,
+          h: 1344,
+          tall: true,
+          caption:
+            "研学社区 · UGC 内容沉淀（路线寻踪 / 摄影 / 游记），文化 IP 的轻量传播与社区入口",
+        },
       ],
     },
     {

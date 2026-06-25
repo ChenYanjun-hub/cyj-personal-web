@@ -21,6 +21,14 @@ const DATA: CaseStudyData = {
   intro: `他独立完成产品设计与全栈工程，把一个 Coze 审查工作流，做成可上传文件、可审查、可下载报告的完整 Web 产品——一个已上线 Vercel 的购销合同初审辅助工具。`,
   tone: ["#5a5246", "#171411"],
   mark: "CONTRACT",
+  hero: {
+    src: "/works/contract/02-workbench.png",
+    alt: "合同审查工作台 · 上传合同材料 + 选我方公司/买卖方立场/审查模式，右侧系统连接状态与审查重点维度",
+    w: 2922,
+    h: 2666,
+    caption:
+      "审查工作台 · 左栏上传 .txt / .docx 合同材料，右栏「审查策略」选我方立场（买方 / 卖方）+ 审查模式（快速 / 精细）+ 系统连接状态——一屏配置完一次初审",
+  },
   meta: [
     { label: "Role", value: "前后端产品化落地 · 工程接入 · 部署" },
     { label: "Team", value: "他独立完成产品与全栈工程 · 同事配置 Coze 审查工作流" },
@@ -60,6 +68,17 @@ const DATA: CaseStudyData = {
       paragraphsAfter: [
         `最难的不是页面，是 Coze 文件工作流联调：真实工作流并不直接接收合同正文，而要先调 /v1/files/upload 拿到 file_id，再把 file_id 作为 hetong 参数传给 /v1/workflow/run；而且 Coze 返回的外层 data 其实是 JSON 字符串，后端要二次解析、提取 inner.data 作为报告内容。我为此新增了文件版接口 /api/review-file、在 lib/coze.ts 里实现完整的文件工作流链路——项目才从"前端套接口"真正变成"完整跑通真实 AI 工作流"。`,
       ],
+      images: [
+        {
+          src: "/works/contract/01-home.png",
+          alt: "购销合同审查助手首页整页 · Hero 平台主张 + 客户问题三卡 + 立场化风险识别 + 三步审查流程",
+          w: 2922,
+          h: 4304,
+          tall: true,
+          caption:
+            "产品首页（整页）· 把同事的 Coze 审查工作流，做成有 Hero 主张、客户问题、能力说明与「三步完成初审」流程的完整 Web 产品——已上线 Vercel",
+        },
+      ],
     },
     {
       id: "decisions",
@@ -77,6 +96,17 @@ const DATA: CaseStudyData = {
       paragraphsAfter: [
         `防幻觉的思路不是"模型一定不能错"，而是"低容错场景下让输出可控、可解释、可兜底"——场景限制 + 固定工作流 + 结果标准化 + 异常退回示例模式；文档里也建立了审查项召回率、中高风险召回率、原文定位准确率、幻觉率、修改建议可用性等评测思路。`,
       ],
+      images: [
+        {
+          src: "/works/contract/03-stance.png",
+          alt: "审查策略面板 · 审查立场买方 / 卖方二选一，附两套立场关注点说明",
+          w: 768,
+          h: 1000,
+          compact: true,
+          caption:
+            "保留买方 / 卖方两套立场——同一份合同在不同交易身份下关注点完全不同（买方重质量 / 交付 / 验收 / 违约救济，卖方重付款 / 验收期限 / 责任边界），立场决定系统识别风险的视角",
+        },
+      ],
     },
     {
       id: "after",
@@ -93,6 +123,17 @@ const DATA: CaseStudyData = {
       paragraphsAfter: [
         `如实说明：从商用角度它还不算完整产品——复杂 PDF/OCR、批量任务、权限控制、审计日志、企业规则库、标准合同模板对比等企业级能力都还没做。`,
       ],
+      images: [
+        {
+          src: "/works/contract/04-status.png",
+          alt: "系统连接状态卡 · 工作流已连接，服务端 Token / Workflow ID 已配置、API Base 显示",
+          w: 1408,
+          h: 386,
+          maxW: 620,
+          caption:
+            "系统连接检测 · /api/health 实时校验工作流连接（Token / Workflow ID / API Base），环境变量缺失时退回示例模式不白屏——可真实运行 + 有兜底",
+        },
+      ],
     },
     {
       id: "results",
@@ -105,6 +146,25 @@ const DATA: CaseStudyData = {
         `产品层：把原本只是"工作流概念"的合同审查能力，做成了含首页 / 工作台 / 结果页 / 连接状态的完整 Web 产品`,
         `工程层：.txt/.docx 上传解析、Coze 文件工作流接入、健康检查、结果标准化、Markdown 报告展示、生产部署的完整链路`,
         `展示层：结果页不只给风险摘要，还支持风险等级筛选、专业报告元数据、复制报告、下载 .md/.txt——让输出更接近真实交付物，而非模型原始响应`,
+      ],
+      images: [
+        {
+          src: "/works/contract/05-result.png",
+          alt: "购销合同智能审查报告页 · 审查评分 + 高/中/低风险统计 + 关键风险发现 + 风险清单（逐条原文/等级/置信度）",
+          w: 2922,
+          h: 2724,
+          caption:
+            "审查报告页 · 综合评分 + 高 / 中 / 低风险统计 + 关键风险发现卡 + 风险清单（逐条原文定位、风险等级、置信度、修改建议）——结构化、可复核的交付物，而非模型原始响应",
+        },
+        {
+          src: "/works/contract/06-report.png",
+          alt: "报告页底部 · 继续审查 / 复制报告 / 下载 Markdown，附「AI 仅供初审辅助、不构成法律意见」使用说明",
+          w: 1420,
+          h: 686,
+          maxW: 620,
+          caption:
+            "交付与免责 · 报告可复制、下载 Markdown，并明确「AI 仅供初步审查辅助、不构成正式法律意见，高风险条款优先人工复核」——定位法务辅助工具而非替代",
+        },
       ],
     },
     {
