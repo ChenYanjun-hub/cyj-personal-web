@@ -4699,3 +4699,182 @@ body:has(.case) {
     font-size: 26px;
   }
 }
+
+/* ===============================================================
+   幕导航 · 右侧引导栏 + 左下 UP/NEXT（仅首页 · SceneNav 组件）
+   - 右侧竖点居中：点击平滑滚到对应幕，hover/当前显示幕名
+   - 左下 UP/NEXT：避开右下角 AI 分身吉祥物
+   - 吸附只落在 5 个幕根；reduced-motion 关闭吸附
+   =============================================================== */
+.scene-rail {
+  position: fixed;
+  right: clamp(14px, 2vw, 28px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+.scene-dot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.scene-dot-label {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.22s ease, transform 0.22s ease, color 0.22s ease;
+  pointer-events: none;
+}
+.scene-dot-mark {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink-2);
+  background: transparent;
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+}
+.scene-dot:hover .scene-dot-label,
+.scene-dot.on .scene-dot-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+.scene-dot:hover .scene-dot-mark {
+  border-color: var(--ink);
+}
+.scene-dot.on .scene-dot-mark {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.18);
+}
+.scene-dot.on .scene-dot-label {
+  color: var(--ink);
+}
+
+.scene-jump {
+  position: fixed;
+  left: clamp(14px, 2vw, 28px);
+  bottom: clamp(18px, 4vh, 38px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.scene-jump-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 84px;
+  height: 42px;
+  padding: 0 14px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper) 80%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    opacity 0.2s ease, transform 0.15s ease;
+}
+.scene-jump-btn:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.scene-jump-btn:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.scene-jump-arrow {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 吸附：仅 5 个幕根（关于我内部 compare/skills 不吸附 → 保留自由滚动） */
+html {
+  scroll-snap-type: y proximity;
+}
+#card,
+#about-me,
+#work,
+#life,
+#contact {
+  scroll-snap-align: start;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-snap-type: none;
+  }
+}
+
+/* GSAP 幕布切场覆盖层 · 初始隐藏（autoAlpha 由 GSAP 接管） */
+.scene-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.scene-curtain-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: #fbfbf7;
+  text-align: center;
+}
+.scene-curtain-name {
+  font-size: clamp(40px, 8vw, 96px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.scene-curtain-index {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  opacity: 0.82;
+}
+
+/* 移动端：引导栏收窄、隐藏幕名，按钮缩小 */
+@media (max-width: 760px) {
+  .scene-rail {
+    right: 10px;
+    gap: 13px;
+  }
+  .scene-dot-label {
+    display: none;
+  }
+  .scene-jump {
+    left: 10px;
+    bottom: 14px;
+  }
+  .scene-jump-btn {
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+  }
+}

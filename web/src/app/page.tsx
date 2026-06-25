@@ -5,6 +5,7 @@ import Skills from "@/components/sections/skills";
 import Portfolio from "@/components/sections/portfolio";
 import Life from "@/components/sections/life";
 import Closing from "@/components/sections/closing";
+import SceneNav from "@/components/scene-nav";
 
 /*
   根路径页面（/）的入口组件。
@@ -32,6 +33,7 @@ export default function Home() {
       <Portfolio />
       <Life />
       <Closing />
+      <SceneNav />
     </main>
   );
 }
