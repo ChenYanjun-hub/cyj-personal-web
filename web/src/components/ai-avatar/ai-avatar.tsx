@@ -21,7 +21,40 @@ import {
 } from "@/lib/ai-avatar/types";
 import ClaudePet, { type PetState } from "./claude-pet";
 
-type DisplayMessage = ChatMessage & { id: string };
+type DisplayMessage = ChatMessage & { id: string; image?: string };
+
+// 客户端压缩 JD 截图：长边限到 1400px，JPEG 0.85，控制上传体积又保文字清晰
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 1400;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        const r = Math.min(MAX / width, MAX / height);
+        width = Math.round(width * r);
+        height = Math.round(height * r);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("当前浏览器不支持图片处理"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("图片读取失败，请换一张"));
+    };
+    img.src = url;
+  });
+}
 
 const PRESET_QUESTIONS = [
   "他的核心优势是什么？",
@@ -37,6 +70,14 @@ const WELCOME: DisplayMessage = {
     "Hi，我是陈彦均的 AI 分身。关于他的项目、能力、转型故事和兴趣爱好，你都可以问我。也可以把招聘 JD 发给我，看看他和这个岗位有多匹配。",
 };
 
+// 首访引导气泡 · 三句循环打字机（第二句固定）
+const HINT_LINES = [
+  "嗨，我是彦均的 AI 分身 👋",
+  "威风的龙！到！",
+  "点我聊聊 · 项目 / 能力 / JD 匹配都能问",
+];
+const HINT_KEY = "ai-avatar-hint-dismissed";
+
 export default function AiAvatar() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<DisplayMessage[]>([WELCOME]);
@@ -44,6 +85,106 @@ export default function AiAvatar() {
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hovering, setHovering] = useState(false);
+  // 暂存的 JD 图片（data URL）· 发送时随消息带上，走视觉模型匹配
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const pickImage = async (file: File | undefined | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("请选择图片文件（JD 截图）");
+      return;
+    }
+    try {
+      const dataUrl = await compressImage(file);
+      setPendingImage(dataUrl);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "图片处理失败");
+    }
+  };
+
+  // 首访引导气泡：默认隐藏（SSR 无 localStorage），mount 后若未关闭过则显示
+  const [hintDismissed, setHintDismissed] = useState(true);
+  const [hintText, setHintText] = useState("");
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(HINT_KEY)) setHintDismissed(false);
+    } catch {
+      // 隐私模式等读不到 localStorage：保持隐藏，不打扰
+    }
+  }, []);
+
+  const dismissHint = () => {
+    setHintDismissed(true);
+    try {
+      localStorage.setItem(HINT_KEY, "1");
+    } catch {
+      // 写不进就算了，至少本次会话不再显示
+    }
+  };
+
+  // 气泡只在「未关闭 + 面板关着」时出现
+  const hintVisible = !hintDismissed && !isOpen;
+
+  // 打字机：逐字打 → 停顿 → 删除 → 下一句，循环
+  useEffect(() => {
+    if (!hintVisible) {
+      setHintText("");
+      return;
+    }
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let line = 0;
+    let char = 0;
+    let mode: "type" | "hold" | "del" = "type";
+    let timer: number;
+
+    if (reduce) {
+      // 减少动效：不逐字，整句循环展示
+      setHintText(HINT_LINES[0]);
+      let i = 0;
+      const cycle = () => {
+        i = (i + 1) % HINT_LINES.length;
+        setHintText(HINT_LINES[i]);
+        timer = window.setTimeout(cycle, 2600);
+      };
+      timer = window.setTimeout(cycle, 2600);
+      return () => window.clearTimeout(timer);
+    }
+
+    const tick = () => {
+      const full = HINT_LINES[line];
+      if (mode === "type") {
+        char += 1;
+        setHintText(full.slice(0, char));
+        if (char >= full.length) {
+          mode = "hold";
+          timer = window.setTimeout(tick, 2200);
+        } else {
+          timer = window.setTimeout(tick, 115);
+        }
+      } else if (mode === "hold") {
+        mode = "del";
+        timer = window.setTimeout(tick, 60);
+      } else {
+        char -= 1;
+        setHintText(full.slice(0, Math.max(char, 0)));
+        if (char <= 0) {
+          line = (line + 1) % HINT_LINES.length;
+          mode = "type";
+          timer = window.setTimeout(tick, 420);
+        } else {
+          timer = window.setTimeout(tick, 55);
+        }
+      }
+    };
+    timer = window.setTimeout(tick, 480);
+    return () => window.clearTimeout(timer);
+  }, [hintVisible]);
 
   // 吉祥物状态接真实事件：回答中→说话 / 失败→出错 / 悬停→打招呼 / 默认→待机
   const petState: PetState = streaming
@@ -80,7 +221,8 @@ export default function AiAvatar() {
 
   const send = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || streaming) return;
+    const image = pendingImage;
+    if ((!trimmed && !image) || streaming) return;
     if (trimmed.length > CHAT_LIMITS.MAX_MESSAGE_LENGTH) {
       setError(`单条消息不能超过 ${CHAT_LIMITS.MAX_MESSAGE_LENGTH} 字`);
       return;
@@ -88,6 +230,7 @@ export default function AiAvatar() {
 
     setError(null);
     setInput("");
+    setPendingImage(null);
 
     const userId = `u-${Date.now()}`;
     const assistantId = `a-${Date.now()}`;
@@ -95,7 +238,10 @@ export default function AiAvatar() {
     const userMsg: DisplayMessage = {
       id: userId,
       role: "user",
-      content: trimmed,
+      content:
+        trimmed ||
+        (image ? "（上传了一张招聘 JD 截图，请帮我做岗位匹配）" : ""),
+      image: image ?? undefined,
     };
     const assistantPlaceholder: DisplayMessage = {
       id: assistantId,
@@ -113,7 +259,13 @@ export default function AiAvatar() {
     try {
       // 后端只接受 user/assistant 历史，过滤掉前端 welcome 消息（不算真实对话）
       // 只发最近 MAX_HISTORY 条控制 token
-      const historyForServer: ChatMessage[] = [...messages, userMsg]
+      // 服务端历史用真实文字（不是展示用的占位）；图片单独放 body.image
+      const serverUserMsg: DisplayMessage = {
+        id: userId,
+        role: "user",
+        content: trimmed,
+      };
+      const historyForServer: ChatMessage[] = [...messages, serverUserMsg]
         .filter((m) => m.id !== "welcome")
         .slice(-CHAT_LIMITS.MAX_HISTORY)
         .map(({ role, content }) => ({ role, content }));
@@ -121,7 +273,10 @@ export default function AiAvatar() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: historyForServer }),
+        body: JSON.stringify({
+          messages: historyForServer,
+          ...(image ? { image } : {}),
+        }),
         signal: controller.signal,
       });
 
@@ -184,13 +339,56 @@ export default function AiAvatar() {
 
   return (
     <>
+      {/* 首访引导气泡：打字机三句循环 · 点气泡开对话 · × 关闭后不再出现 */}
+      {hintVisible && (
+        <div
+          className="ai-avatar-hint"
+          role="button"
+          tabIndex={0}
+          aria-label="打开 AI 分身咨询"
+          onClick={() => {
+            setIsOpen(true);
+            dismissHint();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsOpen(true);
+              dismissHint();
+            }
+          }}
+        >
+          <button
+            type="button"
+            className="ai-avatar-hint-close"
+            aria-label="不再提示"
+            onClick={(e) => {
+              e.stopPropagation();
+              dismissHint();
+            }}
+          >
+            ×
+          </button>
+          <span className="ai-avatar-hint-text">
+            {hintText}
+            <span className="ai-avatar-hint-caret" aria-hidden />
+          </span>
+        </div>
+      )}
+
       {/* 右下角悬浮吉祥物（点击展开/收起 chat） */}
       <button
         type="button"
         className={`ai-avatar-petbtn${isOpen ? " open" : ""}`}
         aria-label={isOpen ? "关闭 AI 分身" : "打开 AI 分身"}
         aria-expanded={isOpen}
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() =>
+          setIsOpen((v) => {
+            const next = !v;
+            if (next) dismissHint();
+            return next;
+          })
+        }
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
       >
@@ -241,10 +439,20 @@ export default function AiAvatar() {
                 key={m.id}
                 className={`ai-avatar-msg ai-avatar-msg-${m.role}`}
               >
-                <div className="ai-avatar-msg-text">
-                  {m.content ||
-                    (streaming && m.role === "assistant" ? "…" : "")}
-                </div>
+                {m.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={m.image}
+                    alt="上传的招聘 JD 截图"
+                    className="ai-avatar-msg-img"
+                  />
+                )}
+                {(m.content || (streaming && m.role === "assistant")) && (
+                  <div className="ai-avatar-msg-text">
+                    {m.content ||
+                      (streaming && m.role === "assistant" ? "…" : "")}
+                  </div>
+                )}
               </div>
             ))}
             {error && (
@@ -271,6 +479,29 @@ export default function AiAvatar() {
             </div>
           )}
 
+          {/* 待发送的 JD 图片预览 */}
+          {pendingImage && (
+            <div className="ai-avatar-attach">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={pendingImage}
+                alt="待发送的 JD 截图"
+                className="ai-avatar-attach-img"
+              />
+              <span className="ai-avatar-attach-tip">
+                岗位 JD 已就绪 · 发送后做匹配分析
+              </span>
+              <button
+                type="button"
+                className="ai-avatar-attach-remove"
+                aria-label="移除图片"
+                onClick={() => setPendingImage(null)}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* 输入区 */}
           <form
             className="ai-avatar-form"
@@ -279,6 +510,41 @@ export default function AiAvatar() {
               send(input);
             }}
           >
+            {/* 隐藏文件输入 + 上传按钮（传 JD 截图） */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => {
+                pickImage(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              className="ai-avatar-upload"
+              aria-label="上传招聘 JD 图片"
+              title="上传招聘 JD 图片做匹配"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={streaming}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+            </button>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -303,7 +569,7 @@ export default function AiAvatar() {
             <button
               type="submit"
               className="ai-avatar-send"
-              disabled={streaming || !input.trim()}
+              disabled={streaming || (!input.trim() && !pendingImage)}
               aria-label="发送"
             >
               <svg

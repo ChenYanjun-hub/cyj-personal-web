@@ -14,6 +14,8 @@ export type ChatMessage = {
 /** 客户端 POST /api/chat 的 body 结构 */
 export type ChatRequestBody = {
   messages: ChatMessage[];
+  /** 当前轮附带的岗位 JD 图片（data URL）· 存在时走视觉模型 Qwen-VL 做匹配 */
+  image?: string;
 };
 
 /** 防护上限（PROJECT_GUIDE 第 102 行：成本与滥用防护） */
@@ -24,12 +26,16 @@ export const CHAT_LIMITS = {
   MAX_HISTORY: 10,
   /** 同 IP 1 分钟内最多请求次数 */
   MAX_REQUESTS_PER_MINUTE: 12,
+  /** JD 图片 data URL 字符数上限（约 6MB 图）· 前端已压缩，这里兜底 */
+  MAX_IMAGE_DATAURL_LENGTH: 8_000_000,
 } as const;
 
 export type ChatErrorCode =
   | "MISSING_API_KEY"
+  | "MISSING_VISION_KEY"
   | "INVALID_REQUEST"
   | "MESSAGE_TOO_LONG"
+  | "IMAGE_TOO_LARGE"
   | "TOO_MANY_MESSAGES"
   | "RATE_LIMIT"
   | "UPSTREAM_ERROR";

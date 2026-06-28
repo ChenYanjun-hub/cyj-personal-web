@@ -647,7 +647,14 @@ body[data-section="closing"] .stage .nav-loc-dot {
     font-size: clamp(28px, 7vw, 44px);
     white-space: normal;
   }
-  .stage .keys { display: none; }
+  .stage .keys {
+    margin-top: 18px;
+    font-size: 12px;
+    row-gap: 4px;
+  }
+  .stage .keys span {
+    padding: 0 10px;
+  }
 }
 
 /* ===============================================================
@@ -2972,6 +2979,100 @@ body[data-section="closing"] .stage .nav-loc-dot {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* --- 首访引导气泡（打字机三句循环 · 可关闭） --- */
+.ai-avatar-hint {
+  position: fixed;
+  right: clamp(12px, 3vw, 24px);
+  bottom: clamp(98px, 16vw, 118px);
+  z-index: 99;
+  white-space: nowrap;
+  padding: 11px 14px;
+  background: #fbfbfd;
+  color: #1d1d1f;
+  border: 2px solid #4b4b4b;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 0 rgba(40, 40, 40, 0.16);
+  font-size: 13px;
+  line-height: 1.55;
+  cursor: pointer;
+  user-select: none;
+  animation: ai-hint-in 0.42s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+.ai-avatar-hint::after {
+  /* 指向吉祥物的像素小尾巴（白底 + 深灰框两边） */
+  content: "";
+  position: absolute;
+  right: 24px;
+  bottom: -8px;
+  width: 12px;
+  height: 12px;
+  background: #fbfbfd;
+  border-right: 2px solid #4b4b4b;
+  border-bottom: 2px solid #4b4b4b;
+  transform: rotate(45deg);
+}
+.ai-avatar-hint-text {
+  position: relative;
+}
+.ai-avatar-hint-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  background: var(--accent);
+  vertical-align: -0.12em;
+  animation: ai-hint-blink 1s steps(1) infinite;
+}
+.ai-avatar-hint-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: #fbfbfd;
+  border: 2px solid #4b4b4b;
+  border-radius: 0;
+  color: #1d1d1f;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 0 rgba(40, 40, 40, 0.16);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.ai-avatar-hint-close:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+@keyframes ai-hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes ai-hint-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-avatar-hint {
+    animation: none;
+  }
+  .ai-avatar-hint-caret {
+    animation: none;
+  }
+}
+
 /* --- 吉祥物 sprite + 影子 --- */
 .claude-pet {
   position: relative;
@@ -3213,13 +3314,23 @@ body[data-section="closing"] .stage .nav-loc-dot {
 }
 .ai-avatar-msg {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
   max-width: 100%;
 }
 .ai-avatar-msg-user {
-  justify-content: flex-end;
+  align-items: flex-end;
 }
 .ai-avatar-msg-assistant {
-  justify-content: flex-start;
+  align-items: flex-start;
+}
+.ai-avatar-msg-img {
+  max-width: 200px;
+  max-height: 240px;
+  border-radius: 12px;
+  border: 1px solid rgba(29, 29, 31, 0.12);
+  object-fit: cover;
+  display: block;
 }
 .ai-avatar-msg-text {
   max-width: 84%;
@@ -3331,6 +3442,76 @@ body[data-section="closing"] .stage .nav-loc-dot {
   background: rgba(29, 29, 31, 0.2);
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* --- 上传 JD 图片 按钮（输入区左侧 ghost 图标） --- */
+.ai-avatar-upload {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(29, 29, 31, 0.15);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.ai-avatar-upload:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.ai-avatar-upload:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --- 待发送 JD 图片预览条 --- */
+.ai-avatar-attach {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  margin: 2px 18px 8px;
+  padding: 8px 10px;
+  background: rgba(216, 85, 46, 0.06);
+  border: 1px solid rgba(216, 85, 46, 0.22);
+  border-radius: 10px;
+}
+.ai-avatar-attach-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(29, 29, 31, 0.12);
+  flex-shrink: 0;
+}
+.ai-avatar-attach-tip {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.ai-avatar-attach-remove {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ai-avatar-attach-remove:hover {
+  color: var(--accent);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 /* --- 窄屏适配：面板占视口下半 --- */

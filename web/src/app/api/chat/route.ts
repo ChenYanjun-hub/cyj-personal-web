@@ -20,6 +20,7 @@
 import { NextResponse } from "next/server";
 import { SYSTEM_PROMPT } from "@/lib/ai-avatar/prompt";
 import { streamDeepSeek } from "@/lib/ai-avatar/deepseek";
+import { streamQwenVL } from "@/lib/ai-avatar/qwen-vl";
 import {
   CHAT_LIMITS,
   type ChatErrorCode,
@@ -108,15 +109,6 @@ function validateMessages(messages: unknown):
 /* ---------------- POST handler ---------------- */
 
 export async function POST(req: Request) {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    return errorJson(
-      "MISSING_API_KEY",
-      "服务器尚未配置 DEEPSEEK_API_KEY（见 .env.example）",
-      500,
-    );
-  }
-
   const ip = getClientIp(req);
   if (!rateLimitOk(ip)) {
     return errorJson(
@@ -139,19 +131,68 @@ export async function POST(req: Request) {
     return errorJson(validation.code, validation.message, 400);
   }
 
-  // 拼 system prompt（在最前面）
-  const fullMessages: ChatMessage[] = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...validation.messages,
-  ];
+  // 当前轮可选 JD 图片（data URL）：存在则走视觉模型 Qwen-VL 做岗位匹配
+  const rawImage = (body as { image?: unknown })?.image;
+  const imageDataUrl =
+    typeof rawImage === "string" && rawImage.length > 0 ? rawImage : null;
+  if (imageDataUrl) {
+    if (!imageDataUrl.startsWith("data:image/")) {
+      return errorJson("INVALID_REQUEST", "图片格式不支持（需 data:image）", 400);
+    }
+    if (imageDataUrl.length > CHAT_LIMITS.MAX_IMAGE_DATAURL_LENGTH) {
+      return errorJson("IMAGE_TOO_LARGE", "图片过大，请换一张更小的截图再试", 413);
+    }
+  }
 
   try {
-    const textStream = await streamDeepSeek(fullMessages, {
-      apiKey,
-      model: process.env.DEEPSEEK_MODEL,
-      baseUrl: process.env.DEEPSEEK_BASE_URL,
-      signal: req.signal,
-    });
+    let textStream: ReadableStream<string>;
+
+    if (imageDataUrl) {
+      // 视觉路径 · Qwen-VL：读 JD 图 + 对照档案做匹配
+      const visionKey = process.env.DASHSCOPE_API_KEY;
+      if (!visionKey) {
+        return errorJson(
+          "MISSING_VISION_KEY",
+          "图片匹配功能尚未配置（服务器缺少 DASHSCOPE_API_KEY）",
+          500,
+        );
+      }
+      const lastUserText =
+        [...validation.messages].reverse().find((m) => m.role === "user")
+          ?.content ?? "";
+      textStream = await streamQwenVL(
+        SYSTEM_PROMPT,
+        validation.messages,
+        imageDataUrl,
+        lastUserText,
+        {
+          apiKey: visionKey,
+          model: process.env.DASHSCOPE_MODEL,
+          baseUrl: process.env.DASHSCOPE_BASE_URL,
+          signal: req.signal,
+        },
+      );
+    } else {
+      // 文本路径 · DeepSeek
+      const apiKey = process.env.DEEPSEEK_API_KEY;
+      if (!apiKey) {
+        return errorJson(
+          "MISSING_API_KEY",
+          "服务器尚未配置 DEEPSEEK_API_KEY（见 .env.example）",
+          500,
+        );
+      }
+      const fullMessages: ChatMessage[] = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...validation.messages,
+      ];
+      textStream = await streamDeepSeek(fullMessages, {
+        apiKey,
+        model: process.env.DEEPSEEK_MODEL,
+        baseUrl: process.env.DEEPSEEK_BASE_URL,
+        signal: req.signal,
+      });
+    }
 
     // 把 string chunks 编码成 Uint8Array 走 chunked transfer
     const encoder = new TextEncoder();
