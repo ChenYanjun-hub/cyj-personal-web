@@ -44,16 +44,30 @@ const EDUCATION = {
   date: "2019.09 — 2024.06",
   org: "南京工业大学",
   detail: "城乡规划 · 本科五年制",
-  honor: "24 届优秀毕业设计",
+  // a 在校荣誉 / b 竞赛经历（套用 WORK 的 a、/b、 marker 排版）
+  honors: [
+    "GPA 3.61/4.0（排名专业前 25%）",
+    "校级奖学金 二等 3 次、三等 3 次",
+    "校级优秀毕业设计",
+    "学生会摄影部副部长",
+    "大创项目负责人",
+  ],
+  awards: [
+    "「华设杯」第三届江苏省大学生国土空间规划大赛 二等奖",
+    "KTK 靳埭强设计奖 2023 优秀奖",
+    "第十届「共享杯」科技资源共享服务创新大赛 优秀奖",
+    "建筑学院微空间改造设计竞赛 优秀奖",
+  ],
 };
 
-// 一段工作经历里同时担两个 role（a 城乡规划师 / b 宣传部新媒体）
-// 每个 role 可选 lead / deep / participated 三个层级
+// 一段工作经历里同时担三个 role（a 城乡规划师 / b AI 项目负责人 / c 宣传部新媒体）
+// 每个 role 可选 lead / deep / participated 三个层级；AI 角色用 items 编号条（head + body）
 type WorkRole = {
   title: string;
   lead?: string;
   deep?: string[];
   participated?: string[];
+  items?: { head: string; body: string }[];
 };
 
 const WORK: {
@@ -83,6 +97,23 @@ const WORK: {
       ],
     },
     {
+      title: "AI 项目负责人",
+      items: [
+        {
+          head: "探索「专业设计能力 + AI 工具」的新型生产模式，主导 AIGC 效果图工作流落地",
+          body: "基于规划设计项目的效果图生产需求，调研传统流程在周期、成本和风格一致性上的痛点，提出 AIGC 辅助设计方案并推动落地。负责 AI 应用场景定义与工作流设计，成功推动 5 个项目引入 AIGC 图像生成与渲染，将效果图生产拆解为需求输入 → 空间信息提取 → 提示词生成 → 图像渲染 → 结果筛选 → 人工优化的可复用业务流程；根据空间尺度、建筑风格、功能业态和汇报场景设计差异化提示词与生成策略，通过多轮生成、局部重绘和参数调整控制输出。为团队提供工具、提示词与成果优化支持，降低使用门槛，团队渲染效果图效率提升约 48%。",
+        },
+        {
+          head: "作为 AI 项目负责人，主导公司内部 AI 产品从 0→1 落地",
+          body: "负责【同舟建景规范问答助手】与【合同审查助手】两个垂直场景 RAG 产品的全流程（需求定义、PRD 撰写、技术选型、知识库构建、评测体系、红线治理、迭代决策），并以 AI 辅助编码完成原型落地。把「设计师跨 89 部规范翻 PDF」「购销合同初审靠人工」等真实痛点，转化为可演示、可联调、可追溯的 AI 工作台；自建多维评测 + 一票否决机制管控幻觉与编造风险，将编造类红线维度做到工程可控（≥94%），沉淀完整 PRD 与可迁移的 AI 产品方法论。（详见 AI 项目作品集）",
+        },
+        {
+          head: "总结实践经验，牵头编写单位内部《大模型训练手册》",
+          body: "围绕大模型认知、Prompt 方法、业务场景、工具操作和风险规范构建内容体系，将个人实践沉淀为团队可复用的知识产品；持续收集同事在 AI 工具使用中的问题与反馈，迭代操作方法、提示词模板与培训内容，提升团队对生成式 AI 的理解与使用效率。",
+        },
+      ],
+    },
+    {
       title: "宣传部新媒体宣传",
       deep: [
         "长丰汽车城战略规划项目宣传视频剪辑",
@@ -104,7 +135,7 @@ const AI_PROJECTS = [
   },
   {
     name: "合同审查助手",
-    desc: "垂类 RAG 复用于法律 / 商务场景",
+    desc: "toB · AI Workflow · 垂直场景 MVP",
   },
 ];
 
@@ -228,7 +259,14 @@ export default function AboutMe() {
               <p className="about-entry-line">
                 {EDUCATION.detail} ｜ {EDUCATION.date}
               </p>
-              <p className="about-entry-line muted">{EDUCATION.honor}</p>
+              <p className="about-entry-line muted">
+                <span className="work-role-marker">a、</span>
+                {EDUCATION.honors.join("；")}
+              </p>
+              <p className="about-entry-line muted">
+                <span className="work-role-marker">b、</span>
+                竞赛经历：{EDUCATION.awards.join("、")}
+              </p>
             </div>
           </section>
 
@@ -264,6 +302,14 @@ export default function AboutMe() {
                       参与：{role.participated.join("、")}
                     </p>
                   ) : null}
+                  {role.items?.map((it, i) => (
+                    <div key={i} className="work-item">
+                      <p className="about-entry-line">
+                        {i + 1}、{it.head}
+                      </p>
+                      <p className="about-entry-line muted">{it.body}</p>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>

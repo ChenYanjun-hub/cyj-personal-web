@@ -48,12 +48,12 @@ const BLOCKS: SkillBlock[] = [
       },
       {
         name: "RAG 应用设计",
-        level: "能运用",
+        level: "熟练",
         note: `建景规独立完整 PRD（含技术架构、向量库选型、分块策略、评测集 50→100→250 迭代）`,
       },
       {
         name: "Prompt 工程",
-        level: "能运用",
+        level: "熟练",
         note: `Coze 多 Agent 应用 · 提示词主导 + 三层记忆架构（碎片 / 短期 / 长期）`,
       },
       {
@@ -63,7 +63,7 @@ const BLOCKS: SkillBlock[] = [
       },
       {
         name: "AI 评估与质量管理",
-        level: "能运用",
+        level: "熟练",
         note: `特别注重每个技术路径的"评估方法"与"现存问题"· PM 判断 AI 能否嵌入产品的核心工具`,
       },
       {
@@ -78,12 +78,12 @@ const BLOCKS: SkillBlock[] = [
     items: [
       {
         name: "PRD 撰写",
-        level: "能运用",
+        level: "熟练",
         note: `建景规独立完整 PRD：执行摘要 / 用户调研 / 竞品 / 理想态与评测 / 技术附录`,
       },
       {
         name: "竞品分析",
-        level: "能运用",
+        level: "熟练",
         note: `建景规 10+ 维度框架（市场分析 / 竞争格局 / 痛点 / 政策 / 产品形态分布 / 机会点）· 咨询级深度`,
       },
       {
@@ -93,12 +93,12 @@ const BLOCKS: SkillBlock[] = [
       },
       {
         name: "产品方案设计与原型",
-        level: "能运用",
+        level: "熟练",
         note: `Figma 野生菌数字手帐原型 · Axure / 墨刀已下载学习中`,
       },
       {
         name: "需求分析与方案分解",
-        level: "能运用",
+        level: "熟练",
         note: `信阳柳林：精神定位 → 24 子项目 → 资金测算 · 完整跨层分解链`,
       },
     ],
@@ -114,7 +114,7 @@ const BLOCKS: SkillBlock[] = [
       },
       {
         name: "AI 辅助下的产品架构能力",
-        level: "能运用",
+        level: "熟练",
         note: `自己主导技术选型决策（LLM / 向量库 / Auth / 数据库），AI 协作实现`,
       },
       {
@@ -144,7 +144,7 @@ const BLOCKS: SkillBlock[] = [
       },
       {
         name: "AIGC 工具",
-        level: "能运用",
+        level: "熟练",
         note: `Midjourney / Nano Banana Pro 渲染效果图 · 即梦 / 星流做海报与视觉创作`,
       },
       {
