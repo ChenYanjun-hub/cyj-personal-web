@@ -15,7 +15,7 @@
  * 纯叠加：不改各幕内部 / 不碰 Life 拖拽 / Closing 留言板。自由滚动与幕内小跳不触发幕布。
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -34,27 +34,16 @@ const LAST = SCENES.length - 1;
 const PAD2 = (n: number) => String(n).padStart(2, "0");
 
 export default function SceneNav() {
-  const activeRef = useRef(0);
+  // 当前幕 → 驱动引导栏高亮 + UP/NEXT 禁用（只在切幕时 setState，不是每次滚动）
+  const [active, setActive] = useState(0);
+  const activeRef = useRef(0); // 给 click 回调/拦截器读最新值，避免闭包过期
   const animatingRef = useRef(false);
-  // 当前幕 → 驱动引导栏高亮 / UP·NEXT 显隐（仅这点用 state）
-  const railRef = useRef<HTMLElement>(null);
-  const upRef = useRef<HTMLButtonElement>(null);
-  const nextRef = useRef<HTMLButtonElement>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const curtainRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLSpanElement>(null);
   const indexRef = useRef<HTMLSpanElement>(null);
-
-  // 命令式刷新「当前幕」相关 UI（不用 state，避免每次滚动 re-render）
-  const paint = (idx: number) => {
-    railRef.current
-      ?.querySelectorAll(".scene-dot")
-      .forEach((d, i) => d.classList.toggle("on", i === idx));
-    if (upRef.current) upRef.current.disabled = idx === 0;
-    if (nextRef.current) nextRef.current.disabled = idx === LAST;
-  };
 
   // 当前幕：顶部越过视口 35% 线的最后一幕（关于我覆盖 compare/skills 三屏）
   useEffect(() => {
@@ -67,7 +56,7 @@ export default function SceneNav() {
       });
       if (idx !== activeRef.current) {
         activeRef.current = idx;
-        paint(idx);
+        setActive(idx); // 只在切幕时 re-render
       }
     };
     onScroll();
@@ -196,13 +185,14 @@ export default function SceneNav() {
 
   return (
     <div ref={rootRef}>
-      <nav className="scene-rail" aria-label="幕导航" ref={railRef}>
+      <nav className="scene-rail" aria-label="幕导航">
         {SCENES.map((s, i) => (
           <button
             key={s.id}
             type="button"
-            className={`scene-dot${i === 0 ? " on" : ""}`}
+            className={`scene-dot${i === active ? " on" : ""}`}
             onClick={() => go(i)}
+            aria-current={i === active ? "true" : undefined}
             aria-label={`跳到「${s.label}」`}
           >
             <span className="scene-dot-label">{s.label}</span>
@@ -215,9 +205,8 @@ export default function SceneNav() {
         <button
           type="button"
           className="scene-jump-btn"
-          ref={upRef}
-          onClick={() => go(activeRef.current - 1)}
-          disabled
+          onClick={() => go(active - 1)}
+          disabled={active === 0}
           aria-label="上一幕"
         >
           <span className="scene-jump-arrow" aria-hidden>
@@ -228,8 +217,8 @@ export default function SceneNav() {
         <button
           type="button"
           className="scene-jump-btn"
-          ref={nextRef}
-          onClick={() => go(activeRef.current + 1)}
+          onClick={() => go(active + 1)}
+          disabled={active === LAST}
           aria-label="下一幕"
         >
           <span className="scene-jump-dir">NEXT</span>

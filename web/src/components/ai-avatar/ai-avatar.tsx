@@ -23,30 +23,46 @@ import ClaudePet, { type PetState } from "./claude-pet";
 
 type DisplayMessage = ChatMessage & { id: string; image?: string };
 
-// 客户端压缩 JD 截图：长边限到 1400px，JPEG 0.85，控制上传体积又保文字清晰
+// 手机拍照的 JD 图片比截图大得多（噪点多、压缩率低）——第一遍长边限 1400px/0.85 画质，
+// 若结果仍偏大（阈值远低于服务端 nginx/应用层上限，留够余量），
+// 再降一档（1100px/0.7）重压一次，避免大图在弱网/服务端体积限制前失败。
+const IMG_SAFE_DATAURL_LEN = 3_500_000;
+
+function drawResized(
+  img: HTMLImageElement,
+  maxSide: number,
+  quality: number,
+): string {
+  let { width, height } = img;
+  if (width > maxSide || height > maxSide) {
+    const r = Math.min(maxSide / width, maxSide / height);
+    width = Math.round(width * r);
+    height = Math.round(height * r);
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("当前浏览器不支持图片处理");
+  ctx.drawImage(img, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new window.Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const MAX = 1400;
-      let { width, height } = img;
-      if (width > MAX || height > MAX) {
-        const r = Math.min(MAX / width, MAX / height);
-        width = Math.round(width * r);
-        height = Math.round(height * r);
+      try {
+        let dataUrl = drawResized(img, 1400, 0.85);
+        if (dataUrl.length > IMG_SAFE_DATAURL_LEN) {
+          dataUrl = drawResized(img, 1100, 0.7);
+        }
+        resolve(dataUrl);
+      } catch (e) {
+        reject(e instanceof Error ? e : new Error("图片处理失败"));
       }
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("当前浏览器不支持图片处理"));
-        return;
-      }
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
