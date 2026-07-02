@@ -75,9 +75,11 @@ const CONTACTS: ContactLink[] = [
   },
   {
     label: "RESUME",
-    // TODO【负责人】：把简历 PDF 放到 web/public/resume.pdf（没放前点击会 404）
-    value: "下载简历（PDF）",
-    href: "/resume.pdf",
+    // TODO【负责人】：把简历 PDF 放到 web/public/resume/resume.pdf（没放前点击会 404）
+    // 已与负责人确认：这里只提供脱敏版公开简历（去手机号/住址/照片等），
+    // 手机号/微信仍遵循下方"邮件联系后本人确认交换"的策略，不因此按钮被绕过。
+    value: "脱敏版公开简历（PDF）",
+    href: "/resume/resume.pdf",
     external: true,
   },
 ];
