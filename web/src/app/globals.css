@@ -229,7 +229,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 26px clamp(24px, 5vw, 64px) 0;
+  /* + safe-area-inset-top：viewport-fit=cover 后避免刘海/挖孔摄像头遮挡导航文字 */
+  padding: calc(26px + env(safe-area-inset-top, 0px)) clamp(24px, 5vw, 64px) 0;
 }
 .stage .navlinks {
   display: flex;
@@ -2970,7 +2971,9 @@ body[data-section="closing"] .stage .nav-loc-dot {
 .ai-avatar-petbtn {
   position: fixed;
   right: clamp(12px, 3vw, 24px);
-  bottom: clamp(12px, 3vw, 22px);
+  /* + safe-area-inset-bottom：viewport-fit=cover 后内容延伸进 Home Indicator 区域，
+     这里补回内边距避免按钮被遮挡（非刘海设备 env() = 0，不受影响） */
+  bottom: calc(clamp(12px, 3vw, 22px) + env(safe-area-inset-bottom, 0px));
   z-index: 100;
   border: none;
   background: none;
@@ -2983,7 +2986,8 @@ body[data-section="closing"] .stage .nav-loc-dot {
 .ai-avatar-hint {
   position: fixed;
   right: clamp(12px, 3vw, 24px);
-  bottom: clamp(98px, 16vw, 118px);
+  /* + safe-area-inset-bottom：随 .ai-avatar-petbtn 一起下移，保持锚定关系 */
+  bottom: calc(clamp(98px, 16vw, 118px) + env(safe-area-inset-bottom, 0px));
   z-index: 99;
   white-space: nowrap;
   padding: 11px 14px;
@@ -4947,7 +4951,8 @@ body:has(.case) {
 .scene-jump {
   position: fixed;
   left: clamp(14px, 2vw, 28px);
-  bottom: clamp(18px, 4vh, 38px);
+  /* + safe-area-inset-bottom，理由同 .ai-avatar-petbtn */
+  bottom: calc(clamp(18px, 4vh, 38px) + env(safe-area-inset-bottom, 0px));
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -5051,7 +5056,7 @@ html {
   }
   .scene-jump {
     left: 10px;
-    bottom: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
   .scene-jump-btn {
     min-width: 0;

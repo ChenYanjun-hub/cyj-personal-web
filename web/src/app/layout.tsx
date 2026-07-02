@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Permanent_Marker, Bebas_Neue } from "next/font/google";
 import localFont from "next/font/local";
 import AiAvatar from "@/components/ai-avatar/ai-avatar";
@@ -52,6 +52,18 @@ export const metadata: Metadata = {
   title: "陈彦均 · AI 产品经理求职",
   description:
     "城乡规划师转型 AI 产品经理。深度项目实证 + AI 数字分身，递给你的数字名片。",
+};
+
+// viewportFit: "cover" 让页面内容/背景延伸到刘海与 Home Indicator 安全区之下，
+// 否则移动端浏览器会在那块区域保留默认系统白色 UI——
+// 表现为"OTHER 幕背景图上下两端始终有白边"（与滚动位置无关，因为那其实不是页面内容）。
+// 配套：固定在屏幕上下边缘的悬浮控件（AI 分身按钮 / UP·NEXT）已加 safe-area-inset 内边距，
+// 避免被刘海/Home Indicator 物理遮挡。
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#fbfbfd",
 };
 
 export default function RootLayout({
