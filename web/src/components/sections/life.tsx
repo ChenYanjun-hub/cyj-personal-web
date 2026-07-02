@@ -47,13 +47,49 @@ type Book = {
 
 const BOOKS: Book[] = [
   { id: "ai-1", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
-  { id: "biz-1", category: "商业", categoryEn: "BUSINESS", title: null, cover: null, tone: "#c08a2e" },
-  { id: "pm-1", category: "产品", categoryEn: "PRODUCT", title: null, cover: null, tone: "#3f6fc4" },
-  { id: "phi-1", category: "哲学", categoryEn: "PHILOSOPHY", title: null, cover: null, tone: "#7a55a8" },
+  {
+    id: "biz-1",
+    category: "商业",
+    categoryEn: "BUSINESS",
+    title: "商业分析全攻略",
+    cover: encodeURI("/books/商业分析全攻略.jpg"),
+    tone: "#c08a2e",
+  },
+  {
+    id: "pm-1",
+    category: "产品",
+    categoryEn: "PRODUCT",
+    title: "产品经理装备书",
+    cover: encodeURI("/books/产品经理装备书.jpg"),
+    tone: "#3f6fc4",
+  },
+  {
+    id: "phi-1",
+    category: "哲学",
+    categoryEn: "PHILOSOPHY",
+    title: "认知觉醒",
+    cover: encodeURI("/books/认知觉醒.jpg"),
+    tone: "#7a55a8",
+  },
   { id: "ai-2", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
   { id: "biz-2", category: "商业", categoryEn: "BUSINESS", title: null, cover: null, tone: "#c08a2e" },
-  { id: "pm-2", category: "产品", categoryEn: "PRODUCT", title: null, cover: null, tone: "#3f6fc4" },
+  {
+    id: "pm-2",
+    category: "产品",
+    categoryEn: "PRODUCT",
+    title: "Shape Up",
+    cover: encodeURI("/books/SHAPE UP！图形.jpg"),
+    tone: "#3f6fc4",
+  },
   { id: "phi-2", category: "哲学", categoryEn: "PHILOSOPHY", title: null, cover: null, tone: "#7a55a8" },
+  {
+    id: "life-1",
+    category: "生活",
+    categoryEn: "LIFE",
+    title: "一个人的四季餐桌",
+    cover: encodeURI("/books/一个人的四季餐桌.jpg"),
+    tone: "#b8556e",
+  },
 ];
 
 function BookCard({ book, duplicate }: { book: Book; duplicate: boolean }) {
