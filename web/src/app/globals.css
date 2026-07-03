@@ -5064,3 +5064,392 @@ html {
     padding: 0 12px;
   }
 }
+
+/* ===============================================================
+   规划项目作品集 · Planning Works（/works/planning）
+   ---------------------------------------------------------------
+   风格参考：Easy Map studio——巨括号画框 + 左目录 + 右信息栏，单屏工具感。
+   position:fixed 独立于首页滚动流；wheel/点击/方向键在内部切换项目。
+   白底黑字，与其余深色 /works 页面刻意区分（贴合参考图的极简高对比风格）。
+   =============================================================== */
+.planning {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+  padding: clamp(8px, 1.4vw, 18px);
+}
+.planning-canvas {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* --- 顶部导航（独立浅色版，不复用深色的 .aiworks-nav） --- */
+.planning-nav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(16px, 2.4vh, 26px) clamp(20px, 3vw, 40px);
+  border-bottom: 1px solid rgba(29, 29, 31, 0.08);
+}
+.planning-nav-name {
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+}
+.planning-nav-links {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 2.2vw, 30px);
+  font-size: 13px;
+}
+.planning-nav-links a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.planning-nav-links a:hover {
+  color: var(--accent);
+}
+.planning-nav-time {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 主体三栏：目录 / 巨括号画框 / 信息栏 --- */
+.planning-frame {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) 1fr minmax(240px, 320px);
+  gap: clamp(16px, 2vw, 40px);
+  padding: clamp(20px, 3vh, 40px) clamp(24px, 3vw, 48px);
+  cursor: ns-resize;
+}
+
+/* 左：项目目录 */
+.planning-index {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: none;
+}
+.planning-index::-webkit-scrollbar {
+  width: 0;
+}
+.planning-index-item {
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(29, 29, 31, 0.32);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.planning-index-item:hover {
+  color: rgba(29, 29, 31, 0.6);
+}
+.planning-index-item.active {
+  color: var(--ink);
+  font-weight: 700;
+}
+.planning-index-item.pending {
+  font-style: italic;
+}
+.planning-index-item.pending.active {
+  color: var(--ink);
+}
+
+/* 中：巨括号画框 + 项目视觉 */
+.planning-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 28px);
+  min-width: 0;
+  min-height: 0;
+}
+.planning-bracket {
+  flex-shrink: 0;
+  width: clamp(18px, 2.6vw, 38px);
+  height: min(70vh, 560px);
+  overflow: visible;
+}
+.planning-bracket path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+.planning-visual {
+  position: relative;
+  flex: 1;
+  max-width: 720px;
+  /* 成果图为 16:9 幻灯页（5120×2880），16:9 框避免 cover 裁切内容 */
+  aspect-ratio: 16 / 9;
+  animation: planning-fade-in 0.4s ease both;
+}
+.planning-shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* contain 而非 cover：图集里混有竖版海报（2160×3895）与 16:9 幻灯页，
+     contain 保证任何比例完整显示，留白处用下面的浅底 */
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(29, 29, 31, 0.04);
+}
+.planning-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--tone-a), var(--tone-b));
+}
+.planning-ph-mark {
+  font-family: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+}
+.planning-ph-note {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.55);
+}
+@keyframes planning-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 图集翻页按钮（悬浮在视觉框左右下角）+ 计数器 */
+.planning-gallery-btn {
+  position: absolute;
+  bottom: 12px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(29, 29, 31, 0.18);
+  border-radius: 999px;
+  background: rgba(251, 251, 253, 0.88);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.planning-gallery-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.planning-gallery-prev {
+  left: 12px;
+}
+.planning-gallery-next {
+  left: 54px;
+}
+.planning-gallery-counter {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 5px 11px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: rgba(251, 251, 253, 0.88);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(29, 29, 31, 0.14);
+  border-radius: 999px;
+}
+
+/* 右：项目信息栏 */
+.planning-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+  animation: planning-fade-in 0.4s ease both;
+}
+.planning-info-body {
+  flex: 1 1 auto;
+  /* min-height:0 让 flex 子元素能正确收缩触发内部滚动，而不是撑爆父级 */
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.planning-info-body::-webkit-scrollbar {
+  width: 0;
+}
+.planning-info-role {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+.planning-info-title {
+  font-size: clamp(17px, 1.5vw, 20px);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+.planning-info-en {
+  font-size: 12px;
+  color: var(--ink-2);
+  margin: 0 0 14px;
+}
+.planning-info-tags {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+}
+.planning-info-desc {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin: 0 0 18px;
+}
+.planning-info-desc.pending {
+  color: var(--ink-2);
+  font-style: italic;
+}
+.planning-info-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.planning-info-fact {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(29, 29, 31, 0.08);
+}
+.planning-info-fact-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.planning-info-fact-label {
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+.planning-counter {
+  flex-shrink: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+  margin: 16px 0 0;
+  text-align: right;
+}
+
+/* --- 底部出口 --- */
+.planning-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px clamp(24px, 3vw, 48px);
+  border-top: 1px solid rgba(29, 29, 31, 0.08);
+}
+.planning-footer-link {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.planning-footer-link:hover {
+  color: var(--accent);
+}
+
+/* --- 移动端：放弃"单屏不滚动"设定，改为整个画布正常纵向滚动 ---
+   桌面版"固定视口 + wheel 切换"塞不进一屏（nav+信息+图+目录+页脚叠起来
+   常常超过 100dvh，此前用 34vh 硬顶导致内容被裁切/挤压）。触屏本来就该
+   用手指正常滑动，不需要也不该被 wheel 劫持逻辑约束——wheel 事件本身在
+   触屏上也不会触发，只对桌面鼠标/触控板生效，互不冲突。 */
+@media (max-width: 900px) {
+  .planning-canvas {
+    overflow-y: auto;
+  }
+  .planning-frame {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    padding: 20px;
+    gap: 24px;
+    cursor: default;
+  }
+  .planning-info {
+    max-height: none;
+    overflow: visible;
+  }
+  .planning-info-body {
+    overflow-y: visible;
+  }
+  .planning-stage {
+    min-height: 0;
+  }
+  .planning-bracket {
+    width: 14px;
+    height: min(42vh, 340px);
+  }
+  .planning-visual {
+    /* 与桌面一致用 16:9（成果图为幻灯页比例，3:4 会重度裁切） */
+    aspect-ratio: 16 / 9;
+    max-width: 420px;
+  }
+  .planning-index {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 16px;
+    padding-bottom: 4px;
+  }
+  .planning-index-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .planning-nav-links {
+    gap: 14px;
+    font-size: 12px;
+  }
+}
