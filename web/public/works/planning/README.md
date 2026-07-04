@@ -12,7 +12,6 @@
 | `xinyang-youth/` | 信阳青年营地设计项目 |
 | `nanan-rural/` | 南安市乡村振兴项目 |
 | `hami-spatial/` | 哈密市国土空间规划评估工作 |
-| `barkol-village/` | 巴里坤县村庄规划项目 |
 | `xuhui-block/` | 徐汇美丽街区建设项目 |
 | `lianxin-gate/` | 连心门改造项目 |
 

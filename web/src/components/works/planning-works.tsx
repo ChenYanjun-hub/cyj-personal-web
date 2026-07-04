@@ -48,6 +48,8 @@ type PlanningWork = {
   tone: [string, string];
   /** 成果图集（public 下路径数组，第一张为项目封面）· 提供后自动替换占位视觉 */
   gallery?: string[];
+  /** 涉密项目：视觉区显示专门的保密声明面板（优先于 gallery / 占位） */
+  classified?: boolean;
 };
 
 /** 生成连号图集路径：/works/planning/<id>/<start>.jpg ...（start 默认 1） */
@@ -91,17 +93,20 @@ const PLANNING_WORKS: PlanningWork[] = [
     desc: PENDING_DESC,
     mark: "AUTO",
     tone: ["#3f5a72", "#0d151f"],
+    // 01 = 封面图，02-27 = 成果图（按 2026.02.10 成果文本汇总页码顺序）
+    gallery: seqGallery("changfeng-auto", 27),
   },
   {
     id: "changfeng-fusion",
     zh: "长丰核聚变城设计项目",
     en: "Changfeng Fusion City Design",
     role: "深度参与",
-    documented: false,
+    documented: true,
     tags: ["核聚变城", "城市设计"],
-    desc: PENDING_DESC,
+    desc: `该项目涉密。按保密要求，成果文件与项目细节均不做公开展示，恕无法在此呈现具体内容。`,
     mark: "FUSION",
     tone: ["#2f7e8f", "#0a1f24"],
+    classified: true,
   },
   {
     id: "xinyang-youth",
@@ -113,6 +118,7 @@ const PLANNING_WORKS: PlanningWork[] = [
     desc: PENDING_DESC,
     mark: "YOUTH",
     tone: ["#4a8a5a", "#0f2016"],
+    gallery: seqGallery("xinyang-youth", 2),
   },
   {
     id: "nanan-rural",
@@ -124,28 +130,20 @@ const PLANNING_WORKS: PlanningWork[] = [
     desc: PENDING_DESC,
     mark: "NANAN",
     tone: ["#a37a2e", "#241a09"],
+    // 01-30 按南安美林街道第二次汇报成果页码顺序
+    gallery: seqGallery("nanan-rural", 30),
   },
   {
     id: "hami-spatial",
     zh: "哈密市国土空间规划评估工作",
     en: "Hami Territorial Spatial Planning Evaluation",
     role: "深度参与",
-    documented: false,
+    documented: true,
     tags: ["国土空间规划", "评估"],
-    desc: PENDING_DESC,
+    desc: `该项目涉密。按保密要求，成果文件与项目细节均不做公开展示，恕无法在此呈现具体内容。`,
     mark: "HAMI",
     tone: ["#b08a55", "#241d12"],
-  },
-  {
-    id: "barkol-village",
-    zh: "巴里坤县村庄规划项目",
-    en: "Barkol County Village Planning",
-    role: "参与",
-    documented: false,
-    tags: ["村庄规划"],
-    desc: PENDING_DESC,
-    mark: "BARKOL",
-    tone: ["#6a7a4a", "#161c0e"],
+    classified: true,
   },
   {
     id: "xuhui-block",
@@ -157,6 +155,8 @@ const PLANNING_WORKS: PlanningWork[] = [
     desc: PENDING_DESC,
     mark: "XUHUI",
     tone: ["#5a5a62", "#151518"],
+    // 01 = 封面图，02 场景效果，03 柱头灯细部
+    gallery: seqGallery("xuhui-block", 3),
   },
   {
     id: "lianxin-gate",
@@ -310,7 +310,26 @@ export default function PlanningWorks() {
           </svg>
 
           <div className="planning-visual" key={w.id}>
-            {galleryN > 0 && current ? (
+            {w.classified ? (
+              /* 涉密项目：庄重的保密声明面板（非"整理中"——是保密要求，不是缺素材） */
+              <div
+                className="planning-classified"
+                style={
+                  {
+                    "--tone-a": w.tone[0],
+                    "--tone-b": w.tone[1],
+                  } as React.CSSProperties
+                }
+              >
+                <span className="planning-classified-seal">涉 密 项 目</span>
+                <span className="planning-classified-en">
+                  CLASSIFIED PROJECT
+                </span>
+                <span className="planning-classified-note">
+                  按保密要求 · 成果文件不公开展示
+                </span>
+              </div>
+            ) : galleryN > 0 && current ? (
               <>
                 {current.endsWith(".mp4") ? (
                   /* 视频：不自动播放（449MB 原片已压成 web 版，仍按需加载）——
