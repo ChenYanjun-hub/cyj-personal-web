@@ -47,7 +47,6 @@ type Book = {
 
 // 分类色：AI 青绿 / 商业金 / 产品蓝 / 哲学紫 / 生活玫红 / 城市土棕 / 设计陶橙
 const BOOKS: Book[] = [
-  { id: "ai-1", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
   {
     id: "biz-1",
     category: "商业",
@@ -104,7 +103,6 @@ const BOOKS: Book[] = [
     cover: encodeURI("/books/江村经济.jpg"),
     tone: "#8a6a4a",
   },
-  { id: "ai-2", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
   {
     id: "urban-4",
     category: "城市",
@@ -137,7 +135,6 @@ const BOOKS: Book[] = [
     cover: encodeURI("/books/膨胀的艺术.jpg"),
     tone: "#c25e3a",
   },
-  { id: "biz-2", category: "商业", categoryEn: "BUSINESS", title: null, cover: null, tone: "#c08a2e" },
   {
     id: "urban-6",
     category: "城市",
@@ -146,7 +143,6 @@ const BOOKS: Book[] = [
     cover: encodeURI("/books/隐形逻辑.jpg"),
     tone: "#8a6a4a",
   },
-  { id: "phi-2", category: "哲学", categoryEn: "PHILOSOPHY", title: null, cover: null, tone: "#7a55a8" },
   {
     id: "life-1",
     category: "生活",
