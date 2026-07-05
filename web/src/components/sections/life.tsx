@@ -45,6 +45,7 @@ type Book = {
   tone: string;
 };
 
+// 分类色：AI 青绿 / 商业金 / 产品蓝 / 哲学紫 / 生活玫红 / 城市土棕 / 设计陶橙
 const BOOKS: Book[] = [
   { id: "ai-1", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
   {
@@ -56,12 +57,28 @@ const BOOKS: Book[] = [
     tone: "#c08a2e",
   },
   {
+    id: "urban-1",
+    category: "城市",
+    categoryEn: "URBAN",
+    title: "美国大城市的死与生",
+    cover: encodeURI("/books/美国大城市的死与生.jpg"),
+    tone: "#8a6a4a",
+  },
+  {
     id: "pm-1",
     category: "产品",
     categoryEn: "PRODUCT",
     title: "产品经理装备书",
     cover: encodeURI("/books/产品经理装备书.jpg"),
     tone: "#3f6fc4",
+  },
+  {
+    id: "urban-2",
+    category: "城市",
+    categoryEn: "URBAN",
+    title: "看不见的城市",
+    cover: encodeURI("/books/看不见的城市.jpg"),
+    tone: "#8a6a4a",
   },
   {
     id: "phi-1",
@@ -71,8 +88,31 @@ const BOOKS: Book[] = [
     cover: encodeURI("/books/认知觉醒.jpg"),
     tone: "#7a55a8",
   },
+  {
+    id: "design-1",
+    category: "设计",
+    categoryEn: "DESIGN",
+    title: "引爆灵感",
+    cover: encodeURI("/books/引爆灵感.jpg"),
+    tone: "#c25e3a",
+  },
+  {
+    id: "urban-3",
+    category: "城市",
+    categoryEn: "URBAN",
+    title: "江村经济",
+    cover: encodeURI("/books/江村经济.jpg"),
+    tone: "#8a6a4a",
+  },
   { id: "ai-2", category: "AI", categoryEn: "AI", title: null, cover: null, tone: "#2f9e8f" },
-  { id: "biz-2", category: "商业", categoryEn: "BUSINESS", title: null, cover: null, tone: "#c08a2e" },
+  {
+    id: "urban-4",
+    category: "城市",
+    categoryEn: "URBAN",
+    title: "东京代谢",
+    cover: encodeURI("/books/东京代谢.jpg"),
+    tone: "#8a6a4a",
+  },
   {
     id: "pm-2",
     category: "产品",
@@ -80,6 +120,31 @@ const BOOKS: Book[] = [
     title: "Shape Up",
     cover: encodeURI("/books/SHAPE UP！图形.jpg"),
     tone: "#3f6fc4",
+  },
+  {
+    id: "urban-5",
+    category: "城市",
+    categoryEn: "URBAN",
+    title: "城村共生",
+    cover: encodeURI("/books/城村共生.jpg"),
+    tone: "#8a6a4a",
+  },
+  {
+    id: "design-2",
+    category: "设计",
+    categoryEn: "DESIGN",
+    title: "膨胀的艺术",
+    cover: encodeURI("/books/膨胀的艺术.jpg"),
+    tone: "#c25e3a",
+  },
+  { id: "biz-2", category: "商业", categoryEn: "BUSINESS", title: null, cover: null, tone: "#c08a2e" },
+  {
+    id: "urban-6",
+    category: "城市",
+    categoryEn: "URBAN",
+    title: "隐形逻辑",
+    cover: encodeURI("/books/隐形逻辑.jpg"),
+    tone: "#8a6a4a",
   },
   { id: "phi-2", category: "哲学", categoryEn: "PHILOSOPHY", title: null, cover: null, tone: "#7a55a8" },
   {
