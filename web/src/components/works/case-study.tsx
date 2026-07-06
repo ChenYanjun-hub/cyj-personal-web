@@ -82,6 +82,8 @@ export type CaseStudyData = {
   tone: [string, string];
   /** hero 背景 Bebas 水印词 */
   mark: string;
+  /** hero 标题区背景图（可选）· 提供后替换绿色渐变底，上方仍叠暗渐变保证文字可读 */
+  heroBg?: string;
   /** 获奖奖章（印章式 · hero 右下角，窄屏落到简介下方） */
   award?: CaseAward;
   /** hero 下方的特征大图（平台首屏截图，可选） */
@@ -247,7 +249,14 @@ export default function CaseStudy({ data }: { data: CaseStudyData }) {
       <WorksNav />
 
       {/* Hero：渐变底 + 水印词 + 左下内容组（参考图 1 的构图） */}
-      <header className="case-hero">
+      <header
+        className={`case-hero${data.heroBg ? " case-hero--image" : ""}`}
+        style={
+          data.heroBg
+            ? ({ "--hero-bg": `url(${data.heroBg})` } as React.CSSProperties)
+            : undefined
+        }
+      >
         <span className="case-hero-mark" aria-hidden>
           {data.mark}
         </span>

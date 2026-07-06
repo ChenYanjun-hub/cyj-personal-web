@@ -21,7 +21,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 
 import WorksNav from "@/components/works/works-nav";
 
@@ -60,6 +60,8 @@ type AiWork = {
   tone: [string, string];
   /** 真实截图（public 下路径）· 提供后自动替换占位视觉 */
   shot?: string;
+  /** 截图 contain 展示时的底色（取截图边缘同色，留白无缝）· 默认深棕 */
+  shotFill?: string;
   /** 案例详情页路由 · 建好后填上，cue 自动从"整理中"变为可点链接 */
   caseHref?: string;
   /** 获奖注记（小奖章 chip · accent 色） */
@@ -80,6 +82,8 @@ const AI_WORKS: AiWork[] = [
     ],
     mark: "MIGUI",
     tone: ["#2f6f5e", "#0e1f1a"],
+    shot: "/works/yunshangmigui/cover.png",
+    shotFill: "#1e473c",
     caseHref: "/works/ai/yunshangmigui",
     award: "2026 中国国际大学生创新大赛 · 研究生组获奖",
   },
@@ -312,7 +316,12 @@ export default function AiWorks() {
               {w.shot ? (
                 <div
                   className="aiwork-shot"
-                  style={{ backgroundImage: `url(${w.shot})` }}
+                  style={
+                    {
+                      backgroundImage: `url(${w.shot})`,
+                      ...(w.shotFill ? { "--shot-fill": w.shotFill } : {}),
+                    } as CSSProperties
+                  }
                   role="img"
                   aria-label={`${w.zh} 产品截图`}
                 />

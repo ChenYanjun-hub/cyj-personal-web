@@ -22,6 +22,7 @@ const DATA: CaseStudyData = {
   intro: `把百年滇越铁路的文化遗产做成数字化知识服务平台——6 大模块 + 南渡 AI 知识问答，从产品定义、AI 设计、全栈开发到部署运维一人走通，已上线公网。`,
   tone: ["#2f6f5e", "#0e1f1a"],
   mark: "MIGUI",
+  heroBg: "/works/yunshangmigui/cover.png",
   award: {
     year: "2026",
     seal: "获奖",

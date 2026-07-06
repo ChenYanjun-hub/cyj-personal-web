@@ -4112,12 +4112,15 @@ body:has(.case) {
   letter-spacing: 0.18em;
   color: rgba(240, 236, 226, 0.45);
 }
-/* 真实截图（数据里填 shot 字段后启用） */
+/* 真实截图（数据里填 shot 字段后启用）· contain 保证整图不裁，
+   底色由 --shot-fill 注入（取封面边缘同色即无缝拼接留白） */
 .aiwork-shot {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center top;
+  background-color: var(--shot-fill, #26241f);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 /* --- 页尾双向出口 --- */
@@ -4267,6 +4270,21 @@ body:has(.case) {
       transparent 1px 56px
     ),
     radial-gradient(130% 120% at 72% 0%, var(--tone-a), var(--tone-b) 74%);
+}
+/* 标题区背景图变体 · 封面图铺满，上叠暗渐变保证左下文字可读；tone 作兜底底色 */
+.case-hero--image {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18, 17, 16, 0.28),
+      rgba(18, 17, 16, 0.9) 82%
+    ),
+    var(--hero-bg) center / cover no-repeat,
+    radial-gradient(130% 120% at 72% 0%, var(--tone-a), var(--tone-b) 74%);
+}
+/* 封面图自带 MIGUI 巨字，隐藏重复的水印词 */
+.case-hero--image .case-hero-mark {
+  display: none;
 }
 .case-hero-mark {
   position: absolute;
