@@ -59,7 +59,7 @@ const BLOCKS: SkillBlock[] = [
       {
         name: "Agent 应用设计",
         level: "能运用",
-        note: `失恋陪伴助手、AI 情感伴侣 V1（已发布）· C 端情感陪伴方向技术验证`,
+        note: `AI 情感伴侣 V1（Coze 已发布）· 三层记忆架构 · C 端情感陪伴方向技术验证`,
       },
       {
         name: "AI 评估与质量管理",

@@ -3705,7 +3705,8 @@ body:has(.case) {
 .aiworks {
   --ink: #f0ece2;
   --ink-2: rgba(240, 236, 226, 0.58);
-  --paper: #121110;
+  /* 底再压深一档：给卡片让出亮度空间（卡片 #211f1b，对比才拉得开） */
+  --paper: #0c0b0a;
 
   min-height: 100vh;
   background: var(--paper);
@@ -3833,11 +3834,18 @@ body:has(.case) {
   position: relative;
   display: grid;
   grid-template-columns: minmax(320px, 5fr) 7fr;
-  background: #191816;
-  border: 1px solid rgba(240, 236, 226, 0.07);
+  /* 暗底上让卡片浮起：关键是「亮描边 + 更亮卡面 + 顶部高光边」——
+     黑色投影在近黑底（#0c0b0a）上等于隐形，起不到分离作用，故不依赖它。 */
+  background: #34302a;
+  border: 1px solid rgba(240, 236, 226, 0.3);
   border-radius: 20px;
   overflow: hidden;
   min-height: clamp(420px, 62vh, 620px);
+  box-shadow:
+    /* 顶部亮边 + 底部暗边 = 立体轮廓（在暗底上可见的是「亮」的一侧） */
+    inset 0 1px 0 rgba(255, 248, 240, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    0 24px 50px -28px rgba(0, 0, 0, 0.85);
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 0.84, 0.3, 1);
@@ -4171,23 +4179,39 @@ body:has(.case) {
   .aiworks-title {
     font-size: clamp(56px, 19vw, 96px);
   }
+  /* 手机端整体收紧：缩间距/内边距、desc 收行高、指标 2 列并排（原本竖堆过高）、
+     视觉区压矮——避免卡片被拉成远超一屏的长条 */
   .aiwork-copy {
-    padding: 24px 20px 28px;
+    gap: 11px;
+    padding: 20px 18px 22px;
   }
   .aiwork-card .aiwork-title {
-    font-size: 24px;
+    font-size: 23px;
+  }
+  .aiwork-desc {
+    font-size: 13.5px;
+    line-height: 1.6;
+    margin-top: 2px;
+  }
+  .aiwork-verify {
+    padding-top: 12px;
+    font-size: 13px;
+    line-height: 1.55;
   }
   .aiwork-metrics {
-    gap: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 14px;
+    padding-top: 12px;
   }
   .aiwork-metric-num {
-    font-size: 40px;
+    font-size: 34px;
   }
   .aiwork-visual {
-    min-height: 220px;
+    min-height: 158px;
   }
   .aiwork-ph-mark {
-    font-size: 56px;
+    font-size: 48px;
   }
 }
 
@@ -4753,32 +4777,36 @@ body:has(.case) {
   }
 }
 
-/* 列表页 cue 升级为可点链接：accent 加粗 + 周期高光扫过（闪光）
- * 原理：文字用 background-clip: text 裁出宽渐变，渐变中段藏一条暖白高光带，
- * 动画移动 background-position 让高光带周期性扫过文字（前 55% 停顿，后 45% 扫过）。
- * hover：下划线从左展开 + 整体右移 4px。 */
+/* 列表页 cue 升级为实心胶囊按钮（此前是纯文字链接，在暗卡上不够显眼）：
+ * 沿用原 cue-shimmer 特效——渐变中段藏一条暖白高光带，周期性扫过（前 55% 停顿，
+ * 后 45% 扫过），只是载体从 background-clip:text 的文字改为胶囊底色。
+ * hover 沿用整体右移 4px，下划线改为投影增强（下划线在胶囊形态不适用）。 */
 .aiwork-cue-link {
-  display: inline-block;
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  /* 父级 .aiwork-copy 是 flex column，子项会被拉满交叉轴——收缩到内容宽 */
+  align-self: flex-start;
+  width: fit-content;
+  padding: 11px 24px;
+  border-radius: 999px;
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
+  color: #fff;
   opacity: 1;
   background: linear-gradient(
     100deg,
     var(--accent) 0%,
     var(--accent) 44%,
-    #ffe8d2 50%,
+    #ff9d66 50%,
     var(--accent) 56%,
     var(--accent) 100%
   );
   background-size: 300% 100%;
   background-position: 100% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
   animation: cue-shimmer 2.8s ease-in-out infinite;
-  transition: transform 0.3s ease;
+  box-shadow: 0 8px 20px -10px rgba(216, 85, 46, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 @keyframes cue-shimmer {
   0%,
@@ -4789,30 +4817,14 @@ body:has(.case) {
     background-position: 0% 0;
   }
 }
-.aiwork-cue-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -5px;
-  width: 100%;
-  height: 1.5px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.35s ease;
-}
 .aiwork-cue-link:hover {
   transform: translateX(4px);
-}
-.aiwork-cue-link:hover::after {
-  transform: scaleX(1);
+  box-shadow: 0 10px 26px -10px rgba(216, 85, 46, 0.85);
 }
 @media (prefers-reduced-motion: reduce) {
   .aiwork-cue-link {
     animation: none;
-    background: none;
-    -webkit-text-fill-color: currentColor;
-    color: var(--accent);
+    background: var(--accent);
   }
 }
 

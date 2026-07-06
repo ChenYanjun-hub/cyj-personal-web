@@ -69,11 +69,6 @@ const AI_WORKS: WorkLink[] = [
     en: "Personal Multi-Agent Platform",
   },
   {
-    id: "breakup",
-    zh: "失恋陪伴",
-    en: "Heartbreak Companion",
-  },
-  {
     id: "ai-emotion",
     zh: "AI 情感伴侣",
     en: "AI Emotional Partner",

@@ -136,26 +136,12 @@ const AI_WORKS: AiWork[] = [
     tone: ["#4a3f6e", "#120f1c"],
   },
   {
-    id: "breakup",
-    zh: "失恋陪伴",
-    en: "Heartbreak Companion",
-    tags: ["C 端", "情感陪伴", "Coze"],
-    status: { kind: "shipped", label: "Coze 已发布 · V1" },
-    desc: `在 Coze 平台搭建并发布的失恋陪伴 Agent。提示词主导 + 三层记忆架构，让陪伴有连续性。自评"已有一点人味，但远远不够"——对 C 端情感陪伴方向的真实技术验证。`,
-    metrics: [
-      { num: "3", label: "层记忆架构 · 碎片 / 短期 / 长期" },
-      { num: "V1", label: "Coze 平台已发布" },
-    ],
-    mark: "COMPANION",
-    tone: ["#8a3a4e", "#1a0d11"],
-  },
-  {
     id: "ai-emotion",
     zh: "AI 情感伴侣",
     en: "AI Emotional Partner",
     tags: ["C 端", "情感陪伴", "Coze"],
     status: { kind: "shipped", label: "Coze 已发布 · V1" },
-    desc: `与失恋陪伴同源的情感伴侣 Agent——同一套三层记忆架构，在"长期陪伴的连续感"上的另一次验证，持续打磨记忆与回应的温度。`,
+    desc: `在 Coze 平台搭建并发布的情感伴侣 Agent。提示词主导 + 三层记忆架构（碎片 / 短期 / 长期），让长期陪伴有连续感。自评"已有一点人味，但远远不够"——对 C 端情感陪伴方向的真实技术验证，持续打磨记忆与回应的温度。`,
     metrics: [
       { num: "3", label: "层记忆架构 · 碎片 / 短期 / 长期" },
       { num: "V1", label: "Coze 平台已发布" },
@@ -253,7 +239,7 @@ export default function AiWorks() {
           )}
         </h1>
         <p className="aiworks-subtitle">
-          7 个 AI 项目 · 从已开发到蓝图，按真实进度如实标注
+          {AI_WORKS.length} 个 AI 项目 · 从已开发到蓝图，按真实进度如实标注
         </p>
       </header>
 
@@ -314,7 +300,7 @@ export default function AiWorks() {
               {/* 案例详情：建好的项目可点跳转，其余先占位 */}
               {w.caseHref ? (
                 <Link href={w.caseHref} className="aiwork-cue aiwork-cue-link">
-                  VIEW CASE STUDY →
+                  查看项目详情 →
                 </Link>
               ) : (
                 <span className="aiwork-cue">CASE STUDY · 整理中</span>
