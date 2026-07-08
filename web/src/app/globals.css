@@ -2759,11 +2759,17 @@ body[data-section="closing"] .stage .nav-loc-dot {
 }
 
 /* 便签删除 ✕（仅管理模式渲染） */
-.board-note-del {
+/* 站长编辑模式：便签右上角操作区（✕ 删除 / ⟲ 复位） */
+.board-note-tools {
   position: absolute;
   top: -10px;
   right: -10px;
   z-index: 2;
+  display: flex;
+  gap: 5px;
+}
+.board-note-del,
+.board-note-reset {
   width: 24px;
   height: 24px;
   display: flex;
@@ -2771,7 +2777,6 @@ body[data-section="closing"] .stage .nav-loc-dot {
   justify-content: center;
   border: none;
   border-radius: 50%;
-  background: var(--accent);
   color: #fff;
   font-size: 12px;
   line-height: 1;
@@ -2780,9 +2785,110 @@ body[data-section="closing"] .stage .nav-loc-dot {
   opacity: 0.92;
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
-.board-note-del:hover {
+.board-note-del {
+  background: var(--accent);
+}
+.board-note-reset {
+  background: #5a6b8a;
+  font-size: 13px;
+}
+.board-note-del:hover,
+.board-note-reset:hover {
   opacity: 1;
   transform: scale(1.12);
+}
+
+/* === 留言板站长后台登录页 /board-admin === */
+.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #0c0b0a;
+  color: #f0e8d8;
+}
+.admin-login-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 28px 26px;
+  border: 1px solid rgba(240, 232, 216, 0.16);
+  border-radius: 16px;
+  background: rgba(240, 232, 216, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.admin-login-eyebrow {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+}
+.admin-login-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f0e8d8;
+}
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.admin-login-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(240, 232, 216, 0.7);
+}
+.admin-login-input {
+  padding: 10px 12px;
+  border: 1px solid rgba(240, 232, 216, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #f0e8d8;
+  font-size: 14px;
+}
+.admin-login-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.admin-login-submit {
+  margin-top: 6px;
+  padding: 11px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.admin-login-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.admin-login-error {
+  margin: 0;
+  font-size: 13px;
+  color: #ff8f6b;
+}
+.admin-login-hint {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(240, 232, 216, 0.8);
+}
+.admin-login-hint a,
+.admin-login-back {
+  color: var(--accent);
+  text-decoration: none;
+}
+.admin-login-back {
+  margin-top: 6px;
+  font-size: 13px;
 }
 
 /* 发表条（横向，贴在网格板上方） */
@@ -2971,10 +3077,7 @@ body[data-section="closing"] .stage .nav-loc-dot {
   color: #3a3d4d;
   white-space: pre-wrap;
   word-break: break-word;
-  display: -webkit-box;
-  -webkit-line-clamp: 6;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 760px) {

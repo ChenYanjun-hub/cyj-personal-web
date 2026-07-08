@@ -3,11 +3,13 @@
 /**
  * 留言板 · 网格底板 + 可拖动便签（收尾幕内，id="board"）
  * ---------------------------------------------------------------
- * 风格参考：网格纸底板 + 手绘夹子夹住的便签帖子，可随意拖动重新摆放。
- *  - GET /api/board 拉列表；POST 发表后即时变成一张新便签贴上来
- *  - 便签绝对定位（transform translate + rotate），指针拖拽时直接改 DOM transform（流畅），落下提交到 state
- *  - 拖拽位置仅本会话客户端，不入库（每位访客自己摆，不互相影响）
- *  - 防刷靠后端；用户内容 React {text} 渲染（自动转义），换行 pre-wrap 保留
+ * 风格：网格纸底板 + 手绘夹子夹住的便签，可随意拖动重新摆放。
+ *  - GET /api/board 拉列表；POST 发表后即时贴上来
+ *  - 便签绝对定位（transform translate + rotate），拖拽直接改 DOM transform（流畅），落下写回 state
+ *  - 布局：默认按留言时间（created_at DESC）走「实测高度列瀑布流」，长短便签不重叠、正文全显示
+ *  - 站长后台（/board-admin 邮箱+密码登录）：进编辑模式后拖便签 = 全局保存位置、可删除/重置
+ *  - 普通访客拖动仅本会话客户端，不入库（每位访客自己摆，不互相影响）
+ *  - 用户内容 React {text} 渲染（自动转义），pre-wrap 保留换行
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,14 +21,18 @@ type BoardMessage = {
   name: string;
   body: string;
   created_at: number;
+  pos_x: number | null;
+  pos_y: number | null;
+  rot: number | null;
+  z_order: number;
 };
 
-type Pos = { x: number; y: number; rot: number; z: number };
+type Pos = { x: number; y: number; rot: number; z: number; manual: boolean };
 
 const NOTE_W = 210;
-const NOTE_H = 172;
+const NOTE_H = 172; // 仅作实测前的高度兜底
 const GAP_X = 30;
-const GAP_Y = 42;
+const GAP_Y = 26;
 const PAD = 26;
 
 // 按 id 的稳定伪随机（抖动/旋转不会每次渲染都变）
@@ -77,13 +83,12 @@ export default function MessageBoard() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 站长管理模式：token 存 localStorage（仅本机），#board-admin 触发输入
-  const [adminToken, setAdminToken] = useState<string | null>(null);
-  const [adminEntry, setAdminEntry] = useState(false);
-  const [tokenInput, setTokenInput] = useState("");
+  // 站长编辑模式：由 httpOnly 会话 cookie 决定（GET /api/board/admin/session）
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const honeypotRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const noteRefs = useRef<Map<number, HTMLElement>>(new Map());
   const zTop = useRef(1);
   const drag = useRef<{
     el: HTMLElement;
@@ -96,12 +101,32 @@ export default function MessageBoard() {
     moved: boolean;
   } | null>(null);
 
+  // 拉留言列表：服务端已设位置的便签（pos_x 非空）直接采用，其余走瀑布流
   useEffect(() => {
     let alive = true;
     fetch("/api/board")
       .then((r) => r.json())
       .then((d) => {
-        if (alive && Array.isArray(d.messages)) setMessages(d.messages);
+        if (!alive || !Array.isArray(d.messages)) return;
+        const list = d.messages as BoardMessage[];
+        setMessages(list);
+        const maxZ = list.reduce((mx, m) => Math.max(mx, m.z_order || 0), 1);
+        zTop.current = maxZ;
+        setPositions((prev) => {
+          const next = new Map(prev);
+          for (const m of list) {
+            if (m.pos_x != null && m.pos_y != null) {
+              next.set(m.id, {
+                x: m.pos_x,
+                y: m.pos_y,
+                rot: m.rot ?? 0,
+                z: m.z_order || 1,
+                manual: true,
+              });
+            }
+          }
+          return next;
+        });
       })
       .catch(() => {})
       .finally(() => {
@@ -112,47 +137,60 @@ export default function MessageBoard() {
     };
   }, []);
 
-  // 管理模式：读已存 token + 监听 #board-admin（站长访问 站点/#board-admin 唤出输入框）
+  // 查询是否已登录站长 → 决定是否进编辑模式
   useEffect(() => {
-    try {
-      setAdminToken(localStorage.getItem("board_admin_token"));
-    } catch {}
-    const checkHash = () =>
-      setAdminEntry(window.location.hash === "#board-admin");
-    checkHash();
-    window.addEventListener("hashchange", checkHash);
-    return () => window.removeEventListener("hashchange", checkHash);
+    let alive = true;
+    fetch("/api/board/admin/session")
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive && d?.admin) setIsAdmin(true);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  // 给还没有位置的便签按网格散布分配初始位置（已拖动过的保留）
+  // 布局：手动定位（拖过/后台设过）的便签保留；其余按时间序走实测高度列瀑布流
   const layout = useCallback(() => {
     const canvas = canvasRef.current;
     const W = canvas?.clientWidth || 820;
-    const cols = Math.max(1, Math.floor((W - PAD * 2 + GAP_X) / (NOTE_W + GAP_X)));
+    const cols = Math.max(
+      1,
+      Math.floor((W - PAD * 2 + GAP_X) / (NOTE_W + GAP_X))
+    );
     setPositions((prev) => {
       const next = new Map(prev);
-      let i = 0;
+      const colBottom = new Array(cols).fill(PAD) as number[];
       let maxBottom = 0;
       for (const m of messages) {
-        let p = next.get(m.id);
-        if (!p) {
-          const col = i % cols;
-          const row = Math.floor(i / cols);
-          const jx = (rand(m.id) * 2 - 1) * 16;
-          const jy = (rand(m.id + 9) * 2 - 1) * 14;
-          const rot = (rand(m.id + 3) * 2 - 1) * 4.5;
-          p = {
-            x: PAD + col * (NOTE_W + GAP_X) + jx,
-            y: PAD + row * (NOTE_H + GAP_Y) + jy,
-            rot,
-            z: ++zTop.current,
-          };
-          next.set(m.id, p);
+        const el = noteRefs.current.get(m.id);
+        const h = el?.offsetHeight || NOTE_H;
+        const existing = next.get(m.id);
+        if (existing?.manual) {
+          maxBottom = Math.max(maxBottom, existing.y + h);
+          continue;
         }
-        maxBottom = Math.max(maxBottom, p.y + NOTE_H);
-        i++;
+        // 选最短列填入
+        let col = 0;
+        for (let c = 1; c < cols; c++) {
+          if (colBottom[c] < colBottom[col]) col = c;
+        }
+        const jx = (rand(m.id) * 2 - 1) * 8;
+        const rot = (rand(m.id + 3) * 2 - 1) * 4;
+        const x = PAD + col * (NOTE_W + GAP_X) + jx;
+        const y = colBottom[col];
+        next.set(m.id, {
+          x,
+          y,
+          rot,
+          z: existing?.z ?? m.z_order ?? ++zTop.current,
+          manual: false,
+        });
+        colBottom[col] = y + h + GAP_Y;
+        maxBottom = Math.max(maxBottom, y + h);
       }
-      setCanvasH(Math.max(480, maxBottom + PAD));
+      setCanvasH(Math.max(360, maxBottom + PAD));
       return next;
     });
   }, [messages]);
@@ -202,57 +240,55 @@ export default function MessageBoard() {
     if (!d) return;
     d.el.classList.remove("dragging");
     if (d.moved) {
-      const dx = e.clientX - d.sx;
-      const dy = e.clientY - d.sy;
+      const nx = d.ox + (e.clientX - d.sx);
+      const ny = d.oy + (e.clientY - d.sy);
       setPositions((prev) => {
         const n = new Map(prev);
         const p = n.get(d.id);
-        if (p) n.set(d.id, { ...p, x: d.ox + dx, y: d.oy + dy, z: zTop.current });
+        if (p) n.set(d.id, { ...p, x: nx, y: ny, z: zTop.current, manual: true });
         return n;
       });
+      // 站长编辑模式：位置写回服务端，全局生效
+      if (isAdmin) {
+        void fetch(`/api/board/${d.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            x: Math.round(nx),
+            y: Math.round(ny),
+            rot: d.rot,
+          }),
+        }).then((res) => {
+          if (res.status === 401) {
+            setIsAdmin(false);
+            setError("登录已过期，请重新登录后台");
+          }
+        }).catch(() => {});
+      }
     }
     drag.current = null;
   };
 
-  /* ---------------- 站长管理 ---------------- */
-  const enterAdmin = (e: FormEvent) => {
-    e.preventDefault();
-    const t = tokenInput.trim();
-    if (!t) return;
+  /* ---------------- 站长后台操作 ---------------- */
+  const logout = async () => {
     try {
-      localStorage.setItem("board_admin_token", t);
+      await fetch("/api/board/admin/logout", { method: "POST" });
     } catch {}
-    setAdminToken(t);
-    setAdminEntry(false);
-    setTokenInput("");
-    setError(null);
-    // 清掉 #board-admin，避免分享链接带出
-    if (window.location.hash === "#board-admin") {
-      history.replaceState(null, "", window.location.pathname + window.location.search);
-    }
-  };
-
-  const exitAdmin = () => {
-    try {
-      localStorage.removeItem("board_admin_token");
-    } catch {}
-    setAdminToken(null);
+    setIsAdmin(false);
   };
 
   const deleteNote = async (id: number) => {
-    if (!adminToken) return;
+    if (!isAdmin) return;
     try {
-      const res = await fetch(`/api/board/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
+      const res = await fetch(`/api/board/${id}`, { method: "DELETE" });
       if (res.status === 401) {
-        exitAdmin();
-        setError("管理 token 无效，已退出管理模式");
+        setIsAdmin(false);
+        setError("登录已过期，请重新登录后台");
         return;
       }
       if (res.ok) {
         setMessages((prev) => prev.filter((m) => m.id !== id));
+        noteRefs.current.delete(id);
         setPositions((prev) => {
           const n = new Map(prev);
           n.delete(id);
@@ -261,6 +297,33 @@ export default function MessageBoard() {
       }
     } catch {
       setError("删除失败，请稍后再试");
+    }
+  };
+
+  const resetNote = async (id: number) => {
+    if (!isAdmin) return;
+    try {
+      const res = await fetch(`/api/board/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reset: true }),
+      });
+      if (res.status === 401) {
+        setIsAdmin(false);
+        setError("登录已过期，请重新登录后台");
+        return;
+      }
+      if (res.ok) {
+        // 清掉手动标记 → 下次布局回到瀑布流
+        setPositions((prev) => {
+          const n = new Map(prev);
+          n.delete(id);
+          return n;
+        });
+        setMessages((prev) => prev.slice());
+      }
+    } catch {
+      setError("重置失败，请稍后再试");
     }
   };
 
@@ -311,31 +374,12 @@ export default function MessageBoard() {
         </p>
       </header>
 
-      {/* 站长管理条：#board-admin 唤出输入框；已登录显示状态 + 退出 */}
-      {adminEntry ? (
-        <form className="board-admin" onSubmit={enterAdmin}>
-          <input
-            className="board-input"
-            type="password"
-            value={tokenInput}
-            onChange={(e) => setTokenInput(e.target.value)}
-            placeholder="管理 token"
-            aria-label="管理 token"
-            autoComplete="off"
-          />
-          <button className="board-submit" type="submit">
-            进入管理
-          </button>
-        </form>
-      ) : adminToken ? (
+      {/* 站长编辑模式条 */}
+      {isAdmin ? (
         <p className="board-admin-status">
-          🔑 管理模式 · 点便签右上角 ✕ 删除
-          <button
-            type="button"
-            className="board-admin-exit"
-            onClick={exitAdmin}
-          >
-            退出管理
+          🔧 编辑模式 · 拖便签调整位置（自动保存）· 便签角上 ✕ 删除 / ⟲ 复位
+          <button type="button" className="board-admin-exit" onClick={logout}>
+            退出后台
           </button>
         </p>
       ) : null}
@@ -388,11 +432,7 @@ export default function MessageBoard() {
       </form>
 
       {/* 网格底板 · 可拖动便签 */}
-      <div
-        className="board-canvas"
-        ref={canvasRef}
-        style={{ height: canvasH }}
-      >
+      <div className="board-canvas" ref={canvasRef} style={{ height: canvasH }}>
         {!loaded ? (
           <p className="board-empty">加载中…</p>
         ) : messages.length === 0 ? (
@@ -403,6 +443,10 @@ export default function MessageBoard() {
             return (
               <article
                 key={m.id}
+                ref={(el) => {
+                  if (el) noteRefs.current.set(m.id, el);
+                  else noteRefs.current.delete(m.id);
+                }}
                 className="board-note"
                 style={
                   p
@@ -420,17 +464,31 @@ export default function MessageBoard() {
                 <span className="board-note-clip">
                   <BoardClip />
                 </span>
-                {adminToken ? (
-                  <button
-                    type="button"
-                    className="board-note-del"
-                    aria-label="删除这条留言"
-                    title="删除"
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => deleteNote(m.id)}
-                  >
-                    ✕
-                  </button>
+                {isAdmin ? (
+                  <div className="board-note-tools">
+                    {p?.manual ? (
+                      <button
+                        type="button"
+                        className="board-note-reset"
+                        aria-label="复位到默认排布"
+                        title="复位到默认排布"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={() => resetNote(m.id)}
+                      >
+                        ⟲
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="board-note-del"
+                      aria-label="删除这条留言"
+                      title="删除"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => deleteNote(m.id)}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 ) : null}
                 <div className="board-note-head">
                   <span className="board-note-name">{m.name}</span>
