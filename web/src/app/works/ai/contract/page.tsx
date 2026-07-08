@@ -18,7 +18,7 @@ const DATA: CaseStudyData = {
   category: "AI Workflow · toB · 合同初审",
   title: "购销合同审查助手",
   titleEn: "Sales Contract Review Assistant",
-  intro: `他独立完成产品设计与全栈工程，把一个 Coze 审查工作流，做成可上传文件、可审查、可下载报告的完整 Web 产品——一个已上线 Vercel 的购销合同初审辅助工具。`,
+  intro: `他独立完成产品设计与全栈工程，把一个 Coze 审查工作流，做成可上传文件、可审查、可下载报告的完整 Web 产品——一个已部署 Vercel、公司内部测试中的购销合同初审辅助工具。`,
   tone: ["#5a5246", "#171411"],
   mark: "CONTRACT",
   heroBg: "/works/contract/cover.png",
@@ -77,7 +77,7 @@ const DATA: CaseStudyData = {
           h: 4304,
           tall: true,
           caption:
-            "产品首页（整页）· 把同事的 Coze 审查工作流，做成有 Hero 主张、客户问题、能力说明与「三步完成初审」流程的完整 Web 产品——已上线 Vercel",
+            "产品首页（整页）· 把同事的 Coze 审查工作流，做成有 Hero 主张、客户问题、能力说明与「三步完成初审」流程的完整 Web 产品——已部署 Vercel · 公司内部测试中",
         },
       ],
     },
@@ -114,11 +114,11 @@ const DATA: CaseStudyData = {
       eyebrow: "After",
       heading: "之后",
       paragraphs: [
-        `我会把它定义为"完成核心链路、可真实运行、已上线部署的垂直场景 MVP"。`,
+        `我会把它定义为"完成核心链路、可真实运行、已部署 Vercel 公司内部测试的垂直场景 MVP"。`,
       ],
       bullets: [
         `完整用户流程跑通：上传合同 → 解析文件 → 配置审查策略 → 调用 Coze 文件工作流 → 展示结果 → 复制 / 下载报告`,
-        `GitHub 管理代码 + Vercel 生产部署；/api/health 检测工作流连接状态，环境变量缺失时退回示例模式、不影响演示`,
+        `GitHub 管理代码 + Vercel 部署（公司内部测试）；/api/health 检测工作流连接状态，环境变量缺失时退回示例模式、不影响演示`,
         `迭代有迹可循：afe21ae 初始 MVP → 4dede76 .docx 解析 → 40f9897 Coze 文件工作流接入 → 后续 UI 与环境变量安全优化`,
       ],
       paragraphsAfter: [
@@ -145,7 +145,7 @@ const DATA: CaseStudyData = {
       ],
       bullets: [
         `产品层：把原本只是"工作流概念"的合同审查能力，做成了含首页 / 工作台 / 结果页 / 连接状态的完整 Web 产品`,
-        `工程层：.txt/.docx 上传解析、Coze 文件工作流接入、健康检查、结果标准化、Markdown 报告展示、生产部署的完整链路`,
+        `工程层：.txt/.docx 上传解析、Coze 文件工作流接入、健康检查、结果标准化、Markdown 报告展示、Vercel 部署的完整链路`,
         `展示层：结果页不只给风险摘要，还支持风险等级筛选、专业报告元数据、复制报告、下载 .md/.txt——让输出更接近真实交付物，而非模型原始响应`,
       ],
       images: [
@@ -192,7 +192,7 @@ const DATA: CaseStudyData = {
 export const metadata: Metadata = {
   title: "购销合同审查助手 · AI 项目案例 · 陈彦均",
   description:
-    "购销合同审查助手：toB AI Workflow 产品，把 Coze 合同审查工作流封装为可上传文件、可审查、可下载报告的完整 Web 产品，已上线 Vercel。",
+    "购销合同审查助手：toB AI Workflow 产品，把 Coze 合同审查工作流封装为可上传文件、可审查、可下载报告的完整 Web 产品，已部署 Vercel、公司内部测试中。",
 };
 
 export default function ContractCase() {

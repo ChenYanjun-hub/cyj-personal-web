@@ -1,15 +1,15 @@
 "use client";
 
 /**
- * 第三幕：作品集 · Portfolio（v2 双栏跳转版）
+ * 第三幕：作品集 · Portfolio（v3 主次版）
  * ---------------------------------------------------------------
- * v1 结构：CORE / WIP / LAB 三板块 inline 展开
- * v2 调整：用户拍板改为左右双栏 + 中间竖线分割
- *  - 左板块：AI 项目（中英双语）→ 点击跳转 /works/ai
- *  - 右板块：规划项目（中英双语）→ 点击跳转 /works/planning
- *  - 跳转目标页面：待用户提供参考后实现
+ * v1：CORE / WIP / LAB 三板块 inline 展开
+ * v2：左右对半双栏（AI / 规划）+ 中间竖线
+ * v3（当前）：转行 AI 产品经理定位 —— AI 产品升为全宽主视觉（3 个已交付
+ *   项目带封面卡片），规划降为下方紧凑「背景支撑带」（不删除，重定义为
+ *   领域深度 + 交付力的能力迁移佐证）。导师点评：对半分不合适、规划别删。
  *
- * 视觉：与 about 一致的 v2 色块系统（赭石底 #b85a35 + 米黄字 #f0e8d8）
+ * 视觉：沿用 v2 色块系统（赭石底 #b85a35 + 米黄字 #f0e8d8）
  *      + 主标题 "PORTFOLIO" Bebas Neue 巨字 + 每字母 hover cycle 动画
  *
  * 字符串：长 note 用反引号 `` 避免内层引号潜在 build 错误（见 dev-log 阶段二踩坑 3.1）。
@@ -17,9 +17,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 
-// v2 主标题字母 hover cycle 动画（复用 about-me 同款 + globals.css 的 @keyframes letter-fly-cycle）
+// v3 主标题字母 hover cycle 动画（复用 about-me 同款 + globals.css 的 @keyframes letter-fly-cycle）
 const PORTFOLIO_TITLE_CHARS = "PORTFOLIO".split("");
 const LETTER_CYCLE_MS = 650;
 
@@ -34,95 +34,73 @@ function handleLetterEnter(e: ReactMouseEvent<HTMLSpanElement>) {
 
 /* ---------------- 数据 ---------------- */
 
-type WorkLink = {
-  id: string;
+// 主视觉：3 个已交付 AI 项目 · 首页只放真交付（未开始的在 /works/ai 全列表里）
+type FeaturedAi = {
+  slug: string;
   zh: string;
-  en: string;
+  /** 一行副标题 */
+  sub: string;
+  /** 案例详情页路由 */
+  href: string;
+  /** 封面图（public 路径） */
+  cover: string;
+  /** 封面 contain 展示时的底色（取封面边缘同色，留白无缝） */
+  fill: string;
+  /** 状态短语 */
+  status: string;
+  /** 状态点颜色 · 已上线绿 / 已开发琥珀 */
+  dot: string;
 };
 
-// AI 项目作品集 · 包含已经/在做的 AI 相关项目
-// 英文名为暂用直译版本 · 待用户 review / 替换正式英文名
-const AI_WORKS: WorkLink[] = [
+const FEATURED_AI: FeaturedAi[] = [
   {
-    id: "yunshangmigui",
-    zh: "云上米轨 · 滇越铁路垂直领域数字化知识服务平台",
-    en: "Yun Shang Mi Gui · Yunnan–Vietnam Railway Knowledge Platform",
+    slug: "yunshangmigui",
+    zh: "云上米轨",
+    sub: "滇越铁路垂直领域数字化知识服务平台",
+    href: "/works/ai/yunshangmigui",
+    cover: "/works/yunshangmigui/cover.png",
+    fill: "#1e473c",
+    status: "已上线公网 · 全栈独立交付",
+    dot: "#5fbf8a",
   },
   {
-    id: "jianjinggui",
+    slug: "jianjinggui",
     zh: "建景规规范问答助手",
-    en: "Architecture · Landscape · Planning Q&A Assistant",
+    sub: "垂类规范 RAG · 7 维评测体系",
+    href: "/works/ai/jianjinggui",
+    cover: "/works/jianjinggui/cover.png",
+    fill: "#1d314c",
+    status: "公司内部上线测试阶段",
+    dot: "#d99a3a",
   },
   {
-    id: "contract",
+    slug: "contract",
     zh: "购销合同审查助手",
-    en: "Sales Contract Review Assistant",
-  },
-  {
-    id: "moogu",
-    zh: "MOOGU · 野生菌数字手帐",
-    en: "MOOGU · Wild Mushroom Field Journal",
-  },
-  {
-    id: "multi-agent",
-    zh: "个人多 Agent 助手平台",
-    en: "Personal Multi-Agent Platform",
-  },
-  {
-    id: "ai-emotion",
-    zh: "AI 情感伴侣",
-    en: "AI Emotional Partner",
+    sub: "AI Workflow · 上传即审 · 已部署 Vercel 内测",
+    href: "/works/ai/contract",
+    cover: "/works/contract/cover.png",
+    fill: "#312c26",
+    status: "公司内部上线测试阶段",
+    dot: "#d99a3a",
   },
 ];
 
-// 规划项目作品集 · 主导 / 深度参与 / 参与 全部合并按时间或重要度排
-const PLANNING_WORKS: WorkLink[] = [
-  {
-    id: "xinyang-liulin",
-    zh: "信阳柳林矿坑文旅项目",
-    en: "Xinyang Liulin Mine Pit Tourism",
-  },
-  {
-    id: "changfeng-auto",
-    zh: "长丰汽车城战略规划项目",
-    en: "Changfeng Auto City Strategic Planning",
-  },
-  {
-    id: "changfeng-fusion",
-    zh: "长丰核聚变城设计项目",
-    en: "Changfeng Fusion City Design",
-  },
-  {
-    id: "xinyang-youth",
-    zh: "信阳青年营地设计项目",
-    en: "Xinyang Youth Camp Design",
-  },
-  {
-    id: "nanan-rural",
-    zh: "南安市乡村振兴项目",
-    en: "Nan'an Rural Revitalization",
-  },
-  {
-    id: "hami-spatial",
-    zh: "哈密市国土空间规划评估工作",
-    en: "Hami Territorial Spatial Planning Evaluation",
-  },
-  {
-    id: "barkol-village",
-    zh: "巴里坤县村庄规划项目",
-    en: "Barkol County Village Planning",
-  },
-  {
-    id: "xuhui-block",
-    zh: "徐汇美丽街区建设项目",
-    en: "Xuhui Beautiful Block Construction",
-  },
-  {
-    id: "lianxin-gate",
-    zh: "连心门改造项目",
-    en: "Lianxin Gate Renovation",
-  },
+// 规划背景 · 主导 / 深度参与 / 参与 全部合并（chips 展示，全部入口进 /works/planning）
+const PLANNING_WORKS: string[] = [
+  "信阳柳林矿坑文旅项目",
+  "长丰汽车城战略规划项目",
+  "长丰核聚变城设计项目",
+  "信阳青年营地设计项目",
+  "南安市乡村振兴项目",
+  "哈密市国土空间规划评估",
+  "巴里坤县村庄规划项目",
+  "徐汇美丽街区建设项目",
+  "连心门改造项目",
 ];
+
+// 规划背景定位语 · 把旧履历重定义为 AI PM 的能力迁移佐证
+// TODO(用户确认)：可补真实年限 / 最想强调的能力关键词后再打磨
+const PLANNING_NOTE = `产品与交付根基 —— 政企 / 文旅 / 空间规划的复杂项目实战：需求定义、多方干系人协调、从调研到落地交付，正是迁移为 AI 产品经理的领域深度与交付力。`;
 
 /* ---------------- Component ---------------- */
 
@@ -177,52 +155,67 @@ export default function Portfolio() {
         )}
       </h2>
 
-      {/* 双栏 split：左 AI / 右 规划 · 中间一条极简竖线分隔 */}
-      <div className="portfolio-split">
-        {/* 左：AI 作品集 · 点击跳转 */}
-        <Link
-          href="/works/ai"
-          className="portfolio-side portfolio-side-ai"
-          aria-label="进入 AI 项目作品集"
-        >
-          <header className="portfolio-side-head">
-            <span className="portfolio-side-label-zh">AI 项目作品集</span>
-            <span className="portfolio-side-label-en">AI WORKS</span>
-          </header>
-          <ul className="portfolio-side-list">
-            {AI_WORKS.map((w) => (
-              <li key={w.id} className="portfolio-side-item">
-                <span className="portfolio-side-item-zh">{w.zh}</span>
-                <span className="portfolio-side-item-en">{w.en}</span>
-              </li>
-            ))}
-          </ul>
-          <span className="portfolio-side-cue">查看全部 →</span>
-        </Link>
+      {/* 主视觉：AI 产品作品集 · 3 个已交付项目封面卡片 */}
+      <div className="portfolio-ai">
+        <div className="portfolio-block-head">
+          <div className="portfolio-block-titles">
+            <span className="portfolio-block-zh">AI 产品作品集</span>
+            <span className="portfolio-block-en">AI PRODUCT WORKS</span>
+          </div>
+          <Link href="/works/ai" className="portfolio-block-all">
+            查看全部 →
+          </Link>
+        </div>
 
-        {/* 中间极简竖线分隔 */}
-        <div className="portfolio-split-line" aria-hidden />
+        <div className="portfolio-ai-grid">
+          {FEATURED_AI.map((w) => (
+            <Link
+              key={w.slug}
+              href={w.href}
+              className="portfolio-ai-card"
+              style={{ "--shot-fill": w.fill } as CSSProperties}
+              aria-label={`${w.zh} 案例详情`}
+            >
+              <div
+                className="portfolio-ai-cover"
+                style={{ backgroundImage: `url(${w.cover})` }}
+                role="img"
+                aria-label={`${w.zh} 封面`}
+              />
+              <div className="portfolio-ai-body">
+                <span className="portfolio-ai-zh">{w.zh}</span>
+                <span className="portfolio-ai-sub">{w.sub}</span>
+                <span
+                  className="portfolio-ai-status"
+                  style={{ "--dot": w.dot } as CSSProperties}
+                >
+                  {w.status}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
 
-        {/* 右：规划作品集 · 点击跳转 */}
-        <Link
-          href="/works/planning"
-          className="portfolio-side portfolio-side-planning"
-          aria-label="进入规划项目作品集"
-        >
-          <header className="portfolio-side-head">
-            <span className="portfolio-side-label-zh">规划项目作品集</span>
-            <span className="portfolio-side-label-en">PLANNING WORKS</span>
-          </header>
-          <ul className="portfolio-side-list">
-            {PLANNING_WORKS.map((w) => (
-              <li key={w.id} className="portfolio-side-item">
-                <span className="portfolio-side-item-zh">{w.zh}</span>
-                <span className="portfolio-side-item-en">{w.en}</span>
-              </li>
-            ))}
-          </ul>
-          <span className="portfolio-side-cue">查看全部 →</span>
-        </Link>
+      {/* 次要：规划背景支撑带 · 弱化但重定义为能力迁移佐证 */}
+      <div className="portfolio-planning">
+        <div className="portfolio-block-head">
+          <div className="portfolio-block-titles">
+            <span className="portfolio-plan-zh">
+              规划背景
+              <span className="portfolio-plan-en"> · PLANNING BACKGROUND</span>
+            </span>
+          </div>
+          <Link href="/works/planning" className="portfolio-block-all">
+            查看全部 →
+          </Link>
+        </div>
+        <p className="portfolio-plan-note">{PLANNING_NOTE}</p>
+        <ul className="portfolio-plan-chips">
+          {PLANNING_WORKS.map((name) => (
+            <li key={name}>{name}</li>
+          ))}
+        </ul>
       </div>
     </section>
   );

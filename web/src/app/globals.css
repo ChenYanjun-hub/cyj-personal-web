@@ -1406,61 +1406,28 @@ body[data-section="closing"] .stage .nav-loc-dot {
   animation: letter-fly-cycle 0.65s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
-/* === v2 双栏 split：左 AI / 右 规划 + 中间极简竖线分隔 === */
-.portfolio-split {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1px 1fr;
-  gap: clamp(40px, 6vw, 80px);
-  align-items: stretch;
-  opacity: 0;
-  transform: translateY(22px);
-}
-.portfolio.visible .portfolio-split {
-  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.25s;
-}
+/* === v3 主次版：AI 全宽主视觉 + 规划背景支撑带 === */
 
-/* 中间一条极简竖线 */
-.portfolio-split-line {
-  background: rgba(240, 232, 216, 0.25);
-  width: 1px;
-  align-self: stretch;
-}
-
-/* 单栏 link · 整个区域可点 · Next.js Link 渲染为 <a> */
-.portfolio-side {
+/* 板块通用头（中英标题 + 查看全部） */
+.portfolio-block-head {
   display: flex;
-  flex-direction: column;
-  gap: clamp(24px, 3vh, 40px);
-  color: var(--ink);
-  text-decoration: none;
-  padding: clamp(20px, 3vh, 40px) clamp(16px, 2vw, 28px);
-  border-radius: 4px;
-  transition: transform 0.4s ease, background 0.4s ease;
-  cursor: pointer;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: clamp(18px, 2.6vh, 30px);
 }
-.portfolio-side:hover,
-.portfolio-side:focus-visible {
-  background: rgba(240, 232, 216, 0.06);
-  transform: translateY(-4px);
-  outline: none;
-}
-
-/* 顶部 label · 中英双语 */
-.portfolio-side-head {
+.portfolio-block-titles {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.portfolio-side-label-zh {
-  font-size: clamp(20px, 2vw, 28px);
+.portfolio-block-zh {
+  font-size: clamp(20px, 2vw, 30px);
   font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--ink);
 }
-.portfolio-side-label-en {
+.portfolio-block-en {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: clamp(11px, 0.9vw, 13px);
   font-weight: 500;
@@ -1468,69 +1435,182 @@ body[data-section="closing"] .stage .nav-loc-dot {
   text-transform: uppercase;
   color: var(--ink-2);
 }
+/* AI 主 CTA · 醒目胶囊按钮（米黄描边 → hover 反白填充） */
+.portfolio-block-all {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(13px, 1vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1.5px solid rgba(240, 232, 216, 0.55);
+  border-radius: 999px;
+  padding: 9px 20px;
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+.portfolio-block-all:hover,
+.portfolio-block-all:focus-visible {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
+  outline: none;
+}
 
-/* 项目列表 */
-.portfolio-side-list {
+/* --- 主视觉：AI 产品作品集 --- */
+.portfolio-ai {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(22px);
+}
+.portfolio.visible .portfolio-ai {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.25s;
+}
+.portfolio-ai-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+}
+.portfolio-ai-card {
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+  text-decoration: none;
+  /* 卡面取项目色（与封面 --shot-fill 同色）→ 与封面无缝连成色块，
+     且深色在赭石底上明显跳出；描边 + 投影再加分离 */
+  background: var(--shot-fill, #2a2621);
+  border: 1px solid rgba(240, 232, 216, 0.22);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 22px 44px -26px rgba(0, 0, 0, 0.7);
+  transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.portfolio-ai-card:hover,
+.portfolio-ai-card:focus-visible {
+  transform: translateY(-6px);
+  border-color: rgba(240, 232, 216, 0.5);
+  box-shadow: 0 30px 54px -24px rgba(0, 0, 0, 0.78);
+  outline: none;
+}
+.portfolio-ai-cover {
+  aspect-ratio: 3 / 2;
+  /* contain 保证整封面不裁；底色取封面边缘同色，留白无缝 */
+  background-color: var(--shot-fill, #26241f);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.portfolio-ai-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: clamp(14px, 1.4vw, 18px) clamp(14px, 1.4vw, 18px)
+    clamp(16px, 1.6vw, 20px);
+}
+.portfolio-ai-zh {
+  font-size: clamp(15px, 1.15vw, 19px);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+.portfolio-ai-sub {
+  font-size: clamp(12px, 0.9vw, 14px);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.portfolio-ai-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(11px, 0.8vw, 12.5px);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.portfolio-ai-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dot, #5fbf8a);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--dot, #5fbf8a) 60%, transparent);
+}
+
+/* --- 次要：规划背景支撑带（弱化 + 重定义为能力迁移佐证）--- */
+.portfolio-planning {
+  max-width: 1400px;
+  width: 100%;
+  margin: clamp(36px, 5vh, 64px) auto 0;
+  padding-top: clamp(22px, 3vh, 34px);
+  border-top: 1px solid rgba(240, 232, 216, 0.18);
+  opacity: 0;
+  transform: translateY(22px);
+}
+.portfolio.visible .portfolio-planning {
+  animation: bridge-rise 0.9s cubic-bezier(0.16, 0.84, 0.3, 1) both 0.4s;
+}
+.portfolio-plan-zh {
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 600;
+  color: var(--ink);
+}
+.portfolio-plan-en {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(11px, 0.85vw, 12.5px);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: var(--ink-2);
+}
+.portfolio-plan-note {
+  max-width: 920px;
+  margin: 10px 0 16px;
+  font-size: clamp(12.5px, 0.95vw, 14.5px);
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.portfolio-plan-chips {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
-  gap: clamp(14px, 1.8vh, 20px);
-  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.portfolio-side-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-bottom: clamp(14px, 1.8vh, 20px);
-  border-bottom: 1px solid rgba(240, 232, 216, 0.12);
-}
-.portfolio-side-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-.portfolio-side-item-zh {
-  font-size: clamp(14px, 1.1vw, 17px);
-  font-weight: 500;
-  line-height: 1.45;
+.portfolio-plan-chips li {
+  font-size: clamp(12px, 0.85vw, 13.5px);
   color: var(--ink);
-}
-.portfolio-side-item-en {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: clamp(11px, 0.85vw, 13px);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-  line-height: 1.4;
-}
-
-/* 底部"查看全部 →"提示 · hover 时变亮 + 箭头微动 */
-.portfolio-side-cue {
-  margin-top: auto;
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: clamp(12px, 0.95vw, 14px);
-  letter-spacing: 0.12em;
-  color: var(--ink-2);
-  transition: color 0.3s ease, transform 0.3s ease;
-  align-self: flex-start;
-}
-.portfolio-side:hover .portfolio-side-cue,
-.portfolio-side:focus-visible .portfolio-side-cue {
-  color: var(--ink);
-  transform: translateX(4px);
+  background: rgba(240, 232, 216, 0.08);
+  border: 1px solid rgba(240, 232, 216, 0.14);
+  border-radius: 999px;
+  padding: 5px 12px;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .portfolio-title,
-  .portfolio-split {
+  .portfolio-ai,
+  .portfolio-planning {
     opacity: 1;
     transform: none;
     animation: none !important;
   }
 }
 
-/* --- 窄屏适配 · 双栏 → 上下堆叠，竖线变水平线 --- */
+/* --- 平板：AI 三卡 → 两列 --- */
+@media (max-width: 960px) {
+  .portfolio-ai-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* --- 窄屏：AI 卡片单列堆叠 --- */
 @media (max-width: 760px) {
   .portfolio {
     padding: 72px 20px;
@@ -1540,24 +1620,14 @@ body[data-section="closing"] .stage .nav-loc-dot {
     white-space: normal;
     letter-spacing: 0.01em;
   }
-  .portfolio-split {
+  .portfolio-ai-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 24px;
   }
-  .portfolio-split-line {
-    width: 100%;
-    height: 1px;
-  }
-  .portfolio-side {
-    padding: 12px 0;
-    gap: 18px;
-  }
-  .portfolio-side-label-zh {
+  .portfolio-block-zh {
     font-size: 20px;
   }
-  .portfolio-side-item-zh {
-    font-size: 15px;
+  .portfolio-ai-zh {
+    font-size: 16px;
   }
 }
 

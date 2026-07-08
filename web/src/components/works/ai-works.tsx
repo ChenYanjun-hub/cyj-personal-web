@@ -92,7 +92,7 @@ const AI_WORKS: AiWork[] = [
     zh: "建景规规范问答助手",
     en: "Architectural Norm RAG Assistant",
     tags: ["To B", "垂类 RAG", "评测体系"],
-    status: { kind: "built", label: "已开发 · 7 维评测受控 v1.0" },
+    status: { kind: "built", label: "公司内部上线测试阶段" },
     desc: `AI 版设计规范"法条数据库"——用自然语言查规划 / 建筑 / 景观 / 消防 / 结构 / 市政 6 类规范，每条回答附规范号、条文号、原文跳转，严守"不编造"红线。主导产品定义、技术选型、7 维评测体系与红线工程化，AI 辅助开发落地。`,
     metrics: [
       { num: "90.3", label: "7 维评测综合分 / 100（86.6→90.3）" },
@@ -109,10 +109,10 @@ const AI_WORKS: AiWork[] = [
     zh: "购销合同审查助手",
     en: "Sales Contract Review Assistant",
     tags: ["AI Workflow", "To B", "Coze"],
-    status: { kind: "shipped", label: "已上线 Vercel · 垂直场景 MVP" },
-    desc: `独立完成产品设计与全栈工程，把一个 Coze 审查工作流做成可上传文件、可审查、可下载报告的完整 Web 产品：三大页面 + .txt/.docx 解析 + 后端 API + Coze 文件工作流联调 + 结果标准化 + 异常退回示例兜底，已部署 Vercel 生产环境。`,
+    status: { kind: "built", label: "公司内部上线测试阶段" },
+    desc: `独立完成产品设计与全栈工程，把一个 Coze 审查工作流做成可上传文件、可审查、可下载报告的完整 Web 产品：三大页面 + .txt/.docx 解析 + 后端 API + Coze 文件工作流联调 + 结果标准化 + 异常退回示例兜底，已部署 Vercel · 公司内部测试中。`,
     metrics: [
-      { num: "MVP", label: "完整链路跑通 · 已上线 Vercel" },
+      { num: "MVP", label: "完整链路跑通 · 已部署 Vercel 内测" },
       { num: "2", label: "采购方 / 销售方 双立场审查" },
     ],
     mark: "CONTRACT",
