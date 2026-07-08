@@ -2757,6 +2757,24 @@ body[data-section="closing"] .stage .nav-loc-dot {
   color: var(--ink);
   border-color: var(--ink-2);
 }
+/* 站长登录入口 · 低调放在留言板底部右侧 */
+.board-admin-entry {
+  margin-top: 14px;
+  text-align: right;
+}
+.board-admin-entry a {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.board-admin-entry a:hover {
+  opacity: 1;
+  color: var(--ink);
+}
 
 /* 便签删除 ✕（仅管理模式渲染） */
 /* 站长编辑模式：便签右上角操作区（✕ 删除 / ⟲ 复位） */

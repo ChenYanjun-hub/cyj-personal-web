@@ -500,6 +500,13 @@ export default function MessageBoard() {
           })
         )}
       </div>
+
+      {/* 站长登录入口（未登录时显示，进 /board-admin） */}
+      {!isAdmin ? (
+        <div className="board-admin-entry">
+          <a href="/board-admin">🔧 站长登录</a>
+        </div>
+      ) : null}
     </section>
   );
 }
