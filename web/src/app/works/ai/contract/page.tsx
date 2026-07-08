@@ -21,6 +21,7 @@ const DATA: CaseStudyData = {
   intro: `他独立完成产品设计与全栈工程，把一个 Coze 审查工作流，做成可上传文件、可审查、可下载报告的完整 Web 产品——一个已上线 Vercel 的购销合同初审辅助工具。`,
   tone: ["#5a5246", "#171411"],
   mark: "CONTRACT",
+  heroBg: "/works/contract/cover.png",
   hero: {
     src: "/works/contract/02-workbench.png",
     alt: "合同审查工作台 · 上传合同材料 + 选我方公司/买卖方立场/审查模式，右侧系统连接状态与审查重点维度",

@@ -100,6 +100,8 @@ const AI_WORKS: AiWork[] = [
     ],
     mark: "RAG",
     tone: ["#2b4a72", "#0d1420"],
+    shot: "/works/jianjinggui/cover.png",
+    shotFill: "#1d314c",
     caseHref: "/works/ai/jianjinggui",
   },
   {
@@ -115,6 +117,8 @@ const AI_WORKS: AiWork[] = [
     ],
     mark: "CONTRACT",
     tone: ["#5a5246", "#171411"],
+    shot: "/works/contract/cover.png",
+    shotFill: "#312c26",
     caseHref: "/works/ai/contract",
   },
   {

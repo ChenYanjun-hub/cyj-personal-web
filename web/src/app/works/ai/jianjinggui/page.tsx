@@ -22,6 +22,7 @@ const DATA: CaseStudyData = {
   intro: `AI 版设计规范"法条数据库"——用自然语言查规划 / 建筑 / 景观 / 消防 / 结构 / 市政 6 类规范，每条回答都附规范全称、标准号、条文号、原文摘引与 PDF 原文跳转，可追溯、不编造。`,
   tone: ["#2b4a72", "#0d1420"],
   mark: "RAG",
+  heroBg: "/works/jianjinggui/cover.png",
   hero: {
     src: "/works/jianjinggui/01-qa.png",
     alt: "建景规·助手 设计规范智能查询首页 · 左栏 6 类规范分类，中部「像查法条一样查规范」+ 示例问题，右栏规范出处",
