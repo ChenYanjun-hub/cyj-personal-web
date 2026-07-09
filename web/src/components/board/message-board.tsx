@@ -78,6 +78,9 @@ export default function MessageBoard() {
   const [positions, setPositions] = useState<Map<number, Pos>>(new Map());
   const [canvasH, setCanvasH] = useState(480);
   const [loaded, setLoaded] = useState(false);
+  // 类无限画布：世界层平移量（鼠标中键/滚轮下压拖动）
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [panning, setPanning] = useState(false);
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -90,6 +93,9 @@ export default function MessageBoard() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const noteRefs = useRef<Map<number, HTMLElement>>(new Map());
   const zTop = useRef(1);
+  const panDrag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(
+    null
+  );
   const drag = useRef<{
     el: HTMLElement;
     id: number;
@@ -207,6 +213,7 @@ export default function MessageBoard() {
 
   /* ---------------- 拖拽 ---------------- */
   const onDown = (e: ReactPointerEvent<HTMLElement>, id: number) => {
+    if (e.button !== 0) return; // 仅左键拖便签；中键留给画布平移
     const p = positions.get(id);
     if (!p) return;
     const el = e.currentTarget;
@@ -267,6 +274,25 @@ export default function MessageBoard() {
       }
     }
     drag.current = null;
+  };
+
+  /* ---------------- 画布平移（中键 / 滚轮下压拖动）---------------- */
+  const onCanvasPanDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.button !== 1) return; // 仅鼠标中键
+    e.preventDefault();
+    panDrag.current = { sx: e.clientX, sy: e.clientY, ox: pan.x, oy: pan.y };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setPanning(true);
+  };
+  const onCanvasPanMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = panDrag.current;
+    if (!d) return;
+    setPan({ x: d.ox + (e.clientX - d.sx), y: d.oy + (e.clientY - d.sy) });
+  };
+  const onCanvasPanUp = () => {
+    if (!panDrag.current) return;
+    panDrag.current = null;
+    setPanning(false);
   };
 
   /* ---------------- 站长后台操作 ---------------- */
@@ -431,15 +457,34 @@ export default function MessageBoard() {
         ) : null}
       </form>
 
-      {/* 网格底板 · 可拖动便签 */}
-      <div className="board-canvas" ref={canvasRef} style={{ height: canvasH }}>
+      {/* 网格底板（固定视窗）· 内含可平移的大画布世界层 */}
+      <div
+        className={`board-canvas${panning ? " board-canvas--panning" : ""}`}
+        ref={canvasRef}
+        style={{ backgroundPosition: `${pan.x}px ${pan.y}px` }}
+        onPointerDown={onCanvasPanDown}
+        onPointerMove={onCanvasPanMove}
+        onPointerUp={onCanvasPanUp}
+        onPointerLeave={onCanvasPanUp}
+        onPointerCancel={onCanvasPanUp}
+        onMouseDown={(e) => {
+          if (e.button === 1) e.preventDefault(); // 抑制中键自动滚动
+        }}
+      >
         {!loaded ? (
           <p className="board-empty">加载中…</p>
         ) : messages.length === 0 ? (
           <p className="board-empty">还没有留言，来当第一个 👋</p>
         ) : (
-          messages.map((m) => {
-            const p = positions.get(m.id);
+          <div
+            className="board-world"
+            style={{
+              transform: `translate(${pan.x}px, ${pan.y}px)`,
+              minHeight: canvasH,
+            }}
+          >
+            {messages.map((m) => {
+              const p = positions.get(m.id);
             return (
               <article
                 key={m.id}
@@ -497,7 +542,8 @@ export default function MessageBoard() {
                 <p className="board-note-body">{m.body}</p>
               </article>
             );
-          })
+            })}
+          </div>
         )}
       </div>
 
