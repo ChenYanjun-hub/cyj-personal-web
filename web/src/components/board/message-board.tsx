@@ -81,6 +81,8 @@ export default function MessageBoard() {
   // 类无限画布：世界层平移量（鼠标中键/滚轮下压拖动）
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState(false);
+  // 触摸端：长按 2s 激活拖动的便签（加脉冲动画类）
+  const [armedNote, setArmedNote] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -93,18 +95,20 @@ export default function MessageBoard() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const noteRefs = useRef<Map<number, HTMLElement>>(new Map());
   const zTop = useRef(1);
-  const panDrag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(
-    null
-  );
-  const drag = useRef<{
-    el: HTMLElement;
-    id: number;
+  // 统一手势：pan=平移底板 / note=拖便签 / pending=触摸待判定（长按→拖便签，滑动→平移）
+  const gesture = useRef<{
+    kind: "pan" | "note" | "pending";
+    id?: number;
+    el?: HTMLElement;
     sx: number;
     sy: number;
-    ox: number;
-    oy: number;
+    panOx: number;
+    panOy: number;
+    nox: number;
+    noy: number;
     rot: number;
     moved: boolean;
+    timer?: number;
   } | null>(null);
 
   // 拉留言列表：服务端已设位置的便签（pos_x 非空）直接采用，其余走瀑布流
@@ -211,88 +215,160 @@ export default function MessageBoard() {
     return () => window.removeEventListener("resize", onResize);
   }, [layout]);
 
-  /* ---------------- 拖拽 ---------------- */
-  const onDown = (e: ReactPointerEvent<HTMLElement>, id: number) => {
-    if (e.button !== 0) return; // 仅左键拖便签；中键留给画布平移
+  /* ---------------- 统一手势（拖便签 / 平移底板）----------------
+     鼠标：左键拖便签、中键平移；触摸：滑动=平移，便签上长按 2s=拖便签 */
+  const LONG_PRESS_MS = 2000;
+  const TOUCH_MOVE_CANCEL = 12;
+
+  // setPointerCapture 对无效指针会抛异常（尤其合成事件），兜底不让它中断手势
+  const capture = (el: HTMLElement, id: number) => {
+    try {
+      el.setPointerCapture(id);
+    } catch {}
+  };
+
+  const beginNoteDrag = (
+    id: number,
+    el: HTMLElement,
+    atX: number,
+    atY: number
+  ) => {
+    const g = gesture.current;
+    if (!g) return;
     const p = positions.get(id);
-    if (!p) return;
-    const el = e.currentTarget;
-    drag.current = {
-      el,
-      id,
-      sx: e.clientX,
-      sy: e.clientY,
-      ox: p.x,
-      oy: p.y,
-      rot: p.rot,
-      moved: false,
-    };
     zTop.current += 1;
     el.style.zIndex = String(zTop.current);
     el.classList.add("dragging");
-    el.setPointerCapture?.(e.pointerId);
+    g.kind = "note";
+    g.id = id;
+    g.el = el;
+    g.sx = atX;
+    g.sy = atY;
+    g.nox = p?.x ?? 0;
+    g.noy = p?.y ?? 0;
+    g.rot = p?.rot ?? 0;
+    g.moved = false;
   };
 
-  const onMove = (e: ReactPointerEvent<HTMLElement>) => {
-    const d = drag.current;
-    if (!d) return;
-    const dx = e.clientX - d.sx;
-    const dy = e.clientY - d.sy;
-    if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
-    d.el.style.transform = `translate(${d.ox + dx}px, ${d.oy + dy}px) rotate(${d.rot}deg)`;
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const canvas = e.currentTarget;
+    const noteEl = (e.target as HTMLElement).closest(
+      ".board-note"
+    ) as HTMLElement | null;
+    const noteId = noteEl ? Number(noteEl.dataset.id) : NaN;
+    const base = {
+      sx: e.clientX,
+      sy: e.clientY,
+      panOx: pan.x,
+      panOy: pan.y,
+      nox: 0,
+      noy: 0,
+      rot: 0,
+      moved: false,
+    };
+
+    if (e.pointerType === "mouse") {
+      if (e.button === 1) {
+        // 中键 → 平移底板
+        e.preventDefault();
+        capture(canvas, e.pointerId);
+        gesture.current = { kind: "pan", ...base };
+        setPanning(true);
+      } else if (e.button === 0 && noteEl && Number.isFinite(noteId)) {
+        // 左键点便签 → 直接拖便签
+        capture(canvas, e.pointerId);
+        gesture.current = { kind: "pending", ...base };
+        beginNoteDrag(noteId, noteEl, e.clientX, e.clientY);
+      }
+      return;
+    }
+
+    // 触摸
+    capture(canvas, e.pointerId);
+    if (noteEl && Number.isFinite(noteId)) {
+      // 挂起：长按 2s 才拖便签；期间滑动超阈值 → 转平移
+      const timer = window.setTimeout(() => {
+        const g = gesture.current;
+        if (!g || g.kind !== "pending") return;
+        setArmedNote(noteId);
+        navigator.vibrate?.(25);
+        beginNoteDrag(noteId, noteEl, g.sx, g.sy);
+      }, LONG_PRESS_MS);
+      gesture.current = { kind: "pending", id: noteId, el: noteEl, ...base, timer };
+    } else {
+      gesture.current = { kind: "pan", ...base };
+      setPanning(true);
+    }
   };
 
-  const onUp = (e: ReactPointerEvent<HTMLElement>) => {
-    const d = drag.current;
-    if (!d) return;
-    d.el.classList.remove("dragging");
-    if (d.moved) {
-      const nx = d.ox + (e.clientX - d.sx);
-      const ny = d.oy + (e.clientY - d.sy);
-      setPositions((prev) => {
-        const n = new Map(prev);
-        const p = n.get(d.id);
-        if (p) n.set(d.id, { ...p, x: nx, y: ny, z: zTop.current, manual: true });
-        return n;
-      });
-      // 站长编辑模式：位置写回服务端，全局生效
-      if (isAdmin) {
-        void fetch(`/api/board/${d.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            x: Math.round(nx),
-            y: Math.round(ny),
-            rot: d.rot,
-          }),
-        }).then((res) => {
-          if (res.status === 401) {
-            setIsAdmin(false);
-            setError("登录已过期，请重新登录后台");
-          }
-        }).catch(() => {});
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const g = gesture.current;
+    if (!g) return;
+    const dx = e.clientX - g.sx;
+    const dy = e.clientY - g.sy;
+    if (Math.abs(dx) + Math.abs(dy) > 3) g.moved = true;
+
+    if (g.kind === "pending") {
+      // 触摸滑动超阈值（还没长按达成）→ 取消长按，改为平移底板
+      if (Math.abs(dx) + Math.abs(dy) > TOUCH_MOVE_CANCEL) {
+        if (g.timer) window.clearTimeout(g.timer);
+        g.kind = "pan";
+        g.sx = e.clientX;
+        g.sy = e.clientY;
+        g.panOx = pan.x;
+        g.panOy = pan.y;
+        setPanning(true);
+      }
+      return;
+    }
+    if (g.kind === "pan") {
+      setPan({ x: g.panOx + dx, y: g.panOy + dy });
+      return;
+    }
+    if (g.el) {
+      g.el.style.transform = `translate(${g.nox + dx}px, ${g.noy + dy}px) rotate(${g.rot}deg)`;
+    }
+  };
+
+  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const g = gesture.current;
+    if (!g) {
+      setPanning(false);
+      return;
+    }
+    if (g.timer) window.clearTimeout(g.timer);
+    if (g.kind === "note" && g.id != null && g.el) {
+      g.el.classList.remove("dragging");
+      if (g.moved) {
+        const nx = g.nox + (e.clientX - g.sx);
+        const ny = g.noy + (e.clientY - g.sy);
+        const id = g.id;
+        const rot = g.rot;
+        setPositions((prev) => {
+          const n = new Map(prev);
+          const p = n.get(id);
+          if (p) n.set(id, { ...p, x: nx, y: ny, z: zTop.current, manual: true });
+          return n;
+        });
+        if (isAdmin) {
+          void fetch(`/api/board/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ x: Math.round(nx), y: Math.round(ny), rot }),
+          })
+            .then((res) => {
+              if (res.status === 401) {
+                setIsAdmin(false);
+                setError("登录已过期，请重新登录后台");
+              }
+            })
+            .catch(() => {});
+        }
       }
     }
-    drag.current = null;
-  };
-
-  /* ---------------- 画布平移（中键 / 滚轮下压拖动）---------------- */
-  const onCanvasPanDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (e.button !== 1) return; // 仅鼠标中键
-    e.preventDefault();
-    panDrag.current = { sx: e.clientX, sy: e.clientY, ox: pan.x, oy: pan.y };
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-    setPanning(true);
-  };
-  const onCanvasPanMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const d = panDrag.current;
-    if (!d) return;
-    setPan({ x: d.ox + (e.clientX - d.sx), y: d.oy + (e.clientY - d.sy) });
-  };
-  const onCanvasPanUp = () => {
-    if (!panDrag.current) return;
-    panDrag.current = null;
+    gesture.current = null;
     setPanning(false);
+    setArmedNote(null);
   };
 
   /* ---------------- 站长后台操作 ---------------- */
@@ -462,11 +538,10 @@ export default function MessageBoard() {
         className={`board-canvas${panning ? " board-canvas--panning" : ""}`}
         ref={canvasRef}
         style={{ backgroundPosition: `${pan.x}px ${pan.y}px` }}
-        onPointerDown={onCanvasPanDown}
-        onPointerMove={onCanvasPanMove}
-        onPointerUp={onCanvasPanUp}
-        onPointerLeave={onCanvasPanUp}
-        onPointerCancel={onCanvasPanUp}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         onMouseDown={(e) => {
           if (e.button === 1) e.preventDefault(); // 抑制中键自动滚动
         }}
@@ -488,11 +563,12 @@ export default function MessageBoard() {
             return (
               <article
                 key={m.id}
+                data-id={m.id}
                 ref={(el) => {
                   if (el) noteRefs.current.set(m.id, el);
                   else noteRefs.current.delete(m.id);
                 }}
-                className="board-note"
+                className={`board-note${armedNote === m.id ? " board-note--armed" : ""}`}
                 style={
                   p
                     ? {
@@ -501,10 +577,6 @@ export default function MessageBoard() {
                       }
                     : { opacity: 0 }
                 }
-                onPointerDown={(e) => onDown(e, m.id)}
-                onPointerMove={onMove}
-                onPointerUp={onUp}
-                onPointerCancel={onUp}
               >
                 <span className="board-note-clip">
                   <BoardClip />
