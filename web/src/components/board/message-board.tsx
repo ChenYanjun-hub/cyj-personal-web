@@ -25,6 +25,7 @@ type BoardMessage = {
   pos_y: number | null;
   rot: number | null;
   z_order: number;
+  hidden?: number;
 };
 
 type Pos = { x: number; y: number; rot: number; z: number; manual: boolean };
@@ -379,8 +380,35 @@ export default function MessageBoard() {
     setIsAdmin(false);
   };
 
+  const toggleHidden = async (id: number, hidden: boolean) => {
+    if (!isAdmin) return;
+    try {
+      const res = await fetch(`/api/board/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden }),
+      });
+      if (res.status === 401) {
+        setIsAdmin(false);
+        setError("登录已过期，请重新登录后台");
+        return;
+      }
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === id ? { ...m, hidden: hidden ? 1 : 0 } : m))
+        );
+      }
+    } catch {
+      setError("操作失败，请稍后再试");
+    }
+  };
+
   const deleteNote = async (id: number) => {
     if (!isAdmin) return;
+    if (
+      !window.confirm("永久删除这条留言？删除不可恢复；只想暂时下架请用「隐藏」。")
+    )
+      return;
     try {
       const res = await fetch(`/api/board/${id}`, { method: "DELETE" });
       if (res.status === 401) {
@@ -568,7 +596,7 @@ export default function MessageBoard() {
                   if (el) noteRefs.current.set(m.id, el);
                   else noteRefs.current.delete(m.id);
                 }}
-                className={`board-note${armedNote === m.id ? " board-note--armed" : ""}`}
+                className={`board-note${armedNote === m.id ? " board-note--armed" : ""}${m.hidden ? " board-note--hidden" : ""}`}
                 style={
                   p
                     ? {
@@ -581,6 +609,9 @@ export default function MessageBoard() {
                 <span className="board-note-clip">
                   <BoardClip />
                 </span>
+                {isAdmin && m.hidden ? (
+                  <span className="board-note-hidden-tag">已隐藏</span>
+                ) : null}
                 {isAdmin ? (
                   <div className="board-note-tools">
                     {p?.manual ? (
@@ -597,9 +628,19 @@ export default function MessageBoard() {
                     ) : null}
                     <button
                       type="button"
+                      className="board-note-hide"
+                      aria-label={m.hidden ? "取消隐藏" : "隐藏这条留言"}
+                      title={m.hidden ? "取消隐藏（前台恢复显示）" : "隐藏（前台不再显示）"}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => toggleHidden(m.id, !m.hidden)}
+                    >
+                      {m.hidden ? "显" : "隐"}
+                    </button>
+                    <button
+                      type="button"
                       className="board-note-del"
-                      aria-label="删除这条留言"
-                      title="删除"
+                      aria-label="永久删除这条留言"
+                      title="永久删除（不可恢复）"
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={() => deleteNote(m.id)}
                     >

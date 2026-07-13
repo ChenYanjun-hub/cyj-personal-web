@@ -2,11 +2,16 @@
  * /api/board/[id] · 站长后台操作单条留言（DELETE 删除 / PATCH 布局）
  * ---------------------------------------------------------------
  * 鉴权：邮箱+密码登录后的 httpOnly 会话 cookie（见 lib/board/auth）。
- *  - DELETE：软删除（hidden=1），保留原始记录便于追溯
- *  - PATCH ：设置便签自定义位置 { x, y, rot }，或 { reset: true } 回默认瀑布流
+ *  - DELETE：永久删除（deleted=1，后台也不再显示）
+ *  - PATCH ：设置便签位置 { x, y, rot } / { reset: true } 回瀑布流 / { hidden: bool } 隐藏切换
  */
 import { NextResponse } from "next/server";
-import { hideMessage, setNoteLayout, resetNoteLayout } from "@/lib/board/db";
+import {
+  deleteMessage,
+  setHidden,
+  setNoteLayout,
+  resetNoteLayout,
+} from "@/lib/board/db";
 import { isAdminRequest } from "@/lib/board/auth";
 
 export const runtime = "nodejs";
@@ -29,7 +34,7 @@ export async function DELETE(
   if (numId === null) {
     return NextResponse.json({ message: "无效 id" }, { status: 400 });
   }
-  return NextResponse.json({ ok: hideMessage(numId) });
+  return NextResponse.json({ ok: deleteMessage(numId) });
 }
 
 export async function PATCH(
@@ -45,11 +50,21 @@ export async function PATCH(
     return NextResponse.json({ message: "无效 id" }, { status: 400 });
   }
 
-  let payload: { x?: number; y?: number; rot?: number; reset?: boolean };
+  let payload: {
+    x?: number;
+    y?: number;
+    rot?: number;
+    reset?: boolean;
+    hidden?: boolean;
+  };
   try {
     payload = await req.json();
   } catch {
     return NextResponse.json({ message: "请求格式错误" }, { status: 400 });
+  }
+
+  if (typeof payload.hidden === "boolean") {
+    return NextResponse.json({ ok: setHidden(numId, payload.hidden) });
   }
 
   if (payload.reset) {

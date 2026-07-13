@@ -55,6 +55,9 @@ function migrate(db: Database.Database) {
     // 老数据 z_order 默认 = created_at，保证默认叠放顺序 = 时间序
     db.exec("UPDATE messages SET z_order = created_at WHERE z_order IS NULL");
   }
+  // deleted=永久删除（后台也不显示）；hidden=可逆隐藏（前台不显示，后台标灰可恢复）
+  if (!cols.has("deleted"))
+    db.exec("ALTER TABLE messages ADD COLUMN deleted INTEGER NOT NULL DEFAULT 0");
 }
 
 function db(): Database.Database {
@@ -72,17 +75,23 @@ export type BoardMessage = {
   pos_y: number | null;
   rot: number | null;
   z_order: number;
+  /** 1 = 站长已隐藏（前台不显示；后台标灰可恢复） */
+  hidden: number;
 };
 
 const SELECT_COLS =
-  "id, name, body, created_at, pos_x, pos_y, rot, z_order";
+  "id, name, body, created_at, pos_x, pos_y, rot, z_order, hidden";
 
-/** 取可见留言，最新在前（默认时间序 = created_at DESC） */
-export function listMessages(limit = 200): BoardMessage[] {
+/** 取留言，最新在前（默认时间序）。includeHidden=站长后台，连隐藏的一起取 */
+export function listMessages(
+  limit = 200,
+  includeHidden = false
+): BoardMessage[] {
+  const where = includeHidden ? "deleted = 0" : "hidden = 0 AND deleted = 0";
   return db()
     .prepare(
       `SELECT ${SELECT_COLS} FROM messages
-       WHERE hidden = 0 ORDER BY created_at DESC, id DESC LIMIT ?`
+       WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT ?`
     )
     .all(limit) as BoardMessage[];
 }
@@ -109,12 +118,22 @@ export function addMessage(input: {
     pos_y: null,
     rot: null,
     z_order: now,
+    hidden: 0,
   };
 }
 
-/** 站长隐藏（软删除）一条留言 */
-export function hideMessage(id: number): boolean {
-  return db().prepare("UPDATE messages SET hidden = 1 WHERE id = ?").run(id)
+/** 站长后台：隐藏 / 取消隐藏一条留言（可逆） */
+export function setHidden(id: number, hidden: boolean): boolean {
+  return (
+    db()
+      .prepare("UPDATE messages SET hidden = ? WHERE id = ? AND deleted = 0")
+      .run(hidden ? 1 : 0, id).changes > 0
+  );
+}
+
+/** 站长后台：永久删除（deleted=1，后台也不再显示，不可恢复） */
+export function deleteMessage(id: number): boolean {
+  return db().prepare("UPDATE messages SET deleted = 1 WHERE id = ?").run(id)
     .changes > 0;
 }
 
@@ -131,7 +150,7 @@ export function setNoteLayout(
     db()
       .prepare(
         `UPDATE messages SET pos_x = ?, pos_y = ?, rot = ?, z_order = ?
-         WHERE id = ? AND hidden = 0`
+         WHERE id = ? AND deleted = 0`
       )
       .run(layout.x, layout.y, layout.rot, maxZ + 1, id).changes > 0
   );

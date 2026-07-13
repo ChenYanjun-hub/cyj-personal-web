@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { addMessage, listMessages } from "@/lib/board/db";
 import { BOARD_LIMITS } from "@/lib/board/limits";
+import { isAdminRequest } from "@/lib/board/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,9 +41,12 @@ function rateLimited(key: string): boolean {
   return false;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    return NextResponse.json({ messages: listMessages(100) });
+    // 站长（带会话 cookie）连隐藏的一起取；访客只取可见
+    return NextResponse.json({
+      messages: listMessages(200, isAdminRequest(req)),
+    });
   } catch {
     return NextResponse.json({ message: "留言板暂时不可用" }, { status: 500 });
   }
