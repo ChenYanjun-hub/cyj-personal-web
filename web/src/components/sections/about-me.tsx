@@ -220,17 +220,9 @@ export default function AboutMe() {
       </h2>
 
       <div className="about-grid">
-        {/* 左栏：ProfileCard（3D 倾斜 holographic 卡片，me.png 当 avatar）+ 大字拼音姓名 */}
+        {/* 左栏：ProfileCard + 姓名签名 + 照片下方补 教育 / AI 项目 / SEE MORE
+         *  （把三个短板块挪到照片下方，与右栏的长文 WORK 形成两栏均衡） */}
         <div className="about-left">
-          {/*
-            ProfileCard 来自 reactbits.dev（JS-CSS 版）。
-            - avatarUrl 用 /me.png（包含照片 + 名字 + 学校的完整人物名片）
-            - name / title 是 ProfileCard 底部小字
-            - showUserInfo=false：关掉默认的 mini-avatar + handle + Contact 板块
-              （这一坨和右栏的内容会重复；保留 details 即可）
-            - enableTilt=true：鼠标 hover 时 3D 倾斜
-            - 默认 holographic 内层渐变（蓝紫色）+ behind glow
-          */}
           <ProfileCard
             avatarUrl="/me.png"
             iconUrl="/pc-icon.png"
@@ -245,35 +237,72 @@ export default function AboutMe() {
             enableMobileTilt={false}
           />
 
-          {/* 大字拼音姓名 — 视觉上承载左下角的"签名感"（参考图 LIUWENTAO 的处理） */}
+          {/* 大字拼音姓名 — 视觉签名 */}
           <p className="about-signature">CHEN YANJUN</p>
+
+          {/* 照片下方板块组 */}
+          <div className="about-left-blocks">
+            {/* EDUCATION */}
+            <section className="about-block">
+              <h3 className="about-block-title">EDUCATION</h3>
+              <div className="about-entry">
+                <p className="about-entry-line">{EDUCATION.org}</p>
+                <p className="about-entry-line">
+                  {EDUCATION.detail} ｜ {EDUCATION.date}
+                </p>
+                <p className="about-entry-line muted">
+                  <span className="work-role-marker">a、</span>
+                  {EDUCATION.honors.join("；")}
+                </p>
+                <p className="about-entry-line muted">
+                  <span className="work-role-marker">b、</span>
+                  竞赛经历：{EDUCATION.awards.join("、")}
+                </p>
+              </div>
+            </section>
+
+            {/* AI PROJECTS */}
+            <section className="about-block">
+              <h3 className="about-block-title">AI PROJECTS</h3>
+              <div className="about-entry">
+                {AI_PROJECTS.map((p) => (
+                  <p key={p.name} className="about-entry-line">
+                    <span className="project-name">{p.name}</span>
+                    <span className="project-sep" aria-hidden>
+                      {" "}
+                      ｜{" "}
+                    </span>
+                    <span className="muted">{p.desc}</span>
+                  </p>
+                ))}
+              </div>
+            </section>
+
+            {/* SEE MORE · 子幕跳转 */}
+            <section className="about-block">
+              <h3 className="about-block-title">SEE MORE</h3>
+              <div className="about-jumps">
+                <a href="#compare" className="about-jump">
+                  能力对照
+                  <span className="jump-arrow" aria-hidden>
+                    ↓
+                  </span>
+                </a>
+                <a href="#skills" className="about-jump">
+                  具备技能
+                  <span className="jump-arrow" aria-hidden>
+                    ↓
+                  </span>
+                </a>
+              </div>
+            </section>
+          </div>
         </div>
 
-        {/* 右栏：4 个板块 */}
+        {/* 右栏：WORK EXPERIENCE（长文独占一栏，平衡左栏）
+         *  这一段工作经历同时担三个 role（a 城乡规划师 / b AI 产品经理 / c 宣传部新媒体），
+         *  每个 role 内可有 主导 / 深度参与 / 参与 三个层级（按需出现）。 */}
         <div className="about-right">
-          {/* EDUCATION */}
-          <section className="about-block">
-            <h3 className="about-block-title">EDUCATION</h3>
-            <div className="about-entry">
-              <p className="about-entry-line">{EDUCATION.org}</p>
-              <p className="about-entry-line">
-                {EDUCATION.detail} ｜ {EDUCATION.date}
-              </p>
-              <p className="about-entry-line muted">
-                <span className="work-role-marker">a、</span>
-                {EDUCATION.honors.join("；")}
-              </p>
-              <p className="about-entry-line muted">
-                <span className="work-role-marker">b、</span>
-                竞赛经历：{EDUCATION.awards.join("、")}
-              </p>
-            </div>
-          </section>
-
-          {/* WORK EXPERIENCE
-           *  这一段工作经历同时担两个 role（a 城乡规划师 / b 宣传部新媒体），
-           *  每个 role 内可有 主导 / 深度参与 / 参与 三个层级（按需出现）。
-           *  排版策略：role 之间留间距，每个层级一行 + 自然换行（line-height 1.6） */}
           <section className="about-block">
             <h3 className="about-block-title">WORK EXPERIENCE</h3>
             <div className="about-entry">
@@ -312,42 +341,6 @@ export default function AboutMe() {
                   ))}
                 </div>
               ))}
-            </div>
-          </section>
-
-          {/* AI PROJECTS */}
-          <section className="about-block">
-            <h3 className="about-block-title">AI PROJECTS</h3>
-            <div className="about-entry">
-              {AI_PROJECTS.map((p) => (
-                <p key={p.name} className="about-entry-line">
-                  <span className="project-name">{p.name}</span>
-                  <span className="project-sep" aria-hidden>
-                    {" "}
-                    ｜{" "}
-                  </span>
-                  <span className="muted">{p.desc}</span>
-                </p>
-              ))}
-            </div>
-          </section>
-
-          {/* 子幕跳转：参考图里 "Project" 风格的极简锚词 */}
-          <section className="about-block">
-            <h3 className="about-block-title">SEE MORE</h3>
-            <div className="about-jumps">
-              <a href="#compare" className="about-jump">
-                能力对照
-                <span className="jump-arrow" aria-hidden>
-                  ↓
-                </span>
-              </a>
-              <a href="#skills" className="about-jump">
-                具备技能
-                <span className="jump-arrow" aria-hidden>
-                  ↓
-                </span>
-              </a>
             </div>
           </section>
         </div>
