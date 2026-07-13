@@ -1147,6 +1147,21 @@ body[data-section="closing"] .stage .nav-loc-dot {
   margin-top: clamp(6px, 1vh, 14px);
 }
 
+/* AI 产品经理经历：head 下的分点列表（把厚重正文拆成可扫读要点） */
+.work-item-points {
+  margin: 5px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.work-item-points li {
+  list-style: disc;
+}
+.work-item-points li::marker {
+  color: var(--ink-2);
+}
+
 /* --- 左栏：照片 + 拼音姓名签名 --- */
 .about-left {
   display: flex;
