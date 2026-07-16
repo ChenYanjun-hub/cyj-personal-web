@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { HOBBIES, getHobby } from "@/components/hobbies/hobbies-data";
+import { getHobbyGallery } from "@/lib/hobbies/gallery";
 
 /*
   /hobbies/[slug] · 爱好详情页（第四幕「其他」卡牌的跳转目标）
@@ -39,6 +40,8 @@ export default async function HobbyPage({
   const { slug } = await params;
   const h = getHobby(slug);
   if (!h) notFound();
+
+  const gallery = getHobbyGallery(slug);
 
   return (
     <main
@@ -96,13 +99,42 @@ export default async function HobbyPage({
         <section className="hobby-section">
           <p className="hobby-section-eyebrow">GALLERY</p>
           <h2 className="hobby-section-heading">作品 / 记录</h2>
-          <div className="hobby-gallery">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="hobby-gallery-ph" aria-hidden>
-                <span>整理中</span>
-              </div>
-            ))}
-          </div>
+          {gallery.length ? (
+            <div className="hobby-gallery-groups">
+              {gallery.map((g) => (
+                <div key={g.title} className="hobby-gallery-group">
+                  <p className="hobby-gallery-group-title">
+                    {g.title}
+                    <span className="hobby-gallery-group-count">
+                      {g.photos.length}
+                    </span>
+                  </p>
+                  <div className="hobby-gallery-grid">
+                    {g.photos.map((src) => (
+                      <a
+                        key={src}
+                        href={src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hobby-gallery-item"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt={g.title} loading="lazy" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="hobby-gallery">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="hobby-gallery-ph" aria-hidden>
+                  <span>整理中</span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
 
